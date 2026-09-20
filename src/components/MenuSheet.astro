@@ -1,33 +1,59 @@
 ---
+/**
+ * The menu sheet.
+ *
+ * The same ember chapter as everything else, opened as a wall. Links are set at display scale and each one
+ * lights its own row on approach; under them the five workforces as a hairline list, and the two doors. It is
+ * the site in one screen rather than a list of page names.
+ */
 import Arrow from './ui/Arrow.astro';
-import { nav, cta } from '../data/site';
+import { nav, cta, site } from '../data/site';
+import { worlds } from '../data/worlds';
+
+const pages = [...nav, { label: 'Contact', href: '/contact/' }];
 ---
 <div class="ms" id="menu-sheet" role="dialog" aria-modal="true" aria-label="Menu" data-menu data-theme="dark" hidden>
+  <div class="ms__grain" aria-hidden="true"></div>
+
   <div class="ms__top">
-    <span class="label label--soft">Menu</span>
-    <button class="ms__close label" type="button" data-menu-close>Close</button>
+    <span class="label label--soft">{site.legalName}</span>
+    <button class="ms__close label" type="button" data-menu-close>Close<span class="ms__x" aria-hidden="true"></span></button>
   </div>
-  <nav aria-label="Menu">
-    <ol class="ms__list">
-      {nav.map((item, i) => (
-        <li>
-          <a class="ms__link" href={item.href}>
-            <span class="label num">{String(i + 1).padStart(2, '0')}</span>
-            <span class="h1">{item.label}</span>
-          </a>
-        </li>
-      ))}
-      <li>
-        <a class="ms__link" href="/contact/">
-          <span class="label num">{String(nav.length + 1).padStart(2, '0')}</span>
-          <span class="h1">Contact</span>
-        </a>
-      </li>
-    </ol>
-  </nav>
+
+  <div class="ms__body">
+    <nav class="ms__nav" aria-label="Menu">
+      <ol class="ms__list">
+        {pages.map((item, i) => (
+          <li>
+            <a class="ms__link" href={item.href}>
+              <span class="label ms__n">{String(i + 1).padStart(2, '0')}</span>
+              <span class="ms__label">{item.label}</span>
+              <Arrow class="ms__arrow" />
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <div class="ms__side">
+      <p class="label ms__sh">Workforces</p>
+      <ul class="ms__worlds">
+        {worlds.map((w) => (
+          <li data-sector={w.id}><a class="ms__world" href={`/services/#${w.id}`}><span class="ms__dot" aria-hidden="true"></span>{w.title}</a></li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
   <div class="ms__cta">
-    <a class="btn btn--solid label" href={cta.employer.href}>{cta.employer.label}<Arrow /></a>
-    <a class="btn label" href={cta.candidate.href}>{cta.candidate.label}<Arrow /></a>
+    <a class="ms__door" href={cta.employer.href}>
+      <span class="label label--soft">For employers</span>
+      <span class="ms__doorh">{cta.employer.label}</span>
+    </a>
+    <a class="ms__door" href={cta.candidate.href}>
+      <span class="label label--soft">For candidates</span>
+      <span class="ms__doorh">{cta.candidate.label}</span>
+    </a>
   </div>
 </div>
 
@@ -36,17 +62,61 @@ import { nav, cta } from '../data/site';
     position: fixed; inset: 0; z-index: 150;
     display: grid; grid-template-rows: auto 1fr auto;
     padding: 0 var(--margin) calc(var(--margin) + env(safe-area-inset-bottom));
-    background: var(--studio); color: var(--bone);
+    background: var(--ember); color: var(--bone);
+    background-image: radial-gradient(90% 70% at 6% 24%, rgba(194, 132, 86, 0.2) 0%, rgba(194, 132, 86, 0) 66%);
     overflow-y: auto; overscroll-behavior: contain;
+    isolation: isolate;
   }
-  .ms__top { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); }
-  .ms__close { min-height: 2.75rem; padding-inline: 0.5rem; }
-  .ms__list { align-self: center; display: grid; padding-block: 1.5rem; }
-  .ms__link { display: grid; grid-template-columns: 2.5rem 1fr; align-items: baseline; padding-block: 0.7rem; border-block-end: 1px solid var(--line); }
-  .ms__list li:first-child .ms__link { border-block-start: 1px solid var(--line); }
-  .ms__cta { display: grid; gap: 0.75rem; }
-  .ms__cta .btn { justify-content: space-between; }
+  .ms__grain { position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: var(--grain-url); background-size: 180px 180px; opacity: 0.45; mix-blend-mode: overlay; }
 
-  html.motion .ms[data-open='true'] { animation: ms-in 420ms var(--ease-freeze); }
+  .ms__top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: var(--header-h); border-block-end: 1px solid var(--line); }
+  .ms__close { display: inline-flex; align-items: center; gap: 0.7rem; min-height: 2.75rem; padding-inline: 0.5rem; color: var(--fg-soft); transition: color var(--d-state) ease; }
+  .ms__close:hover, .ms__close:focus-visible { color: var(--fg); }
+  .ms__x { position: relative; width: 11px; height: 11px; }
+  .ms__x::before, .ms__x::after { content: ''; position: absolute; inset-block-start: 5px; inset-inline: 0; height: 1px; background: currentColor; }
+  .ms__x::before { transform: rotate(45deg); }
+  .ms__x::after { transform: rotate(-45deg); }
+
+  .ms__body { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: var(--gutter); align-content: center; padding-block: clamp(1.5rem, 5vh, 3rem); }
+
+  .ms__link {
+    position: relative; display: grid; grid-template-columns: 3rem 1fr auto; align-items: baseline;
+    padding: clamp(0.5rem, 1.6vh, 1rem) 0.75rem;
+    border-block-end: 1px solid var(--line);
+    transition: padding-inline-start var(--d-reveal) var(--ease-freeze);
+  }
+  .ms__list li:first-child .ms__link { border-block-start: 1px solid var(--line); }
+  .ms__link::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(194, 132, 86, 0.14); transform: scaleY(0); transform-origin: bottom; transition: transform var(--d-reveal) var(--ease-freeze); }
+  .ms__link:hover::before, .ms__link:focus-visible::before { transform: none; }
+  .ms__link:hover, .ms__link:focus-visible { padding-inline-start: 1.6rem; }
+  .ms__n { color: var(--bronze); }
+  .ms__label { font-family: var(--f-display); font-size: clamp(2rem, 6vw, 4.5rem); line-height: 1.05; letter-spacing: -0.03em; }
+  .ms__arrow { align-self: center; opacity: 0; transition: opacity var(--d-state) ease; }
+  .ms__link:hover .ms__arrow, .ms__link:focus-visible .ms__arrow { opacity: 0.7; }
+
+  .ms__side { align-self: end; padding-block-end: 0.5rem; }
+  .ms__sh { color: var(--fg-soft); padding-block-end: 0.75rem; border-block-end: 1px solid var(--line); }
+  .ms__world { display: flex; align-items: center; gap: 0.75rem; min-height: 2.6rem; font-size: var(--t-small); color: var(--fg-soft); transition: color var(--d-state) ease; }
+  .ms__world:hover, .ms__world:focus-visible { color: var(--fg); }
+  .ms__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+
+  .ms__cta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-block-start: 1px solid var(--line); }
+  .ms__door { display: grid; gap: 0.9rem; padding: clamp(1rem, 2.5vh, 1.5rem) 0.75rem; transition: background-color var(--d-state) ease, color var(--d-state) ease; }
+  .ms__door + .ms__door { border-inline-start: 1px solid var(--line); }
+  .ms__door:hover, .ms__door:focus-visible { background: var(--bronze); color: var(--studio); }
+  .ms__door:hover .label--soft, .ms__door:focus-visible .label--soft { color: rgba(11, 10, 9, 0.7); }
+  .ms__doorh { font-family: var(--f-display); font-size: clamp(1.125rem, 2vw, 1.5rem); line-height: 1.05; letter-spacing: -0.02em; }
+
+  @media (max-width: 699px) {
+    .ms__body { grid-template-columns: 1fr; row-gap: clamp(1.5rem, 4vh, 2.5rem); align-content: start; }
+    .ms__side { align-self: start; }
+    .ms__label { font-size: clamp(1.875rem, 9vw, 3rem); }
+  }
+  @media (max-height: 620px) {
+    .ms__side { display: none; }
+    .ms__body { grid-template-columns: 1fr; }
+  }
+
+  :global(html.motion) .ms[data-open='true'] { animation: ms-in 460ms var(--ease-freeze); }
   @keyframes ms-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
 </style>
