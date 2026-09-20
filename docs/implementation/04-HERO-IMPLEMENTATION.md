@@ -1,3 +1,8 @@
+> **PARTLY SUPERSEDED — session 2.** Sections 1, 2, 3, 6, 7 and 8 (the media, the playback technology, the
+> derivatives, loading, fit and the exit mask) still describe the build exactly. Sections 4, 5, 9, 10 and 11
+> describe the *scrubbed* hero, which was replaced by a gesture-stepped one: see `docs/redesign/01-BUILD.md` §1
+> for stops and legs, the input controller, the frame-44 entry and the deletion of SETTLE.
+
 # 04 — Hero Implementation
 
 The hero is the performance-critical component. Every decision below was made after inspecting and measuring the

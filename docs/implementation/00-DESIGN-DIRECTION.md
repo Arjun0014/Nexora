@@ -1,3 +1,7 @@
+> **SUPERSEDED — session 1.** The client rejected the post-hero design this file describes. It is kept only as
+> a record of what was tried. The current direction is `docs/redesign/00-DIRECTION.md` and the current build is
+> `docs/redesign/01-BUILD.md`.
+
 # 00 — Design Direction
 
 ## The idea in one line

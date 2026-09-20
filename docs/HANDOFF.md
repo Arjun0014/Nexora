@@ -1,3 +1,7 @@
+> **DONE — session 2 (21 Sep 2026).** Every item in this file was addressed. The hero fixes are in
+> `docs/redesign/01-BUILD.md` §1, the intro in §2, the redesign in `docs/redesign/00-DIRECTION.md`, and the
+> research behind it in `docs/redesign/research/`. This file is kept as the record of what was wrong and why.
+
 # Nexora — Session 2 handoff
 
 Written at the end of session 1 (21 Sep 2026). Session 1 built the whole site; the client reviewed it and
