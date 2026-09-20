@@ -102,7 +102,9 @@ function setup(root: HTMLElement) {
 
   function apply(t: number) {
     const pe = clamp(t / SWAP);
-    const pa = clamp((t - SWAP) / (1 - SWAP));
+    // Focus is a lens pull, not a fade: it resolves over the first half of the arrival and then holds sharp,
+    // so the rest of the scroll is spent on a clean picture rather than a soft one.
+    const pa = clamp((t - SWAP) / ((1 - SWAP) * 0.5));
     // The picture behind moves far more slowly than the type. That ratio is the depth cue.
     (next as HTMLElement).style.transform = `scale(${(1 + IMG_MAX * Math.pow(pe, IMG_EXP)).toFixed(4)})`;
     // Focus resolves on an ease-out with a long tail once the letters own the stage.

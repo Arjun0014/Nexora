@@ -30,8 +30,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const cookies = Object.fromEntries((req.headers.cookie || '').split(';').map((c) => c.trim().split('=')));
-  const nojs = url.searchParams.has('nojs') || cookies.qa_nojs === '1';
-  const slow = Number(url.searchParams.get('slow') || cookies.qa_slow || 0);
+  // The query wins when present, so a flag can be turned off again; otherwise the cookie carries it to the
+  // page's own assets. Cookies ignore the port, so ?nojs on one port would otherwise stick on every other.
+  const nojsParam = url.searchParams.get('nojs');
+  const nojs = nojsParam !== null ? nojsParam !== '0' : cookies.qa_nojs === '1';
+  const slowParam = url.searchParams.get('slow');
+  const slow = Number(slowParam !== null ? slowParam : cookies.qa_slow || 0);
 
   let file = decodeURIComponent(url.pathname);
   if (file.endsWith('/')) file += 'index.html';

@@ -19,11 +19,13 @@ interface Props {
   label: string;
   caption?: string;
   focus?: string;
+  /** The ground of the chapter this gate opens onto: the picture dissolves into it, so there is no seam. */
+  next?: string;
 }
-const { word, ground, image, colour, label, caption, focus = '50% 50%' } = Astro.props;
+const { word, ground, image, colour, label, caption, focus = '50% 50%', next = 'var(--studio)' } = Astro.props;
 const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media/stills/${id}-${w}.${fmt} ${w}w`).join(', ');
 ---
-<section class="zg" data-zoom={word} data-zoom-ground={ground} aria-labelledby={`zg-${word}`}>
+<section class="zg" data-zoom={word} data-zoom-ground={ground} style={`--zg-next:${next}`} aria-labelledby={`zg-${word}`}>
   <div class="zg__stage" data-zoom-stage>
     <div class="zg__next" data-zoom-next>
       {image ? (
@@ -41,6 +43,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
     </div>
 
     <canvas class="zg__mask" data-zoom-mask aria-hidden="true"></canvas>
+    <span class="zg__bleed" aria-hidden="true"></span>
 
     <div class="zg__ui">
       <p class="label zg__label">{label}</p>
@@ -62,6 +65,10 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .zg__soft { width: 100%; height: 100%; object-fit: cover; filter: blur(22px); transform: scale(1.08); opacity: 1; }
 
   .zg__mask { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+
+  /* The foot of the stage dissolves into the next chapter's ground: the boundary is never a straight cut. */
+  .zg__bleed { position: absolute; inset-inline: 0; inset-block-end: 0; height: 26%; z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--zg-next) 55%, transparent) 62%, var(--zg-next) 100%); }
 
   .zg__ui { position: absolute; inset: 0; z-index: 3; pointer-events: none; color: var(--bone); }
   .zg__label { position: absolute; inset-block-start: clamp(1.5rem, 6vh, 3rem); inset-inline-start: var(--margin); color: var(--bone-soft); transition: opacity 400ms ease; }
