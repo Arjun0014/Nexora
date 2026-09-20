@@ -15,6 +15,7 @@
     "media": "node scripts/build-media.mjs",
     "media:force": "node scripts/build-media.mjs --force",
     "wordmark": "node scripts/build-wordmark.mjs",
+    "words": "node scripts/build-words.mjs",
     "astro": "astro"
   },
   "dependencies": {

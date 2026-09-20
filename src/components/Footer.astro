@@ -1,4 +1,14 @@
 ---
+/**
+ * Chapter VII — the footer as a grid of useful cells.
+ *
+ * Aspen Search builds its footer out of edged cells that each hold one real thing (a live clock, an address,
+ * an email, a giant mark) rather than four columns of links. White Desert's lesson applies here too: a new
+ * company earns trust with checkable specifics — the registration number, the establishment date, the city —
+ * so those are given the same weight a statistic would have had.
+ *
+ * Contact cells only exist once the client supplies the values; nothing renders a placeholder.
+ */
 import Wordmark from './Wordmark.astro';
 import { site, nav, cta } from '../data/site';
 import { worlds } from '../data/worlds';
@@ -6,22 +16,31 @@ import { worlds } from '../data/worlds';
 const year = new Date().getFullYear();
 const hasContact = Boolean(site.email || site.phone || site.whatsapp || site.address.length);
 ---
-<footer class="ft surface" data-theme="dark">
-  <div class="wrap">
-    <div class="ft__top grid">
-      <div class="ft__lede">
-        <p class="h2">One world.<br />Many workforces.</p>
+<footer class="ft surface ch-studio grain" data-theme="dark">
+  <div class="ft__wrap wrap">
+    <div class="ft__grid">
+      <!-- Doha time, live. A real, checkable fact about where this company is. -->
+      <div class="ft__cell ft__cell--clock">
+        <p class="label label--soft">Doha</p>
+        <p class="ft__clock mono" data-clock><time datetime="" data-clock-time>—</time></p>
+        <p class="label label--soft ft__gmt">GMT+3</p>
       </div>
 
-      <nav class="ft__col" aria-label="Workforces">
-        <h2 class="label label--soft">Workforces</h2>
+      <div class="ft__cell ft__cell--id">
+        <p class="label label--soft">Registered</p>
+        <p class="ft__idv mono">{site.legalName}</p>
+        <p class="ft__idv mono">CR {site.cr} · Est. {site.established} · {site.city}, {site.country}</p>
+      </div>
+
+      <nav class="ft__cell ft__cell--nav" aria-label="Workforces">
+        <p class="label label--soft">Workforces</p>
         <ul>
           {worlds.map((w) => <li><a class="ft__link" href={`/services/#${w.id}`}>{w.title}</a></li>)}
         </ul>
       </nav>
 
-      <nav class="ft__col" aria-label="Company">
-        <h2 class="label label--soft">Company</h2>
+      <nav class="ft__cell ft__cell--nav" aria-label="Company">
+        <p class="label label--soft">Company</p>
         <ul>
           {nav.map((n) => <li><a class="ft__link" href={n.href}>{n.label}</a></li>)}
           <li><a class="ft__link" href="/contact/">Contact</a></li>
@@ -29,72 +48,130 @@ const hasContact = Boolean(site.email || site.phone || site.whatsapp || site.add
         </ul>
       </nav>
 
-      <div class="ft__col">
-        <h2 class="label label--soft">Start here</h2>
-        <ul>
-          <li><a class="ft__link" href={cta.employer.href}>{cta.employer.label}</a></li>
-          <li><a class="ft__link" href={cta.candidate.href}>{cta.candidate.label}</a></li>
-        </ul>
-        {hasContact && (
-          <address class="ft__contact">
-            {site.email && <a class="ft__link" href={`mailto:${site.email}`}>{site.email}</a>}
-            {site.phone && <a class="ft__link" href={`tel:${site.phone.replace(/\s+/g, '')}`}>{site.phone}</a>}
-            {site.whatsapp && <a class="ft__link" href={`https://wa.me/${site.whatsapp}`} rel="noopener">WhatsApp</a>}
-            {site.address.map((line) => <span>{line}</span>)}
-          </address>
-        )}
+      <a class="ft__cell ft__cell--door" href={cta.employer.href} data-cursor="label" data-cursor-label="Request">
+        <span class="label label--soft">For employers</span>
+        <span class="ft__doorh">{cta.employer.label}</span>
+      </a>
+
+      <a class="ft__cell ft__cell--door" href={cta.candidate.href} data-cursor="label" data-cursor-label="Apply">
+        <span class="label label--soft">For candidates</span>
+        <span class="ft__doorh">{cta.candidate.label}</span>
+      </a>
+
+      {hasContact && (
+        <address class="ft__cell ft__cell--contact">
+          <p class="label label--soft">Contact</p>
+          {site.email && <a class="ft__link" href={`mailto:${site.email}`}>{site.email}</a>}
+          {site.phone && <a class="ft__link" href={`tel:${site.phone.replace(/\s+/g, '')}`}>{site.phone}</a>}
+          {site.whatsapp && <a class="ft__link" href={`https://wa.me/${site.whatsapp}`} rel="noopener">WhatsApp</a>}
+          {site.address.map((line) => <span class="ft__addr mono">{line}</span>)}
+        </address>
+      )}
+
+      <div class="ft__cell ft__cell--policy">
+        <p class="label label--soft">Policy</p>
+        <p class="ft__policy mono">Candidates are never charged a fee, at any stage. Qatar Labour Law 14/2004, art. 33.</p>
+      </div>
+
+      <div class="ft__cell ft__cell--prefs">
+        <p class="label label--soft">Preferences</p>
+        <button class="ft__toggle label" type="button" data-motion-toggle aria-pressed="false" hidden>
+          <span class="ft__dot" aria-hidden="true"></span><span data-motion-label>Reduce motion</span>
+        </button>
+        <button class="ft__toggle label" type="button" data-sound-toggle aria-pressed="false" hidden>
+          <span class="ft__dot" aria-hidden="true"></span><span data-sound-label>Sound off</span>
+        </button>
       </div>
     </div>
 
-    <div class="ft__legal">
-      <p class="small soft">© {year} {site.legalName}</p>
-      <p class="small soft">Commercial Registration No. {site.cr} · {site.city}, {site.country}</p>
-      <button class="ft__motion small" type="button" data-motion-toggle hidden>
-        <span class="ft__dot" aria-hidden="true"></span><span data-motion-label>Reduce motion</span>
-      </button>
-      {site.social.length > 0 && (
-        <ul class="ft__social">
-          {site.social.map((s) => <li><a class="ft__link small" href={s.href} rel="noopener me">{s.label}</a></li>)}
-        </ul>
-      )}
-    </div>
-  </div>
+    <!-- The mark, bleeding off the bottom edge (Kononenko). -->
+    <div class="ft__mark" aria-hidden="true"><Wordmark class="ft__word" /></div>
 
-  <div class="ft__mark" aria-hidden="true">
-    <Wordmark title={false} />
+    <p class="ft__legal label label--soft">
+      <span>© {year} {site.legalName}</span>
+      <span>Doha, Qatar</span>
+    </p>
   </div>
 </footer>
 
+<script>
+  // Doha never changes offset, so the clock is arithmetic on UTC rather than a timezone database.
+  const time = document.querySelector<HTMLTimeElement>('[data-clock-time]');
+  if (time) {
+    const tick = () => {
+      const now = new Date();
+      const doha = new Date(now.getTime() + (3 * 60 + now.getTimezoneOffset()) * 60000);
+      const hh = String(doha.getHours()).padStart(2, '0');
+      const mm = String(doha.getMinutes()).padStart(2, '0');
+      const ss = String(doha.getSeconds()).padStart(2, '0');
+      time.textContent = `${hh}:${mm}:${ss}`;
+      time.dateTime = `${hh}:${mm}:${ss}`;
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+</script>
+
 <style>
-  .ft { padding-block-start: var(--space); overflow: clip; }
-  .ft__top { row-gap: 3rem; padding-block-end: var(--space-s); }
-  .ft__lede { grid-column: 1 / span 5; }
-  .ft__col { grid-column: span 2; }
-  .ft__col:last-child { grid-column: span 3; }
-  .ft__col h2 { margin-block-end: 1.25rem; }
-  .ft__col ul { display: grid; gap: 0.15rem; }
-  .ft__link { display: inline-flex; align-items: center; min-height: 2.25rem; color: var(--bone-soft); transition: color var(--d-state) ease; }
-  .ft__link:hover, .ft__link:focus-visible { color: var(--bone); }
-  .ft__contact { display: grid; gap: 0.15rem; margin-block-start: 1.5rem; font-style: normal; color: var(--bone-soft); }
+  .ft { position: relative; padding-block: clamp(3rem, 8vh, 5rem) 0; overflow: clip; }
+  .ft__wrap { position: relative; z-index: 1; }
 
-  .ft__legal { display: flex; flex-wrap: wrap; gap: 0.5rem 2.5rem; align-items: center; padding-block: 1.5rem; border-block-start: 1px solid var(--line); }
-  .ft__social { display: flex; gap: 1.5rem; }
-  .ft__motion { display: inline-flex; align-items: center; gap: 0.6rem; min-block-size: 2.75rem; margin-inline-start: auto; color: var(--bone-soft); transition: color var(--d-state) ease; }
-  .ft__motion:hover, .ft__motion:focus-visible { color: var(--bone); }
-  .ft__dot { inline-size: 0.5rem; block-size: 0.5rem; border-radius: 50%; border: 1px solid currentColor; }
-  .ft__motion[aria-pressed='true'] .ft__dot { background: var(--bronze); border-color: var(--bronze); }
+  /* A grid of cells, each holding one real thing. Empty cells are allowed. */
+  .ft__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); border-block-start: 1px solid var(--line); }
+  .ft__cell {
+    padding: clamp(1.1rem, 1.8vw, 1.75rem);
+    border-block-end: 1px solid var(--line);
+    border-inline-end: 1px solid var(--line);
+    min-width: 0;
+  }
+  .ft__cell > .label:first-child { display: block; margin-block-end: 1rem; }
 
-  /* The giant wordmark is cropped by the bottom edge of the page. */
-  .ft__mark { padding-inline: var(--margin); margin-block-start: var(--space-s); color: rgba(243, 237, 227, 0.09); }
-  .ft__mark :global(svg) { width: 100%; height: auto; margin-block-end: -5.5%; }
+  .ft__cell--clock { grid-column: span 2; }
+  .ft__cell--id { grid-column: span 4; }
+  .ft__cell--nav { grid-column: span 2; }
+  .ft__cell--door { grid-column: span 2; display: flex; flex-direction: column; justify-content: space-between; gap: 2.5rem; transition: background-color var(--d-state) ease, color var(--d-state) ease; }
+  .ft__cell--contact { grid-column: span 3; font-style: normal; display: grid; gap: 0.25rem; align-content: start; }
+  .ft__cell--policy { grid-column: span 5; }
+  .ft__cell--prefs { grid-column: span 4; display: grid; gap: 0.5rem; align-content: start; }
+  .ft__cell:last-child { border-inline-end: 0; }
+
+  .ft__clock { font-size: clamp(1.5rem, 2.6vw, 2.25rem); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .ft__gmt { margin-block-start: 0.5rem; }
+  .ft__idv { font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
+  .ft__addr, .ft__policy { font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
+
+  .ft__link { display: inline-block; padding-block: 0.3rem; font-size: var(--t-small); color: var(--fg-soft); transition: color var(--d-state) ease; }
+  .ft__link:hover, .ft__link:focus-visible { color: var(--fg); }
+
+  .ft__doorh { font-family: var(--f-display); font-size: clamp(1.125rem, 1.8vw, 1.625rem); line-height: 1.05; letter-spacing: -0.02em; }
+  .ft__cell--door:hover, .ft__cell--door:focus-visible { background: var(--bronze); color: var(--studio); }
+  .ft__cell--door:hover .label, .ft__cell--door:focus-visible .label { color: rgba(11, 10, 9, 0.7); }
+
+  .ft__toggle { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 2.25rem; color: var(--fg-soft); transition: color var(--d-state) ease; }
+  .ft__toggle:hover, .ft__toggle:focus-visible { color: var(--fg); }
+  .ft__dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; }
+  .ft__toggle[aria-pressed='true'] .ft__dot { background: var(--bronze); border-color: var(--bronze); }
+
+  /* The mark is cropped by the page edge: it continues past the end of the site. */
+  .ft__mark { margin-block-start: clamp(2.5rem, 7vh, 5rem); margin-block-end: -3%; }
+  .ft__word { width: 100%; height: auto; color: var(--bone); opacity: 0.14; }
+
+  .ft__legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; padding-block: 1.5rem; border-block-start: 1px solid var(--line); }
 
   @media (max-width: 1023px) {
-    .ft__lede { grid-column: 1 / -1; }
-    .ft__col { grid-column: span 2; }
-    .ft__col:last-child { grid-column: span 4; }
+    .ft__grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+    .ft__cell--clock { grid-column: span 3; }
+    .ft__cell--id { grid-column: span 5; }
+    .ft__cell--nav { grid-column: span 4; }
+    .ft__cell--door { grid-column: span 4; }
+    .ft__cell--contact { grid-column: span 4; }
+    .ft__cell--policy { grid-column: span 8; }
+    .ft__cell--prefs { grid-column: span 8; }
   }
   @media (max-width: 699px) {
-    .ft__col, .ft__col:last-child { grid-column: span 2; }
-    .ft__col:last-child { grid-column: 1 / -1; }
+    .ft__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ft__cell--clock, .ft__cell--nav, .ft__cell--door { grid-column: span 1; }
+    .ft__cell--id, .ft__cell--contact, .ft__cell--policy, .ft__cell--prefs { grid-column: span 2; }
+    .ft__cell--door { gap: 1.5rem; }
   }
 </style>

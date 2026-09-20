@@ -1,169 +1,233 @@
 /**
- * The workforce deck. Upgrades the static <ol> of five articles into a draggable stack + one detail panel.
+ * The workforce stack: five plates you can actually throw.
  *
- * Inputs (all equivalent — there is no "accept/reject", either direction means "next"):
- *   drag / flick with mouse or touch · the two arrow buttons · ← → Home End on the focused deck
- * Without motion permission the list is simply left as it is.
+ * Physics (measured targets in docs/redesign/00-DIRECTION.md §6C):
+ *   drag        1:1 with the pointer
+ *   rotation    clamp(dx * ROT_PER_PX, ±ROT_MAX) about a pivot BELOW the card, so it swings like a held card
+ *   release     |dx| > THROW_FRAC of the card width, or |vx| > THROW_V px/ms → thrown along the release vector
+ *   otherwise   springs home, critically damped (tau SPRING)
+ *   the stack   answers early: the card beneath rises once the top card passes ANSWER of the threshold
+ *   the loop    a thrown card returns to the back, so the stack can never empty
+ *
+ * Everything is transform/opacity. The rAF loop only runs while something is moving or the deck is on screen.
+ * Keyboard (arrows / Home / End on the stack), buttons and touch all drive the same `advance()`.
  */
 import { $, $$, clamp, env } from './core/env';
+import { onTick, damp } from './core/ticker';
+import { sound } from './sound';
 
-const STACK = [
-  { x: 0, y: 0, r: 0, s: 1, o: 1 },
-  { x: 16, y: 12, r: 3.2, s: 0.965, o: 1 },
-  { x: -14, y: 24, r: -2.6, s: 0.93, o: 1 },
-  { x: 0, y: 30, r: 0, s: 0.9, o: 0 },
-];
+const ROT_PER_PX = 0.055; // degrees
+const ROT_MAX = 14;
+const THROW_FRAC = 0.26;
+const THROW_V = 0.85; // px per ms
+const SPRING = 0.14; // seconds
+const ANSWER = 0.4;
+const FLY_MS = 460;
+const DEPTH_Y = -15; // px per layer
+const DEPTH_S = 0.045;
+const DEPTH_R = 1.5; // degrees per layer, alternating
+
+interface Card {
+  el: HTMLElement;
+  /** live offset from its home position */
+  x: number; y: number; rot: number;
+  /** where it is heading */
+  tx: number; ty: number; trot: number;
+  depth: number;
+  flying: number; // ms remaining
+  vx: number; vy: number;
+}
 
 export function initDeck() {
-  const deck = $('[data-deck]');
-  if (!deck || !env.motion) return;
+  const found = $('[data-deck]');
+  if (!found) return;
+  const root: HTMLElement = found;
 
-  const items = $$('[data-deck-item]', deck);
-  const cards = items.map((it) => $('[data-deck-card]', it)!);
-  const ctrl = $('[data-deck-ctrl]', deck)!;
-  const count = $('[data-deck-count]', deck)!;
-  const n = items.length;
-  if (n < 2) return;
+  const stack = $('[data-deck-stack]', root)!;
+  const els = $$<HTMLElement>('[data-deck-card]', stack);
+  if (els.length < 2) return;
 
-  /** order[0] is the index of the card on top. */
-  let order = items.map((_, i) => i);
-  let busy = false;
+  const panels = $$<HTMLElement>('[data-deck-panel]', root);
+  const counter = $('[data-deck-count]', root);
+  const live = $('[data-deck-live]', root);
+  const n = els.length;
 
-  deck.dataset.live = '';
-  deck.tabIndex = 0;
-  deck.setAttribute('role', 'group');
-  deck.setAttribute('aria-roledescription', 'carousel');
-  deck.setAttribute('aria-label', 'The five workforces. Use the left and right arrow keys to change.');
-  ctrl.hidden = false;
+  // Order[0] is the front card. Cards keep their DOM position; only transforms and z-index move.
+  let order = els.map((_, i) => i);
+  const cards: Card[] = els.map((el) => ({ el, x: 0, y: 0, rot: 0, tx: 0, ty: 0, trot: 0, depth: 0, flying: 0, vx: 0, vy: 0 }));
 
-  const live = document.createElement('p');
-  live.className = 'sr-only';
-  live.setAttribute('aria-live', 'polite');
-  deck.append(live);
+  const front = () => order[0];
+  const ids = els.map((el) => el.dataset.deckCard ?? '');
 
-  const set = (el: HTMLElement, p: { x: number; y: number; r: number; s: number; o: number }, z: number) => {
-    el.style.setProperty('--x', `${p.x}px`); el.style.setProperty('--y', `${p.y}px`);
-    el.style.setProperty('--r', `${p.r}deg`); el.style.setProperty('--s', String(p.s));
-    el.style.setProperty('--z', String(z)); el.style.opacity = String(p.o);
-  };
-
-  function layout(animate = true, announce = false) {
-    order.forEach((idx, pos) => {
-      const card = cards[idx];
-      if (animate) card.dataset.settling = ''; else delete card.dataset.settling;
-      set(card, STACK[Math.min(pos, STACK.length - 1)], n - pos);
-      if (pos === 0) { card.dataset.top = ''; card.dataset.cursor = 'Drag'; } else { delete card.dataset.top; delete card.dataset.cursor; }
-      card.setAttribute('aria-hidden', String(pos !== 0));
+  // ── layout ──────────────────────────────────────────────────────────────────────────────
+  function reseat(immediate = false) {
+    order.forEach((idx, depth) => {
+      const c = cards[idx];
+      c.depth = depth;
+      c.tx = 0;
+      c.ty = depth * DEPTH_Y;
+      c.trot = depth === 0 ? 0 : (depth % 2 ? 1 : -1) * DEPTH_R * Math.ceil(depth / 2);
+      c.el.style.zIndex = String(n - depth);
+      c.el.setAttribute('aria-hidden', depth === 0 ? 'false' : 'true');
+      c.el.dataset.depth = String(depth);
+      // Only the front card can be reached with a pointer; the rest are scenery.
+      c.el.style.pointerEvents = depth === 0 ? 'auto' : 'none';
+      if (immediate) { c.x = c.tx; c.y = c.ty; c.rot = c.trot; }
     });
-    const cur = order[0];
-    items.forEach((it, i) => { if (i === cur) it.dataset.current = ''; else delete it.dataset.current; });
-    deck!.dataset.sector = items[cur].dataset.sector ?? '';
-    count.textContent = String(cur + 1).padStart(2, '0');
-    if (announce) live.textContent = `${cur + 1} of ${n}: ${$('h3', items[cur])?.textContent ?? ''}`;
+    paint();
+    announce();
   }
 
-  /** Send the top card away along (dirX, vy) and bring the next one forward. */
-  function advance(dirX: number, vy = 0) {
-    if (busy) return;
-    busy = true;
-    const top = cards[order[0]];
-    const w = top.offsetWidth;
-    top.dataset.settling = '';
-    set(top, { x: dirX * w * 1.35, y: vy * 120 + 30, r: dirX * 16, s: 1, o: 0 }, n + 1);
-    order = [...order.slice(1), order[0]];
-    // The rest move up immediately; the thrown card re-enters at the back once it has left.
-    order.slice(0, -1).forEach((idx, pos) => { cards[idx].dataset.settling = ''; set(cards[idx], STACK[Math.min(pos, STACK.length - 1)], n - pos); });
-    layoutMeta();
-    setTimeout(() => { delete top.dataset.settling; set(top, STACK[STACK.length - 1], 0); requestAnimationFrame(() => { layout(true); busy = false; }); }, 340);
-  }
-
-  /** Bring the bottom card back to the top, arriving from the side. */
-  function retreat() {
-    if (busy) return;
-    busy = true;
-    const idx = order[order.length - 1];
-    const card = cards[idx];
-    delete card.dataset.settling;
-    set(card, { x: card.offsetWidth * 1.35, y: 30, r: 16, s: 1, o: 0 }, n + 1);
-    order = [idx, ...order.slice(0, -1)];
-    void card.offsetWidth; // commit the start position before transitioning
-    requestAnimationFrame(() => { layout(true, true); setTimeout(() => { busy = false; }, 360); });
-  }
-
-  function layoutMeta() {
-    const cur = order[0];
-    items.forEach((it, i) => { if (i === cur) it.dataset.current = ''; else delete it.dataset.current; });
-    deck!.dataset.sector = items[cur].dataset.sector ?? '';
-    count.textContent = String(cur + 1).padStart(2, '0');
-    live.textContent = `${cur + 1} of ${n}: ${$('h3', items[cur])?.textContent ?? ''}`;
-    cards.forEach((c, i) => { if (i === cur) { c.dataset.top = ''; c.dataset.cursor = 'Drag'; } else { delete c.dataset.top; delete c.dataset.cursor; } c.setAttribute('aria-hidden', String(i !== cur)); });
-  }
-
-  function goTo(target: number) {
-    // Rotate the order so `target` is on top, without animating every intermediate card.
-    const at = order.indexOf(target);
-    if (at <= 0) return;
-    order = [...order.slice(at), ...order.slice(0, at)];
-    layout(true, true);
-  }
-
-  // ── drag ────────────────────────────────────────────────────────────────────────────────
-  let drag: { id: number; x0: number; y0: number; dx: number; dy: number; card: HTMLElement; samples: { t: number; x: number; y: number }[]; active: boolean } | null = null;
-
-  deck.addEventListener('pointerdown', (e) => {
-    const card = (e.target as Element).closest<HTMLElement>('[data-deck-card]');
-    if (!card || card !== cards[order[0]] || busy || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, card, samples: [{ t: e.timeStamp, x: e.clientX, y: e.clientY }], active: false };
-  });
-  deck.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    drag.dx = e.clientX - drag.x0; drag.dy = e.clientY - drag.y0;
-    if (!drag.active) {
-      if (Math.abs(drag.dx) < 6) return;
-      if (Math.abs(drag.dy) > Math.abs(drag.dx) * 1.2) { drag = null; return; } // a vertical intent: let the page scroll
-      drag.active = true;
-      drag.card.setPointerCapture(drag.id);
-      drag.card.dataset.dragging = '';
-      delete drag.card.dataset.settling;
+  function paint() {
+    for (const c of cards) {
+      const s = 1 - c.depth * DEPTH_S;
+      c.el.style.transform = `translate3d(${c.x.toFixed(2)}px, ${(c.y).toFixed(2)}px, 0) rotate(${c.rot.toFixed(2)}deg) scale(${s.toFixed(3)})`;
+      c.el.style.opacity = c.depth > 3 ? '0' : '1';
     }
-    drag.samples.push({ t: e.timeStamp, x: e.clientX, y: e.clientY });
-    if (drag.samples.length > 6) drag.samples.shift();
-    set(drag.card, { x: drag.dx, y: drag.dy * 0.25, r: clamp(drag.dx / 18, -18, 18), s: 1.015, o: 1 }, n + 1);
+  }
+
+  function announce() {
+    const id = ids[front()];
+    panels.forEach((p) => { p.dataset.on = String(p.dataset.deckPanel === id); });
+    root.dataset.sector = id;
+    if (counter) counter.textContent = String(seen + 1).padStart(2, '0');
+    const label = els[front()].dataset.deckTitle ?? '';
+    if (live) live.textContent = `${label}, ${seen + 1} of ${n}`;
+  }
+
+  // `seen` counts how far through the five we are, independently of the physical order.
+  let seen = 0;
+
+  // ── stepping ────────────────────────────────────────────────────────────────────────────
+  function advance(dir: 1 | -1, vx = 0, vy = 0) {
+    const c = cards[front()];
+    if (dir > 0) {
+      // Throw the front card out and send it to the back.
+      c.flying = FLY_MS;
+      c.vx = vx || 1.1;
+      c.vy = vy;
+      order = [...order.slice(1), order[0]];
+      seen = (seen + 1) % n;
+    } else {
+      // Bring the back card round the front, arriving from the side it left by.
+      const last = order[order.length - 1];
+      order = [last, ...order.slice(0, -1)];
+      seen = (seen - 1 + n) % n;
+      const b = cards[last];
+      b.x = -innerWidth * 0.5; b.y = 40; b.rot = -18;
+    }
+    sound.play(dir > 0 ? 'throw' : 'back');
+    reseat();
+    wake();
+  }
+
+  // ── pointer ─────────────────────────────────────────────────────────────────────────────
+  let dragging = -1;
+  let px = 0, py = 0, sx = 0, sy = 0, lastT = 0, vx = 0, vy = 0, moved = false;
+
+  stack.addEventListener('pointerdown', (e) => {
+    if (!env.motion || e.button !== 0) return;
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-deck-card]');
+    if (!el || el !== cards[front()].el) return;
+    // A real click on the card's link must still work.
+    if ((e.target as HTMLElement).closest('a, button')) return;
+    dragging = front();
+    moved = false;
+    sx = px = e.clientX; sy = py = e.clientY;
+    vx = vy = 0; lastT = e.timeStamp;
+    cards[dragging].flying = 0;
+    el.setPointerCapture(e.pointerId);
+    root.dataset.dragging = 'true';
+    wake();
   });
-  const end = (e: PointerEvent) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const d = drag; drag = null;
-    if (!d.active) return;
-    delete d.card.dataset.dragging;
-    const a = d.samples[0], b = d.samples[d.samples.length - 1];
-    const dt = Math.max(1, b.t - a.t);
-    const vx = (b.x - a.x) / dt, vy = (b.y - a.y) / dt;
-    const far = Math.abs(d.dx) > d.card.offsetWidth * 0.28;
-    const fast = Math.abs(vx) > 0.5 && Math.sign(vx) === Math.sign(d.dx || vx);
-    if (far || fast) advance(Math.sign(d.dx || vx) || -1, clamp(vy, -1, 1));
-    else layout(true);
+
+  stack.addEventListener('pointermove', (e) => {
+    if (dragging < 0) return;
+    const dt = Math.max(1, e.timeStamp - lastT);
+    vx = (e.clientX - px) / dt;
+    vy = (e.clientY - py) / dt;
+    px = e.clientX; py = e.clientY; lastT = e.timeStamp;
+    const c = cards[dragging];
+    c.x = e.clientX - sx;
+    c.y = e.clientY - sy;
+    if (Math.abs(c.x) > 3 || Math.abs(c.y) > 3) moved = true;
+    c.rot = clamp(c.x * ROT_PER_PX, -ROT_MAX, ROT_MAX);
+    // The stack answers before the throw completes.
+    const t = Math.abs(c.x) / (stack.offsetWidth * THROW_FRAC);
+    const lift = clamp((t - ANSWER) / (1 - ANSWER));
+    for (const k of order.slice(1)) {
+      const b = cards[k];
+      b.ty = b.depth * DEPTH_Y + lift * -DEPTH_Y;
+    }
+    root.style.setProperty('--deck-lift', lift.toFixed(3));
+    paint();
+  });
+
+  const endDrag = (e: PointerEvent) => {
+    if (dragging < 0) return;
+    const c = cards[dragging];
+    dragging = -1;
+    delete root.dataset.dragging;
+    root.style.removeProperty('--deck-lift');
+    try { (e.target as HTMLElement).releasePointerCapture?.(e.pointerId); } catch { /* already gone */ }
+    if (!moved) return;
+    const past = Math.abs(c.x) > stack.offsetWidth * THROW_FRAC;
+    const fast = Math.abs(vx) > THROW_V;
+    if (past || fast) advance(1, vx, vy);
+    else { for (const k of order) cards[k].ty = cards[k].depth * DEPTH_Y; wake(); }
   };
-  deck.addEventListener('pointerup', end);
-  deck.addEventListener('pointercancel', end);
-  // A drag must never start a native image drag or select text.
-  deck.addEventListener('dragstart', (e) => e.preventDefault());
-  // …and a completed drag must not also register as a click on anything beneath.
-  deck.addEventListener('click', (e) => { if ((e.target as Element).closest('[data-deck-card]')) e.preventDefault(); });
+  stack.addEventListener('pointerup', endDrag);
+  stack.addEventListener('pointercancel', endDrag);
 
-  $('[data-deck-next]', deck)?.addEventListener('click', () => advance(-1));
-  $('[data-deck-prev]', deck)?.addEventListener('click', retreat);
-  deck.addEventListener('keydown', (e) => {
-    if (e.target !== deck) return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); advance(-1); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); retreat(); }
-    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
-    else if (e.key === 'End') { e.preventDefault(); goTo(n - 1); }
+  // ── keyboard and buttons ────────────────────────────────────────────────────────────────
+  stack.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); advance(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); advance(-1); }
   });
+  $$('[data-deck-next]', root).forEach((b) => b.addEventListener('click', () => advance(1)));
+  $$('[data-deck-prev]', root).forEach((b) => b.addEventListener('click', () => advance(-1)));
 
-  // Deep links (#wf-events, or links from the hero/services) open the matching card.
-  const fromHash = () => { const i = items.findIndex((it) => `#wf-${it.dataset.sector}` === location.hash); if (i > 0) goTo(i); };
-  addEventListener('hashchange', fromHash);
+  // ── frame loop ──────────────────────────────────────────────────────────────────────────
+  let off: (() => void) | null = null;
+  let idleFrames = 0;
+  const tick = (dt: number) => {
+    let busy = dragging >= 0;
+    for (const c of cards) {
+      if (c.flying > 0) {
+        // A thrown card keeps its release velocity and spins; it is re-seated when it lands off stage.
+        c.flying -= dt * 1000;
+        const k = dt * 1000;
+        c.x += c.vx * k * 1.6;
+        c.y += (c.vy * k * 1.6) + k * 0.06;
+        c.rot += Math.sign(c.vx || 1) * k * 0.09;
+        busy = true;
+        if (c.flying <= 0) { c.x = -innerWidth; c.y = 0; c.rot = 0; }
+      } else if (c !== cards[dragging]) {
+        const nx = damp(c.x, c.tx, SPRING, dt);
+        const ny = damp(c.y, c.ty, SPRING, dt);
+        const nr = damp(c.rot, c.trot, SPRING, dt);
+        if (Math.abs(nx - c.x) > 0.01 || Math.abs(ny - c.y) > 0.01 || Math.abs(nr - c.rot) > 0.01) busy = true;
+        c.x = nx; c.y = ny; c.rot = nr;
+        if (Math.abs(c.x - c.tx) < 0.2 && Math.abs(c.y - c.ty) < 0.2 && Math.abs(c.rot - c.trot) < 0.05) {
+          c.x = c.tx; c.y = c.ty; c.rot = c.trot;
+        }
+      }
+    }
+    paint();
+    idleFrames = busy ? 0 : idleFrames + 1;
+    if (idleFrames > 6 && !inView) sleep();
+  };
+  const wake = () => { if (!off) { idleFrames = 0; off = onTick(tick); } };
+  const sleep = () => { off?.(); off = null; };
 
-  layout(false);
-  fromHash();
+  let inView = false;
+  new IntersectionObserver(([e]) => {
+    inView = e.isIntersecting;
+    if (inView) wake(); else if (dragging < 0) sleep();
+  }, { rootMargin: '20% 0px' }).observe(root);
+
+  // Without motion the stack stays a plain list; the markup already reads that way.
+  if (!env.motion) { root.dataset.static = 'true'; return; }
+  root.dataset.live = 'true';
+  reseat(true);
 }

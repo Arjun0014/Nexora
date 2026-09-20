@@ -1,21 +1,31 @@
 ---
+/**
+ * The homepage, as a sequence of chapters. See docs/redesign/00-DIRECTION.md §3 for the colour script and
+ * §10 for the blueprint. The grounds run studio → ember → deck → deep → stone → linen → ink → bronze → studio:
+ * dark-anchored, with the single light chapter arrived at through a zoom-type transition, never a band.
+ */
 import Base from '../layouts/Base.astro';
 import Hero from '../components/hero/Hero.astro';
-import Statement from '../components/home/Statement.astro';
-import Workforces from '../components/home/Workforces.astro';
-import Sectors from '../components/home/Sectors.astro';
-import Process from '../components/home/Process.astro';
-import PlateBreak from '../components/home/PlateBreak.astro';
-import Commitments from '../components/home/Commitments.astro';
-import Doors from '../components/home/Doors.astro';
+import Manifesto from '../components/chapters/Manifesto.astro';
+import ZoomGate from '../components/chapters/ZoomGate.astro';
+import Workforces from '../components/chapters/Workforces.astro';
+import Turning from '../components/chapters/Turning.astro';
+import Sectors from '../components/chapters/Sectors.astro';
+import Engagement from '../components/chapters/Engagement.astro';
+import HowWeWork from '../components/chapters/HowWeWork.astro';
+import Doors from '../components/chapters/Doors.astro';
 ---
 <Base home skipTo="#statement">
   <Hero />
-  <Statement />
+  <Manifesto />
+  <ZoomGate word="WORKFORCES" ground="#17110c" image="hospitality" focus="68% 50%"
+    label="Chapter II" caption="Five workforces, one partner" />
   <Workforces />
+  <Turning />
+  <ZoomGate word="SECTORS" ground="#0d1219" image="facilities" focus="62% 50%"
+    label="Chapter IV" caption="Where our people work" />
   <Sectors />
-  <Process />
-  <PlateBreak />
-  <Commitments />
+  <Engagement />
+  <HowWeWork />
   <Doors />
 </Base>

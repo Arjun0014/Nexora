@@ -1,0 +1,102 @@
+---
+/**
+ * Chapter III — the floor keeps turning.
+ *
+ * The sparse scene between two dense ones. The hero's own loop plays behind the chapter, zoomed past the rim
+ * and rotating; scrolling speeds it up and it eases back when you stop. The content is one sentence and four
+ * hairline rows, and they are the only things that actually move — which is the illusion.
+ */
+import { turning, engagements } from '../../data/content';
+---
+<section class="tn surface ch-deep" id="model" data-theme="dark" data-turning aria-labelledby="tn-h" data-reveal>
+  <div class="tn__bed" aria-hidden="true">
+    <video class="tn__video" data-turning-video muted loop playsinline preload="none" disablepictureinpicture tabindex="-1"
+      poster="/media/hero/poster-1440.webp"></video>
+    <div class="tn__scrim"></div>
+  </div>
+
+  <div class="tn__wrap wrap">
+    <p class="label tn__label" data-rise style="--i:0">{turning.label}</p>
+
+    <h2 id="tn-h" class="tn__line lines monument">
+      {turning.line.map((l, i) => (
+        <span class="l" style={`--i:${i}`}><span class={i === turning.line.length - 1 ? 'recede' : ''}>{l}</span></span>
+      ))}
+    </h2>
+
+    <p class="tn__body lead" data-rise style="--i:4">{turning.body}</p>
+
+    <ol class="tn__rows">
+      {engagements.map((e, i) => (
+        <li class="tn__row" data-rise style={`--i:${5 + i}`}>
+          <span class="label tn__n">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="tn__rt h3">{e.title}</h3>
+          <p class="tn__rb small">{e.body}</p>
+        </li>
+      ))}
+    </ol>
+
+    <p class="label tn__caption">{turning.caption}</p>
+  </div>
+</section>
+
+<style>
+  .tn { position: relative; overflow: clip; padding-block: clamp(6rem, 16vh, 12rem); background: var(--deep); }
+
+  .tn__bed { position: absolute; inset: 0; z-index: 0; }
+  /* Zoomed past the rim: the direction of rotation is unreadable there, which is what lets the speed change
+     read as a reaction rather than as a video being scrubbed. */
+  .tn__video {
+    width: 100%; height: 100%; object-fit: cover;
+    transform: scale(1.38);
+    transform-origin: 54% 46%;
+    filter: saturate(0.72) contrast(1.04) brightness(0.62);
+  }
+  .tn__scrim {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(110% 80% at 12% 44%, rgba(13, 18, 25, 0.92) 0%, rgba(13, 18, 25, 0.66) 40%, rgba(13, 18, 25, 0.12) 78%),
+      linear-gradient(180deg, rgba(13, 18, 25, 0.92) 0%, rgba(13, 18, 25, 0.1) 26%, rgba(13, 18, 25, 0.12) 68%, rgba(13, 18, 25, 0.96) 100%);
+  }
+
+  .tn__wrap { position: relative; z-index: 1; }
+  .tn__label { color: var(--bone-soft); padding-block-end: 1rem; border-block-end: 1px solid var(--line); }
+
+  .tn__line {
+    margin-block: clamp(2rem, 6vh, 4rem) 0;
+    font-size: clamp(2.75rem, 11.5vw, 13rem);
+    line-height: 0.84; letter-spacing: -0.04em;
+    max-width: 14em;
+  }
+
+  .tn__body { margin-block-start: clamp(2.5rem, 7vh, 5rem); color: var(--bone-soft); }
+
+  .tn__rows { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--gutter); margin-block-start: clamp(2rem, 5vh, 3.5rem); border-block-start: 1px solid var(--line); }
+  .tn__row { padding-block: 1.75rem 2.5rem; padding-inline-end: var(--gutter); border-inline-end: 1px solid var(--line-soft); }
+  .tn__row:last-child { border-inline-end: 0; }
+  .tn__n { color: var(--bronze); }
+  .tn__rt { margin-block: 1rem 0.75rem; font-size: clamp(1.125rem, 1.5vw, 1.5rem); }
+  .tn__rb { color: var(--bone-soft); }
+
+  .tn__caption { margin-block-start: clamp(2.5rem, 6vh, 4rem); color: rgba(243, 237, 227, 0.4); text-align: right; }
+
+  /* A faint measure of how hard the floor is turning: the caption brightens as it speeds up. */
+  .tn__caption { opacity: calc(0.55 + var(--spin, 0) * 0.08); transition: opacity 240ms linear; }
+
+  @media (max-width: 1023px) {
+    .tn__rows { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 0; }
+    .tn__row:nth-child(2n) { border-inline-end: 0; }
+    .tn__row:nth-child(n + 3) { border-block-start: 1px solid var(--line-soft); }
+  }
+  @media (max-width: 699px) {
+    .tn__rows { grid-template-columns: 1fr; }
+    .tn__row { border-inline-end: 0; }
+    .tn__row + .tn__row { border-block-start: 1px solid var(--line-soft); }
+    .tn__line { font-size: clamp(2.5rem, 15vw, 5rem); }
+    .tn__caption { text-align: left; }
+    .tn__video { transform: scale(1.9); }
+  }
+
+  /* Reduced motion: the poster stands in and nothing moves. */
+  :global(html:not(.motion)) .tn__video { transform: scale(1.2); }
+</style>

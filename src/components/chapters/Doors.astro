@@ -1,0 +1,87 @@
+---
+/**
+ * Chapter VI — the two doors.
+ *
+ * Employers on one side, candidates on the other. Two full-height panels lit from the floor, each a single
+ * large link; the pointer follower turns into a labelled arrow over them. The no-fee policy sits between the
+ * two as a plain statement of position, because for a candidate it is the most important thing on the page.
+ */
+import Arrow from '../ui/Arrow.astro';
+import { doors, noFee } from '../../data/content';
+
+const list = [doors.employer, doors.candidate];
+---
+<section class="dr surface ch-bronze" id="start" data-theme="dark" aria-labelledby="dr-h">
+  <h2 id="dr-h" class="sr-only">Start with Nexora</h2>
+  <div class="dr__panels">
+    {list.map((d, i) => (
+      <a class="dr__panel" href={d.href} data-cursor="label" data-cursor-label={d.cursor} data-reveal>
+        <span class="dr__inner">
+          <span class="label dr__label" data-rise style="--i:0">{d.label}</span>
+          <span class="dr__h lines">
+            {d.heading.map((l, k) => <span class="l" style={`--i:${k}`}><span>{l}</span></span>)}
+          </span>
+          <span class="dr__b" data-rise style="--i:3">{d.body}</span>
+          <span class="dr__cta label" data-rise style="--i:4">{d.cta}<Arrow /></span>
+        </span>
+        <span class="dr__edge" aria-hidden="true" style={`--k:${i}`}></span>
+      </a>
+    ))}
+  </div>
+
+  <p class="dr__fee wrap">
+    <strong class="dr__feeh">{noFee.heading}</strong>
+    <span class="dr__feeb mono">{noFee.body}</span>
+  </p>
+</section>
+
+<style>
+  .dr { position: relative; background: var(--bronze-ground); overflow: clip; }
+
+  .dr__panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dr__panel {
+    position: relative; isolation: isolate;
+    display: flex; align-items: flex-end;
+    min-height: clamp(26rem, 62vh, 40rem);
+    padding: clamp(2.5rem, 7vh, 5rem) var(--margin);
+    overflow: clip;
+  }
+  /* The light comes up off the floor of each panel and grows when you approach it. */
+  .dr__panel::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    background: radial-gradient(90% 70% at 50% 120%, rgba(194, 132, 86, 0.3) 0%, rgba(194, 132, 86, 0.06) 45%, rgba(194, 132, 86, 0) 72%);
+    transform: translateY(18%); opacity: 0.75;
+    transition: transform 900ms var(--ease-freeze), opacity 700ms ease;
+  }
+  .dr__panel:hover::before, .dr__panel:focus-visible::before { transform: none; opacity: 1; }
+  .dr__panel + .dr__panel { border-inline-start: 1px solid var(--line); }
+
+  .dr__inner { display: block; max-width: 24rem; }
+  .dr__label { display: block; color: var(--fg-soft); margin-block-end: clamp(1.5rem, 5vh, 3rem); }
+  .dr__h { display: block; font-family: var(--f-display); font-size: clamp(2.25rem, 5vw, 5rem); line-height: 0.95; letter-spacing: -0.03em; }
+  .dr__b { display: block; margin-block: 1.5rem 2rem; color: var(--fg-soft); font-size: var(--t-small); line-height: 1.55; }
+  .dr__cta { display: inline-flex; align-items: center; gap: 0.75em; padding-block: 0.35em; position: relative; }
+  .dr__cta::after { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: currentColor; opacity: 0.35; }
+  .dr__cta::before { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: var(--bronze); transform: scaleX(0); transform-origin: left; transition: transform var(--d-reveal) var(--ease-freeze); z-index: 1; }
+  .dr__panel:hover .dr__cta::before, .dr__panel:focus-visible .dr__cta::before { transform: scaleX(1); }
+
+  /* A hairline that climbs the seam as you approach: the doors are lit, not bordered. */
+  .dr__edge { position: absolute; inset-block: 0; inset-inline-end: 0; width: 1px; background: linear-gradient(0deg, var(--bronze) 0%, transparent 100%); opacity: 0; transition: opacity var(--d-reveal) ease; }
+  .dr__panel:hover .dr__edge, .dr__panel:focus-visible .dr__edge { opacity: 0.8; }
+
+  .dr__fee {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 0.75rem;
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+    border-block-start: 1px solid var(--line);
+  }
+  .dr__feeh { grid-column: 1 / 6; font-family: var(--f-display); font-weight: 400; font-size: clamp(1.25rem, 2.2vw, 2rem); line-height: 1.1; letter-spacing: -0.02em; }
+  .dr__feeb { grid-column: 6 / 12; font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
+
+  @media (max-width: 899px) {
+    .dr__panels { grid-template-columns: 1fr; }
+    .dr__panel + .dr__panel { border-inline-start: 0; border-block-start: 1px solid var(--line); }
+    .dr__panel { min-height: clamp(20rem, 48vh, 26rem); }
+    .dr__fee { grid-template-columns: 1fr; }
+    .dr__feeh, .dr__feeb { grid-column: 1; }
+  }
+</style>

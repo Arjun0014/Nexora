@@ -1,7 +1,10 @@
 /**
  * Homepage + shared copy that is not part of the five-world taxonomy.
- * Anything marked CONFIRM describes behaviour the client must actually stand behind —
- * see docs/implementation/06-CONTENT-AND-COPY.md.
+ *
+ * Voice (docs/redesign/00-DIRECTION.md §7): confident, plain, positive, concrete. The clever-negative lines
+ * the client rejected are gone. Anything marked CONFIRM describes behaviour the client must actually stand
+ * behind. Claim safety is absolute: no clients, statistics, years, certifications, testimonials, turnaround
+ * promises, payroll/EOR/visa/healthcare, no construction.
  */
 import type { WorldId } from './worlds';
 
@@ -17,6 +20,16 @@ export const statement = {
     { k: 'Established', v: '2026' },
     { k: 'Scope', v: 'Hospitality · Events · Facilities · Technical · Recruitment' },
   ],
+};
+
+/** Chapter I. The manifesto is the first thing after the film, so it says plainly what this company is. */
+export const manifesto = {
+  label: 'Doha, Qatar',
+  lines: ['Every operation', 'runs on people', 'who turn up.'],
+  /** The word whose O the chapter transition flies through. */
+  zoomWord: 'WORKFORCES',
+  body: 'Nexora supplies and coordinates them. Five kinds of workforce, briefed for your setting, contracted properly, and supported after they arrive.',
+  detail: { src: 'overview', caption: 'The Nexora model — five worlds, one operation' },
 };
 
 export const engagements = [
@@ -42,6 +55,9 @@ export const sectors: Sector[] = [
   { id: 'logistics', name: 'Logistics & Transport Support', roles: 'Warehouse operatives · Loaders · Dispatch support', body: 'Warehouse and dispatch teams for steady operations and seasonal volume.', worlds: ['technical'] },
 ];
 
+/** Stated plainly at the foot of the sector chapter, not as a headline joke. */
+export const sectorNote = 'Nexora does not supply construction labour. Technical work means operations, maintenance and utilities.';
+
 // CONFIRM: use only if operationally true.
 export const process = {
   label: 'How an engagement runs',
@@ -56,16 +72,19 @@ export const process = {
   ],
 };
 
-export const plate = {
-  world: 'facilities' as WorldId,
-  line: ['Time stops.', 'The work doesn’t show.'],
-  caption: 'Plate 03 — Facilities & Support · linen, mid-fold',
+/** Chapter III. One sentence over the turning floor. */
+export const turning = {
+  label: 'The model',
+  line: ['Everything here', 'was carried in', 'by someone.'],
+  caption: 'The Nexora model, turning — five worlds sharing one operation',
+  body: 'Four ways to engage us. The shape of the work decides which one fits.',
 };
 
 // CONFIRM: these are promises about behaviour.
 export const commitments = {
   label: 'What to expect',
-  heading: ['No numbers to show you yet.', 'So here is how we work.'],
+  heading: ['How we', 'work.'],
+  intro: 'Five things you can hold us to from the first call.',
   items: [
     { title: 'One point of contact.', body: 'A named coordinator from brief to deployment. Not a queue.' },
     { title: 'People briefed for your setting.', body: 'Before anyone arrives, they know the venue, the standard and who they report to.' },
@@ -73,11 +92,11 @@ export const commitments = {
     { title: 'We stay after deployment.', body: 'Attendance, replacements and feedback are ours to handle, so your managers can manage.' },
     { title: 'Straight answers.', body: 'If we cannot staff a requirement well, we say so at the brief.' },
   ],
-  dontLabel: 'What we don’t do',
+  dontLabel: 'Where we draw the line',
   donts: [
-    'We don’t charge candidates a fee, at any stage.',
-    'We don’t supply construction labour.',
-    'We don’t promise headcount we can’t deliver.',
+    'Candidates are never charged a fee, at any stage.',
+    'We do not supply construction labour.',
+    'We do not promise headcount we cannot deliver.',
   ],
 };
 
@@ -92,7 +111,7 @@ export const doors = {
   },
   candidate: {
     label: 'For candidates',
-    heading: ['I’m looking', 'for work.'],
+    heading: ['I am looking', 'for work.'],
     body: 'Register once. We contact you when a suitable role arises. It is always free.',
     cta: 'Register your CV',
     href: '/careers/',

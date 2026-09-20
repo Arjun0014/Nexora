@@ -1,0 +1,94 @@
+---
+/**
+ * Chapter IV-a — the ten sectors.
+ *
+ * The Aspen Search grid: every row is a hairline cell with an index, a name and its roles in mono. Hovering a
+ * row lifts its ground and raises that sector's still into the pointer follower, so the pictures live in the
+ * cursor rather than in ten thumbnails. Stone: the one light chapter of the page.
+ *
+ * The exclusion the client asked to stop joking about is stated plainly at the foot.
+ */
+import { sectors, sectorNote } from '../../data/content';
+import { worlds } from '../../data/worlds';
+
+const worldOf = (id: string) => worlds.find((w) => w.id === id);
+---
+<section class="sc surface ch-stone" id="sectors" data-theme="paper" aria-labelledby="sc-h" data-reveal>
+  <div class="sc__wrap wrap">
+    <header class="sc__head">
+      <p class="label sc__label" data-rise style="--i:0">Where our people work</p>
+      <h2 id="sc-h" class="sc__h display" data-rise style="--i:1">Ten sectors we staff.</h2>
+    </header>
+
+    <ol class="sc__rows">
+      {sectors.map((s, i) => {
+        const w = worldOf(s.worlds[0]);
+        return (
+          <li class="sc__row" data-sector={s.worlds[0]}>
+            <a class="sc__link" href={`/industries/#${s.id}`}
+              data-cursor="media" data-cursor-media={w ? `/media/stills/${w.id}-card-480.webp` : undefined} data-cursor-label={s.name}>
+              <span class="label sc__n">{String(i + 1).padStart(2, '0')}</span>
+              <span class="sc__name">{s.name}</span>
+              <span class="mono sc__roles">{s.roles}</span>
+              <svg class="sc__arrow" viewBox="0 0 24 12" width="24" height="12" aria-hidden="true" focusable="false"><path d="M0 6h22M16 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.1" /></svg>
+            </a>
+          </li>
+        );
+      })}
+    </ol>
+
+    <p class="sc__note mono" data-rise style="--i:2">{sectorNote}</p>
+  </div>
+</section>
+
+<style>
+  .sc { padding-block: clamp(5rem, 13vh, 10rem); background: linear-gradient(180deg, var(--stone) 0%, var(--linen) 100%); }
+
+  .sc__head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; padding-block-end: clamp(2rem, 5vh, 3.5rem); }
+  .sc__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block-start: 0.55em; }
+  .sc__h { grid-column: 3 / 12; font-size: clamp(2rem, 5.2vw, 5.5rem); line-height: 0.95; }
+
+  .sc__rows { border-block-start: 1px solid var(--line-strong); }
+  .sc__row { border-block-end: 1px solid var(--line); }
+
+  .sc__link {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 5fr) minmax(0, 6fr) 2rem;
+    column-gap: var(--gutter);
+    align-items: baseline;
+    padding-block: clamp(1.1rem, 2.2vw, 1.9rem);
+    padding-inline: clamp(0.5rem, 1.4vw, 1.25rem);
+    position: relative;
+    transition: padding-inline-start var(--d-reveal) var(--ease-freeze), color var(--d-state) ease;
+  }
+  /* The row's ground lifts rather than its text moving: the grid stays absolutely still. */
+  .sc__link::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    background: color-mix(in oklab, var(--accent) 12%, transparent);
+    transform: scaleY(0); transform-origin: bottom;
+    transition: transform var(--d-reveal) var(--ease-freeze);
+  }
+  .sc__link:hover::before, .sc__link:focus-visible::before { transform: none; }
+  .sc__link:hover, .sc__link:focus-visible { padding-inline-start: clamp(1.25rem, 2.6vw, 2.25rem); }
+
+  .sc__n { color: var(--fg-soft); }
+  .sc__name { font-family: var(--f-display); font-size: clamp(1.25rem, 2.4vw, 2.35rem); line-height: 1.1; letter-spacing: -0.02em; }
+  .sc__roles { font-size: 0.75rem; line-height: 1.5; color: var(--fg-soft); }
+  .sc__arrow { align-self: center; color: var(--fg-soft); opacity: 0; transform: translateX(-0.4rem); transition: opacity var(--d-state) ease, transform var(--d-reveal) var(--ease-freeze); }
+  .sc__link:hover .sc__arrow, .sc__link:focus-visible .sc__arrow { opacity: 1; transform: none; }
+
+  .sc__note { margin-block-start: clamp(2rem, 5vh, 3.5rem); max-width: 42rem; font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
+
+  @media (max-width: 1023px) {
+    .sc__head { grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 1.25rem; }
+    .sc__label { grid-column: 1 / 9; }
+    .sc__h { grid-column: 1 / 9; }
+    .sc__link { grid-template-columns: 2.5rem minmax(0, 1fr) 1.5rem; }
+    .sc__roles { grid-column: 2 / 3; }
+  }
+  @media (max-width: 699px) {
+    .sc__link { grid-template-columns: 2.25rem minmax(0, 1fr); row-gap: 0.4rem; }
+    .sc__arrow { display: none; }
+    .sc__roles { grid-column: 2 / 3; }
+  }
+</style>
