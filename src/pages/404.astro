@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/ui/Arrow.astro';
+---
+<Base title="Page not found" noindex theme="dark">
+  <section class="nf surface" data-theme="dark" aria-labelledby="nf-h">
+    <div class="wrap">
+      <p class="label label--soft">404</p>
+      <h1 id="nf-h" class="mega">Time stopped.<br /><em>So did this page.</em></h1>
+      <p class="lead soft">The address may have changed, or it never existed.</p>
+      <div class="nf__links">
+        <a class="btn btn--solid label" href="/">Back to the start<Arrow /></a>
+        <a class="btn label" href="/request/">Request workforce<Arrow /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { min-block-size: 100svh; display: grid; align-items: center; padding-block: calc(var(--header-h) + 3rem) var(--space-s); }
+  .nf .wrap { display: grid; gap: 2rem; justify-items: start; }
+  .nf em { color: var(--bronze); }
+  .nf__links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1rem; }
+</style>

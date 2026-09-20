@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import Commitments from '../components/home/Commitments.astro';
+import Doors from '../components/home/Doors.astro';
+import { site } from '../data/site';
+import { statement } from '../data/content';
+
+// Only facts confirmed by the commercial registration appear here.
+const identity = [
+  { k: 'Legal name', v: site.legalName },
+  { k: 'Commercial Registration', v: `No. ${site.cr}` },
+  { k: 'Registered in', v: `State of ${site.country}` },
+  { k: 'Established', v: '7 September 2026' },
+  { k: 'Based in', v: `${site.city}, ${site.country}` },
+];
+---
+<Base title="About" description="Nexora Hospitality and Services W.L.L. is a Qatar-registered workforce company established in 2026, supplying hospitality, events, facilities and technical teams." theme="dark">
+  <PageHead theme="dark" label="About" title={['A workforce company.', 'Established 2026.']} lead={statement.body} plate="overview" plateCaption="One world, many workforces" />
+
+  <section class="ab surface section" data-theme="paper" aria-labelledby="ab-h">
+    <div class="wrap grid">
+      <p class="label label--soft ab__label">Why we exist</p>
+      <div class="ab__body">
+        <h2 id="ab-h" class="h1">Operations are made of people. Someone has to arrange them.</h2>
+        <div class="ab__cols">
+          <p class="lead soft">A hotel opens a new outlet. A conference doubles its delegate list. A plant schedules a shutdown. A building changes hands. In each case the work is clear and the question is the same: who, how many, from when, and who looks after them once they are there.</p>
+          <p class="lead soft">That arranging is what Nexora does. We are new, and we say so. What we can show you today is not a record but a way of working: a clear brief, people matched to the setting, terms in writing, and a coordinator who stays involved.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="id surface section--tight" data-theme="paper" aria-labelledby="id-h">
+    <div class="wrap grid">
+      <h2 id="id-h" class="label label--soft id__label">Legal identity</h2>
+      <dl class="id__list">
+        {identity.map((row) => (
+          <div class="id__row"><dt class="label label--soft">{row.k}</dt><dd class="h3">{row.v}</dd></div>
+        ))}
+      </dl>
+      <p class="small soft id__note">These details are taken from the company’s commercial registration.</p>
+    </div>
+  </section>
+
+  <Commitments />
+  <Doors />
+</Base>
+
+<style>
+  .ab__label, .id__label { grid-column: 1 / span 2; padding-block-start: 0.9rem; }
+  .ab__body { grid-column: 3 / -1; display: grid; gap: var(--space-s); }
+  .ab__body .h1 { max-inline-size: 16em; }
+  .ab__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); }
+  .ab__cols .lead { max-inline-size: 30rem; }
+
+  .id { padding-block-end: var(--space); }
+  .id__list { grid-column: 3 / -1; border-block-end: 1px solid var(--line); }
+  .id__row { display: grid; grid-template-columns: minmax(10rem, 3fr) 7fr; gap: var(--gutter); align-items: baseline; padding-block: 1.25rem; border-block-start: 1px solid var(--line); }
+  .id__note { grid-column: 3 / span 6; margin-block-start: 1.5rem; }
+
+  @media (max-width: 1023px) {
+    .ab__label, .ab__body, .id__label, .id__list, .id__note { grid-column: 1 / -1; }
+    .ab__label, .id__label { margin-block-end: 1.25rem; }
+  }
+  @media (max-width: 699px) {
+    .ab__cols { grid-template-columns: 1fr; }
+    .id__row { grid-template-columns: 1fr; gap: 0.4rem; }
+  }
+</style>

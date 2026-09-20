@@ -1,0 +1,34 @@
+---
+/** A breath: one approved still at full bleed, one sentence, a caption chip. Nothing else. */
+import { plate } from '../../data/content';
+import { worldById } from '../../data/worlds';
+const w = worldById[plate.world];
+const srcset = (fmt: string) => [800, 1200, 1672].map((x) => `/media/stills/${w.id}-${x}.${fmt} ${x}w`).join(', ');
+---
+<section class="pl surface" data-theme="dark" data-plate aria-label={plate.line.join(' ')}>
+  <picture class="pl__img" data-plate-img>
+    <source type="image/avif" srcset={srcset('avif')} sizes="100vw" />
+    <img src={`/media/stills/${w.id}-1200.webp`} srcset={srcset('webp')} sizes="100vw" width="1672" height="941" alt={w.alt} loading="lazy" decoding="async" />
+  </picture>
+  <div class="pl__copy wrap" data-reveal>
+    <p class="h1 pl__line lines">
+      {plate.line.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
+    </p>
+  </div>
+  <p class="chip label pl__cap">{plate.caption}</p>
+</section>
+
+<style>
+  .pl { position: relative; block-size: min(92svh, 62vw); min-block-size: 30rem; overflow: clip; display: grid; align-items: center; isolation: isolate; }
+  .pl__img { position: absolute; inset: -4% 0; z-index: -2; transform: scale(var(--plate-s, 1)); transform-origin: 62% 50%; will-change: transform; }
+  .pl__img img { inline-size: 100%; block-size: 100%; object-fit: cover; object-position: 62% 50%; }
+  .pl::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(11, 10, 9, 0.78) 0%, rgba(11, 10, 9, 0.4) 34%, rgba(11, 10, 9, 0) 58%); }
+  .pl__line { max-inline-size: 9em; color: var(--bone); }
+  .pl__cap { position: absolute; inset-inline-start: var(--margin); inset-block-end: clamp(1.25rem, 3vw, 2.25rem); }
+
+  @media (max-aspect-ratio: 999/1000) {
+    .pl { block-size: 78svh; align-items: end; padding-block-end: 5.5rem; }
+    .pl__img img, .pl__img { object-position: 76% 50%; transform-origin: 76% 50%; }
+    .pl::before { background: linear-gradient(0deg, rgba(11, 10, 9, 0.86) 0%, rgba(11, 10, 9, 0.35) 40%, rgba(11, 10, 9, 0) 62%); }
+  }
+</style>

@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import Arrow from '../components/ui/Arrow.astro';
+import Doors from '../components/home/Doors.astro';
+import { sectors } from '../data/content';
+import { worldById } from '../data/worlds';
+---
+<Base title="Industries" description="The sectors Nexora staffs in Qatar: hospitality, events, facilities, retail, oil and gas operations, utilities, manufacturing, maintenance, IT and logistics." theme="paper">
+  <PageHead label="Industries" title={['Ten sectors.', 'One way of working.']} lead="Every sector has its own rhythm: a banquet, a shutdown, a product launch, a night shift. We staff for the rhythm, not just the headcount." />
+
+  <section class="ind surface" data-theme="paper" aria-label="Sectors">
+    <div class="wrap">
+      <ol class="ind__list">
+        {sectors.map((s, i) => (
+          <li class="ind__row" id={s.id}>
+            <span class="label num ind__n">{String(i + 1).padStart(2, '0')}</span>
+            <div class="ind__main">
+              <h2 class="h1 ind__name">{s.name}</h2>
+              <p class="lead soft">{s.body}</p>
+            </div>
+            <div class="ind__side">
+              <h3 class="label label--soft">Roles we supply</h3>
+              <ul class="ind__roles">{s.roles.split(' · ').map((r) => <li>{r}</li>)}</ul>
+              <p class="small soft ind__wf">
+                Drawn from {s.worlds.map((id, k) => <><a class="ind__wlink" href={`/services/#${id}`}>{worldById[id].title}</a>{k < s.worlds.length - 1 ? ' and ' : ''}</>)}
+              </p>
+              <a class="tlink label" href={`/request/?sector=${s.id}`}>Request staff<Arrow /></a>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <aside class="ind__note" aria-label="Not on this list">
+        <p class="label">Not on this list</p>
+        <p class="h3">Construction. We supply people for operating, serving, maintaining and supporting — not for building sites.</p>
+      </aside>
+    </div>
+  </section>
+
+  <Doors />
+</Base>
+
+<style>
+  .ind { padding-block-end: var(--space); }
+  .ind__row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 1.75rem; padding-block: clamp(2.5rem, 5vw, 5rem); border-block-start: 1px solid var(--line); scroll-margin-top: var(--header-h); }
+  .ind__n { grid-column: 1 / span 2; padding-block-start: 1.1rem; }
+  .ind__main { grid-column: 3 / span 6; display: grid; gap: 1.25rem; align-content: start; }
+  .ind__side { grid-column: 10 / -1; display: grid; gap: 1rem; align-content: start; justify-items: start; }
+  .ind__roles { inline-size: 100%; }
+  .ind__roles li { padding-block: 0.55rem; border-block-start: 1px solid var(--line); font-size: var(--t-small); }
+  .ind__roles li:last-child { border-block-end: 1px solid var(--line); }
+  .ind__wlink { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+  .ind__wlink:hover { color: var(--fg); }
+  .ind__row:target .ind__name { color: var(--bronze-deep); }
+
+  .ind__note { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 1rem; margin-block-start: var(--space-s); padding: 2rem 0; border-block: 1px solid var(--line-strong); }
+  .ind__note .label { grid-column: 1 / span 2; padding-block-start: 0.4rem; }
+  .ind__note .h3 { grid-column: 3 / span 7; }
+
+  @media (max-width: 1023px) {
+    .ind__row { grid-template-columns: 2.5rem 1fr; }
+    .ind__n { grid-column: 1; }
+    .ind__main, .ind__side { grid-column: 2; }
+    .ind__note { grid-template-columns: 1fr; }
+    .ind__note .label, .ind__note .h3 { grid-column: 1; }
+  }
+</style>

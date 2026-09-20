@@ -1,0 +1,256 @@
+---
+/**
+ * The film.
+ *
+ * DEFAULT (no JS, reduced motion, Save-Data): six ordinary full-height sections — overview, five worlds,
+ * title card — each with the approved high-res still behind its copy. Complete and readable.
+ *
+ * html.cinema (set pre-paint): the same markup becomes a sticky stage; the chapters stack; a canvas
+ * shows the loop / scrub frames; src/scripts/hero drives it. See docs/implementation/04.
+ */
+import Arrow from '../ui/Arrow.astro';
+import { worlds, overview } from '../../data/worlds';
+import { statement } from '../../data/content';
+import { site } from '../../data/site';
+import { heroLength } from '../../scripts/hero/timeline';
+
+const lenL = heroLength(false);
+const lenP = heroLength(true);
+
+// Five 60° arcs with 12° gaps, starting at 12 o'clock, clockwise — the disc seen from above.
+const R = 23, C = 32;
+const pt = (deg: number) => { const a = (deg * Math.PI) / 180; return `${(C + R * Math.cos(a)).toFixed(2)} ${(C + R * Math.sin(a)).toFixed(2)}`; };
+const arcs = worlds.map((_, i) => { const a0 = -90 + i * 72 + 6; return `M${pt(a0)}A${R} ${R} 0 0 1 ${pt(a0 + 60)}`; });
+
+const sizes = '100vw';
+const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media/stills/${id}-${w}.${fmt} ${w}w`).join(', ');
+---
+<section class="hero" id="film" data-hero data-header-clear data-theme="dark" aria-label="Introduction" style={`--len-l:${lenL};--len-p:${lenP}`}>
+  <div class="hero__stage" data-stage>
+    <div class="hero__media" data-media>
+      <canvas class="hero__canvas" data-canvas role="img" aria-label={overview.alt}></canvas>
+      <img class="hero__hd" data-hd alt="" decoding="async" aria-hidden="true" />
+    </div>
+    <!-- Source for the canvas only; never shown. play() is called from script, so off-screen autoplay policies do not pause it. -->
+    <video class="hero__loop" data-loop muted playsinline loop preload="none" disablepictureinpicture tabindex="-1" aria-hidden="true"></video>
+    <div class="hero__scrim" data-scrim aria-hidden="true"></div>
+    <canvas class="hero__mask" data-mask aria-hidden="true"></canvas>
+    <div class="hero__dip" data-dip aria-hidden="true"></div>
+
+    <div class="hero__ui">
+      <section class="ch ch--overview" data-chapter="overview" data-active="true" aria-labelledby="hero-h1">
+        <picture class="ch__bg">
+          <source type="image/avif" srcset={srcset('overview', 'avif')} sizes={sizes} />
+          <img src="/media/stills/overview-1200.webp" srcset={srcset('overview', 'webp')} sizes={sizes} width="1672" height="941" alt={overview.alt} loading="lazy" decoding="async" />
+        </picture>
+        <div class="ch__copy">
+          <p class="label ch__label">{overview.label}</p>
+          <h1 id="hero-h1" class="ch__h1 lines">
+            {overview.headline.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
+          </h1>
+          <p class="ch__support">{overview.support}</p>
+        </div>
+      </section>
+
+      {worlds.map((w) => (
+        <section class="ch ch--world" data-chapter={w.id} data-sector={w.id} aria-labelledby={`world-${w.id}`}>
+          <picture class="ch__bg">
+            <source type="image/avif" srcset={srcset(w.id, 'avif')} sizes={sizes} />
+            <img src={`/media/stills/${w.id}-1200.webp`} srcset={srcset(w.id, 'webp')} sizes={sizes} width="1672" height="941" alt={w.alt} loading="lazy" decoding="async" style={`object-position:${w.focus}`} />
+          </picture>
+          <div class="ch__copy">
+            <p class="label ch__label"><span class="num">{w.n}</span><span class="ch__of"> / 05</span></p>
+            <h2 id={`world-${w.id}`} class="display ch__title lines">
+              {w.titleLines.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
+            </h2>
+            <p class="ch__line" style={`--i:${w.titleLines.length}`}>{w.line}</p>
+            <a class="tlink label ch__link" href={`/services/#${w.id}`} style={`--i:${w.titleLines.length + 1}`} data-hero-link>{w.linkLabel}<Arrow /></a>
+          </div>
+        </section>
+      ))}
+
+      <section class="ch ch--title" data-chapter="title" aria-labelledby="title-h">
+        <h2 id="title-h" class="sr-only">Nexora</h2>
+        <!-- Static fallback for the title card: the still shows through the word via a CSS mask. -->
+        <div class="ch__word" aria-hidden="true"></div>
+        <p class="h1 ch__statement lines" data-title-line>
+          <span class="l" style="--i:0"><span>{statement.heading[0]}</span></span>
+          <span class="l" style="--i:1"><span><em>{statement.heading[1]}</em></span></span>
+        </p>
+        <div class="ch__meta label" style="--i:3">
+          <span>{site.legalName}</span>
+          <span>Est. {site.established} — {site.city}, {site.country}</span>
+        </div>
+      </section>
+
+      <div class="hud" data-hud>
+        <p class="hud__hint label" data-hint><span class="hud__hintline" aria-hidden="true"></span>Scroll to enter</p>
+        <div class="hud__row">
+          <button class="hud__time label" type="button" data-pause aria-pressed="false" aria-label="Pause the rotating overview">
+            <span class="hud__state" data-state aria-hidden="true"></span><span data-timecode aria-hidden="true">00:00:00:00</span>
+          </button>
+          <svg class="hud__glyph" data-glyph viewBox="0 0 64 64" width="56" height="56" aria-hidden="true" focusable="false">
+            <circle class="hud__hub" cx="32" cy="32" r="3"></circle>
+            {arcs.map((d, i) => (
+              <g data-wedge={i} data-sector={worlds[i].id}>
+                <path class="hud__track" d={d}></path>
+                <path class="hud__fill" d={d} pathLength="1"></path>
+              </g>
+            ))}
+          </svg>
+          <nav class="hud__nav" aria-label="Worlds">
+            <ol>
+              {worlds.map((w, i) => (
+                <li><button class="hud__n label" type="button" data-jump={i} data-sector={w.id} aria-label={`World ${i + 1} of 5: ${w.title}`}>{w.n}</button></li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+        <a class="hud__skip label tlink" href="#statement" data-skip>Skip film<Arrow /></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ═══ DEFAULT: six ordinary sections ═══════════════════════════════════════════════════ */
+  .hero { position: relative; background: var(--studio); color: var(--bone); }
+  .hero__media, .hero__loop, .hero__mask, .hero__dip, .hero__scrim, .hud { display: none; }
+
+  .ch { position: relative; display: flex; align-items: flex-end; min-height: 100vh; min-height: 100svh; padding: calc(var(--header-h) + 2rem) var(--margin) clamp(2.5rem, 7vh, 5rem); overflow: clip; isolation: isolate; }
+  .ch + .ch { border-block-start: 1px solid rgba(243, 237, 227, 0.12); }
+  .ch__bg { position: absolute; inset: 0; z-index: -2; }
+  .ch__bg img { width: 100%; height: 100%; object-fit: cover; }
+  .ch::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(11, 10, 9, 0.9) 0%, rgba(11, 10, 9, 0.62) 32%, rgba(11, 10, 9, 0) 60%), linear-gradient(0deg, rgba(11, 10, 9, 0.7) 0%, rgba(11, 10, 9, 0) 42%); }
+  .ch--overview .ch__bg img { object-fit: contain; object-position: 50% 40%; }
+  .ch--overview::before { background: linear-gradient(0deg, rgba(11, 10, 9, 0.85) 0%, rgba(11, 10, 9, 0) 45%); }
+
+  .ch__copy { max-width: min(38vw, 36rem); min-width: min(100%, 19rem); }
+  .ch__label { margin-block-end: 1.5rem; }
+  .ch__of { opacity: 0.6; }
+  .ch__h1 { font-family: var(--f-display); font-size: clamp(2.25rem, 4.1vw, 4.5rem); line-height: 0.98; letter-spacing: -0.02em; }
+  .ch__support { margin-block-start: 1.25rem; max-width: 24rem; font-size: var(--t-small); line-height: 1.55; color: var(--bone-soft); }
+  .ch__title { text-shadow: 0 1px 40px rgba(11, 10, 9, 0.45); }
+  .ch__line { margin-block: 1.5rem 1.75rem; max-width: 25rem; font-size: var(--t-lead); line-height: 1.4; }
+  .ch__link { color: var(--bone); }
+
+  .ch--title { flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(2rem, 5vw, 4rem); min-height: 80svh; background: var(--studio); }
+  .ch--title::before { display: none; }
+  .ch__word { width: 100%; aspect-ratio: 4290 / 740; background: url('/media/stills/recruitment-1200.webp') 60% 45% / cover no-repeat var(--bone);
+    -webkit-mask: url('/wordmark.svg') center / contain no-repeat; mask: url('/wordmark.svg') center / contain no-repeat; }
+  .ch__statement em { color: var(--bronze); }
+  .ch__meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; color: var(--bone-soft); padding-block-start: 1.25rem; border-block-start: 1px solid rgba(243, 237, 227, 0.16); }
+
+  /* ═══ CINEMA: a pinned, scrubbed stage ═════════════════════════════════════════════════ */
+  :global(html.cinema) .hero { height: calc((var(--len-l) + 1) * 100vh); height: calc((var(--len-l) + 1) * 100lvh); }
+  @media (max-aspect-ratio: 999/1000) {
+    :global(html.cinema) .hero { height: calc((var(--len-p) + 1) * 100vh); height: calc((var(--len-p) + 1) * 100lvh); }
+  }
+  :global(html.cinema) .hero__stage { position: sticky; inset-block-start: 0; height: 100vh; height: 100lvh; overflow: clip; background: var(--studio); contain: layout paint; }
+
+  :global(html.cinema) .hero__media { display: block; position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+  .hero__canvas, .hero__mask { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero__hd { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 140ms linear; }
+  .hero__hd[data-on='true'] { opacity: 1; transition: opacity 700ms ease-out; }
+  :global(html.cinema) .hero__loop { display: block; position: absolute; inset-block-start: 0; inset-inline-start: 0; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+  :global(html.cinema) .hero__mask { display: block; z-index: 3; pointer-events: none; }
+
+  /* Copy protection. Left column in landscape; built for the brightest scene (Facilities' pale marble). */
+  :global(html.cinema) .hero__scrim { display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 500ms ease;
+    background: linear-gradient(90deg, rgba(11, 10, 9, 0.88) 0%, rgba(11, 10, 9, 0.66) 24%, rgba(11, 10, 9, 0.18) 46%, rgba(11, 10, 9, 0) 58%), linear-gradient(0deg, rgba(11, 10, 9, 0.6) 0%, rgba(11, 10, 9, 0) 34%), linear-gradient(180deg, rgba(11, 10, 9, 0.5) 0%, rgba(11, 10, 9, 0) 20%); }
+  :global(html.cinema) .hero__scrim[data-on='true'] { opacity: 1; }
+  :global(html.cinema) .hero__scrim[data-mode='overview'] { opacity: 1; background: linear-gradient(0deg, rgba(11, 10, 9, 0.72) 0%, rgba(11, 10, 9, 0) 36%), linear-gradient(180deg, rgba(11, 10, 9, 0.55) 0%, rgba(11, 10, 9, 0) 22%); }
+
+  /* The safety net: a fade through the divider-wall bronze. Opaque until the first frame is drawn. */
+  :global(html.cinema) .hero__dip { display: block; position: absolute; inset: 0; z-index: 4; background: var(--wall); opacity: 0; pointer-events: none; transition: opacity 240ms ease; }
+  :global(html.cinema) .hero__dip[data-on='true'] { opacity: 1; transition-duration: 200ms; }
+  :global(html.cinema) .hero:not([data-ready]) .hero__dip { opacity: 1; background: var(--studio); transition: none; }
+
+  :global(html.cinema) .hero__ui { position: absolute; inset-block-start: 0; inset-inline: 0; height: 100vh; height: 100svh; z-index: 5; pointer-events: none; }
+  :global(html.cinema) .ch { position: absolute; inset: 0; min-height: 0; border: 0; pointer-events: none; background: none; }
+  :global(html.cinema) .ch::before, :global(html.cinema) .ch__bg { display: none; }
+  :global(html.cinema) .ch[data-active='true'] .ch__copy { pointer-events: auto; }
+
+  /* Copy leaves the instant time resumes; arrives with a hard stop when it freezes.
+     Inactive blocks are also transparent: display-serif ascenders overshoot a 0.95 line box, so a
+     translate alone leaves glyph tips showing through the line masks of the stacked chapters. */
+  :global(html.cinema) .ch .ch__copy { opacity: 0; transition: opacity 0s linear 280ms; }
+  :global(html.cinema) .ch[data-active='true'] .ch__copy { opacity: 1; transition-delay: 0s; }
+  :global(html.cinema) .ch .l > span { transform: translateY(125%); transition: transform 260ms cubic-bezier(0.5, 0, 0.9, 0.4); }
+  :global(html.cinema) .ch .ch__label, :global(html.cinema) .ch .ch__support, :global(html.cinema) .ch .ch__line, :global(html.cinema) .ch .ch__link { opacity: 0; transform: translateY(10px); transition: opacity 200ms ease, transform 200ms ease; }
+  :global(html.cinema) .ch[data-active='true'] .l > span { transform: none; transition: transform var(--d-type) var(--ease-freeze); transition-delay: calc(var(--i, 0) * 80ms + 60ms); }
+  :global(html.cinema) .ch[data-active='true'] .ch__label, :global(html.cinema) .ch[data-active='true'] .ch__support, :global(html.cinema) .ch[data-active='true'] .ch__line, :global(html.cinema) .ch[data-active='true'] .ch__link { opacity: 1; transform: none; transition: opacity 520ms ease-out, transform 520ms var(--ease-freeze); transition-delay: calc(var(--i, 0) * 80ms + 140ms); }
+
+  :global(html.cinema) .ch--overview .ch__copy { max-width: min(30vw, 27rem); }
+  :global(html.cinema) .ch--title { display: block; padding: 0; min-height: 0; background: none; }
+  :global(html.cinema) .ch--title .ch__statement { opacity: 0; transition: opacity 0s linear 280ms; }
+  :global(html.cinema) .ch--title[data-active='true'] .ch__statement { opacity: 1; transition-delay: 0s; }
+  :global(html.cinema) .ch__word { display: none; }
+  :global(html.cinema) .ch__statement { position: absolute; inset-inline: 6vw; inset-block-start: var(--title-y, 62%); max-width: 16em; }
+  :global(html.cinema) .ch__meta { position: absolute; inset-inline: 6vw; inset-block-end: clamp(1.5rem, 5vh, 3.25rem); opacity: 0; transition: opacity 200ms ease; }
+  :global(html.cinema) .ch[data-active='true'] .ch__meta { opacity: 1; transition: opacity 700ms ease-out 500ms; }
+
+  /* ── HUD ─────────────────────────────────────────────────────────────────────────────── */
+  :global(html.cinema) .hud { display: grid; justify-items: end; gap: 0.5rem; position: absolute; inset-inline-end: var(--margin); inset-block-end: clamp(1.5rem, 5vh, 3.25rem); pointer-events: auto; transition: opacity 400ms ease; }
+  :global(html.cinema) .hud[data-hidden='true'] { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 300ms ease, visibility 0s linear 300ms; }
+  .hud__row { display: flex; align-items: center; gap: 0.75rem; }
+  .hud__hint { display: flex; align-items: center; gap: 0.75rem; color: var(--bone-soft); transition: opacity 300ms ease; }
+  .hud__hint[data-hidden='true'] { opacity: 0; }
+  .hud__hintline { width: 2.5rem; height: 1px; background: currentColor; transform-origin: left; }
+  :global(html.motion) .hud__hintline { animation: hint 2.4s var(--ease-io) infinite; }
+  @keyframes hint { 0% { transform: scaleX(0); transform-origin: left; } 50% { transform: scaleX(1); transform-origin: left; } 50.01% { transform-origin: right; } 100% { transform: scaleX(0); transform-origin: right; } }
+
+  .hud__time { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 2.75rem; padding-inline: 0.5rem; color: var(--bone-soft); letter-spacing: 0.1em; transition: color var(--d-state) ease; }
+  .hud__time:hover, .hud__time:focus-visible { color: var(--bone); }
+  .hud__state { position: relative; width: 0.6rem; height: 0.6rem; }
+  .hud__state::before, .hud__state::after { content: ''; position: absolute; inset-block: 0; width: 2px; background: currentColor; }
+  .hud__state::before { inset-inline-start: 1px; } .hud__state::after { inset-inline-end: 1px; }
+  .hud__state[data-playing='true']::before { inset: 0; width: auto; background: none; border-block: 0.3rem solid transparent; border-inline-start: 0.55rem solid var(--accent); }
+  .hud__state[data-playing='true']::after { display: none; }
+
+  .hud__glyph { flex: none; transform: rotate(0deg); }
+  .hud__hub { fill: var(--bone); opacity: 0.35; transition: opacity var(--d-state) ease; }
+  .hud__glyph[data-world='-1'] .hud__hub { opacity: 1; }
+  .hud__track { fill: none; stroke: rgba(243, 237, 227, 0.26); stroke-width: 2.5; }
+  .hud__fill { fill: none; stroke: var(--accent); stroke-width: 4; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .hud__nav ol { display: flex; }
+  .hud__n { min-width: 2rem; min-height: 2.75rem; color: var(--bone-soft); letter-spacing: 0.08em; transition: color var(--d-state) ease; position: relative; }
+  .hud__n:hover, .hud__n:focus-visible { color: var(--bone); }
+  .hud__n[aria-current='true'] { color: var(--accent); }
+  .hud__n[aria-current='true']::after { content: ''; position: absolute; inset-inline: 0.45rem; inset-block-end: 0.6rem; height: 1px; background: var(--accent); }
+  .hud__skip { color: var(--bone-soft); min-height: 2.25rem; }
+  .hud__skip:hover, .hud__skip:focus-visible { color: var(--bone); }
+
+  /* ═══ PORTRAIT ═════════════════════════════════════════════════════════════════════════ */
+  @media (max-aspect-ratio: 999/1000) {
+    .ch { padding-block-end: clamp(2rem, 6vh, 4rem); }
+    .ch::before { background: linear-gradient(0deg, rgba(11, 10, 9, 0.92) 0%, rgba(11, 10, 9, 0.6) 34%, rgba(11, 10, 9, 0) 62%); }
+    .ch__copy, :global(html.cinema) .ch--overview .ch__copy { max-width: 100%; }
+    .ch__bg img { object-position: 74% 50% !important; }
+    .ch--overview .ch__bg img { object-position: 50% 34% !important; }
+    .ch__h1 { font-size: clamp(2.5rem, 11vw, 4rem); }
+    .ch__title { font-size: clamp(2.75rem, 12.5vw, 4.5rem); }
+    .ch__line { font-size: 1.0625rem; margin-block: 1rem 1.25rem; }
+    .ch__link { display: flex; justify-content: space-between; padding-block: 0.9rem; border-block-start: 1px solid rgba(243, 237, 227, 0.3); }
+    .ch__link::after, .ch__link::before { display: none; }
+
+    :global(html.cinema) .hero__scrim, :global(html.cinema) .hero__scrim[data-mode='overview'] { background: linear-gradient(0deg, rgba(11, 10, 9, 0.94) 0%, rgba(11, 10, 9, 0.7) 30%, rgba(11, 10, 9, 0) 58%), linear-gradient(180deg, rgba(11, 10, 9, 0.6) 0%, rgba(11, 10, 9, 0) 18%); }
+    :global(html.cinema) .ch--overview { align-items: flex-end; }
+    :global(html.cinema) .ch { padding-block-end: 5.75rem; }
+    :global(html.cinema) .hud { inset-inline: var(--margin); inset-block-end: 1.1rem; grid-template-columns: 1fr auto; align-items: center; justify-items: start; gap: 0; }
+    .hud__hint { display: none; }
+    .hud__time { display: none; }
+    .hud__row { grid-column: 2; grid-row: 1; gap: 0.25rem; }
+    .hud__glyph { width: 40px; height: 40px; }
+    .hud__n { min-width: 1.85rem; }
+    .hud__skip { grid-column: 1; grid-row: 1; }
+    :global(html.cinema) .ch__statement { inset-inline: var(--margin); font-size: clamp(2rem, 9vw, 3rem); }
+  }
+  /* Phone landscape: little height, so the type floor drops. */
+  @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+    .ch__title { font-size: clamp(2rem, 5.2vw, 3.25rem); }
+    .ch__line { font-size: 1rem; margin-block: 0.75rem 1rem; }
+    .ch__support { display: none; }
+    .hud__time, .hud__hint { display: none; }
+  }
+</style>

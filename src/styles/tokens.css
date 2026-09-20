@@ -1,0 +1,103 @@
+/* Design tokens — see docs/implementation/03-VISUAL-SYSTEM.md. Colours are sampled from the footage. */
+:root {
+  /* surfaces */
+  --studio: #0b0a09;
+  --studio-2: #14120f;
+  --wall: #1d1510; /* the divider-wall bronze, used by the hero's safety "dip" */
+  --paper: #eee8de;
+  --paper-2: #e3dbcd;
+
+  /* ink */
+  --ink: #15120f;
+  --ink-soft: #6b6259;
+  --bone: #f3ede3;
+  --bone-soft: rgba(243, 237, 227, 0.64);
+
+  /* accents */
+  --bronze: #c48a55;
+  --bronze-deep: #7a4e2a;
+  --c-hospitality: #d9a45b;
+  --c-events: #b07ce0;
+  --c-facilities: #5fb8ae;
+  --c-technical: #5b9be0;
+  --c-recruitment: #4fc3e8;
+
+  /* type families */
+  --f-display: 'Instrument Serif', 'Instrument Serif Fallback', 'Iowan Old Style', 'Times New Roman', serif;
+  --f-sans: 'Instrument Sans Variable', 'Instrument Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* type scale (fluid; the character of the system is the jump between label and display) */
+  --t-mega: clamp(3.5rem, 11vw, 12rem);
+  --t-display: clamp(2.75rem, 6.4vw, 7rem);
+  --t-h1: clamp(2.25rem, 4.6vw, 4.75rem);
+  --t-h2: clamp(1.75rem, 3.4vw, 3.25rem);
+  --t-h3: clamp(1.375rem, 2vw, 1.875rem);
+  --t-lead: clamp(1.125rem, 1.35vw, 1.375rem);
+  --t-body: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
+  --t-small: 0.875rem;
+  --t-label: 0.6875rem;
+
+  /* space */
+  --margin: clamp(1.25rem, 4vw, 4.5rem);
+  --gutter: clamp(1rem, 2vw, 2rem);
+  --space: clamp(5rem, 11vw, 11rem);
+  --space-s: clamp(2rem, 4vw, 4rem);
+  --max: 110rem;
+  --measure: 34rem;
+  --header-h: 4.5rem;
+
+  /* motion */
+  --ease-freeze: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-state: 180ms;
+  --d-reveal: 520ms;
+  --d-type: 760ms;
+
+  --accent: var(--bronze);
+}
+
+/* A sector colour is only ever applied by setting --accent on a container. */
+[data-sector='hospitality'] { --accent: var(--c-hospitality); }
+[data-sector='events'] { --accent: var(--c-events); }
+[data-sector='facilities'] { --accent: var(--c-facilities); }
+[data-sector='technical'] { --accent: var(--c-technical); }
+[data-sector='recruitment'] { --accent: var(--c-recruitment); }
+
+/* Surfaces alternate by hard cut. */
+[data-theme='dark'] {
+  --bg: var(--studio);
+  --fg: var(--bone);
+  --fg-soft: var(--bone-soft);
+  --line: rgba(243, 237, 227, 0.16);
+  --line-strong: rgba(243, 237, 227, 0.42);
+  --mark: var(--accent);
+  color-scheme: dark;
+}
+[data-theme='paper'] {
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --fg-soft: var(--ink-soft);
+  --line: rgba(21, 18, 15, 0.16);
+  --line-strong: rgba(21, 18, 15, 0.5);
+  --accent: var(--bronze-deep);
+  --mark: var(--bronze-deep);
+  color-scheme: light;
+}
+
+/* Metric-matched fallbacks so the swap to the web fonts does not move the layout. */
+@font-face {
+  font-family: 'Instrument Serif Fallback';
+  src: local('Times New Roman'), local('Georgia');
+  size-adjust: 89%;
+  ascent-override: 104%;
+  descent-override: 32%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Instrument Sans Fallback';
+  src: local('Segoe UI'), local('Helvetica Neue'), local('Arial');
+  size-adjust: 101%;
+  ascent-override: 96%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}

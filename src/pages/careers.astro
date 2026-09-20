@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import CandidateForm from '../components/forms/CandidateForm.astro';
+import { noFee } from '../data/content';
+import { worlds } from '../data/worlds';
+
+const steps = [
+  { n: '01', t: 'Register once', b: 'Tell us the kind of work you want and attach your CV. It takes a few minutes.' },
+  { n: '02', t: 'We look for a fit', b: 'When an employer needs someone with your experience, we review your profile against the role.' },
+  { n: '03', t: 'You decide', b: 'We contact you with the details. Nothing goes ahead without your agreement.' },
+];
+---
+<Base title="Careers" description="Register your CV with Nexora for hospitality, events, facilities and technical work in Qatar. Registration is free; Nexora never charges candidates." theme="dark">
+  <PageHead theme="dark" label="For candidates" title={['Good work,', 'properly arranged.']} lead="There are no listed vacancies yet. Register once and we will contact you if a suitable role arises. Registration is not a job offer." plate="recruitment" plateCaption="05 — a document, mid-air" />
+
+  <section class="cr surface section" data-theme="dark" aria-labelledby="cr-h">
+    <div class="wrap grid">
+      <p class="label label--soft cr__label">How it works</p>
+      <h2 id="cr-h" class="sr-only">How registration works</h2>
+      <ol class="cr__steps">
+        {steps.map((s) => (
+          <li><span class="label num">{s.n}</span><h3 class="h2">{s.t}</h3><p class="soft">{s.b}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="nf surface" data-theme="dark" aria-labelledby="nf-h">
+    <div class="wrap grid">
+      <p class="label nf__label">Our policy</p>
+      <div class="nf__body">
+        <h2 id="nf-h" class="display">{noFee.heading}</h2>
+        <p class="lead soft">{noFee.body}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rg surface section" id="register" data-theme="paper" aria-labelledby="rg-h">
+    <div class="wrap grid">
+      <div class="rg__intro">
+        <p class="label label--soft">Register</p>
+        <h2 id="rg-h" class="h1">Your details<br />and CV.</h2>
+        <p class="body soft">We ask only for what helps us match you to work. We will never ask for your passport, ID number, photograph or any payment on this form.</p>
+        <div class="rg__kinds">
+          <h3 class="label label--soft">Kinds of work</h3>
+          <ul>{worlds.slice(0, 4).map((w) => <li><a href={`/services/#${w.id}`}>{w.title}</a></li>)}</ul>
+        </div>
+      </div>
+      <div class="rg__form"><CandidateForm /></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .cr__label, .nf__label { grid-column: 1 / span 2; padding-block-start: 0.9rem; }
+  .cr__steps { grid-column: 3 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }
+  .cr__steps li { display: grid; gap: 0.9rem; align-content: start; padding-block-start: 1.5rem; border-block-start: 1px solid var(--line); }
+  .cr__steps p { max-inline-size: 22rem; }
+
+  .nf { padding-block: 0 var(--space); }
+  .nf .grid { padding-block-start: var(--space-s); border-block-start: 1px solid var(--line); }
+  .nf__label { color: var(--bronze); }
+  .nf__body { grid-column: 3 / span 8; display: grid; gap: 1.5rem; }
+
+  .rg__intro { grid-column: 1 / span 4; display: grid; gap: 1.5rem; align-content: start; position: sticky; inset-block-start: calc(var(--header-h) + 2rem); align-self: start; }
+  .rg__form { grid-column: 6 / span 6; }
+  .rg__kinds { display: grid; gap: 0.75rem; margin-block-start: 1rem; }
+  .rg__kinds li { border-block-start: 1px solid var(--line); }
+  .rg__kinds li:last-child { border-block-end: 1px solid var(--line); }
+  .rg__kinds a { display: flex; min-block-size: 2.75rem; align-items: center; font-size: var(--t-small); }
+  .rg__kinds a:hover { color: var(--bronze-deep); }
+
+  @media (max-width: 1023px) {
+    .cr__label, .nf__label, .cr__steps, .nf__body, .rg__intro, .rg__form { grid-column: 1 / -1; }
+    .rg__intro { position: static; margin-block-end: var(--space-s); }
+    .cr__label, .nf__label { margin-block-end: 1.25rem; }
+  }
+  @media (max-width: 699px) { .cr__steps { grid-template-columns: 1fr; row-gap: 2rem; } }
+</style>

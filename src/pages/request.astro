@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import Arrow from '../components/ui/Arrow.astro';
+import RequestForm from '../components/forms/RequestForm.astro';
+import { site } from '../data/site';
+---
+<Base title="Request workforce" description="Tell Nexora the roles, numbers and dates you need staffed in Qatar. Two short steps, no commitment." theme="paper">
+  <PageHead label="For employers" title={['Tell us who', 'you need.']} lead="Two short steps. Rough answers are fine; we confirm the detail with you before anything proceeds." />
+
+  <section class="rq surface" data-theme="paper" aria-label="Requirement form">
+    <div class="wrap grid">
+      <div class="rq__form"><RequestForm /></div>
+
+      <aside class="rq__aside" aria-labelledby="rq-next">
+        <h2 id="rq-next" class="label label--soft">What happens next</h2>
+        <ol class="rq__next">
+          <li><span class="label num">01</span><span>We review the details you send.</span></li>
+          <li><span class="label num">02</span><span>A member of our team contacts you to confirm scope, roles and timing.</span></li>
+          <li><span class="label num">03</span><span>You receive a proposal to approve before anything proceeds.</span></li>
+        </ol>
+        <div class="rq__alt">
+          <h2 class="label label--soft">Prefer a conversation?</h2>
+          <p class="small soft">Send a short message and we will arrange a call.</p>
+          <a class="tlink label" href="/contact/">Contact us<Arrow /></a>
+          {site.phone && <a class="tlink label" href={`tel:${site.phone.replace(/\s+/g, '')}`}>{site.phone}</a>}
+          {site.whatsapp && <a class="tlink label" href={`https://wa.me/${site.whatsapp}`} rel="noopener">WhatsApp</a>}
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .rq { padding-block-end: var(--space); }
+  .rq__form { grid-column: 3 / span 6; }
+  .rq__aside { grid-column: 10 / -1; position: sticky; inset-block-start: calc(var(--header-h) + 2rem); align-self: start; display: grid; gap: 1.25rem; }
+  .rq__next li { display: grid; grid-template-columns: 2.5rem 1fr; align-items: baseline; padding-block: 0.9rem; border-block-start: 1px solid var(--line); font-size: var(--t-small); line-height: 1.5; }
+  .rq__next li:last-child { border-block-end: 1px solid var(--line); }
+  .rq__alt { display: grid; gap: 0.6rem; justify-items: start; margin-block-start: 1.5rem; }
+  @media (max-width: 1023px) {
+    .rq__form, .rq__aside { grid-column: 1 / -1; }
+    .rq__aside { position: static; margin-block-start: var(--space-s); }
+  }
+</style>

@@ -1,0 +1,60 @@
+{
+  "generated": "by scripts/build-media.mjs — do not edit by hand",
+  "frame": {
+    "w": 1280,
+    "h": 720
+  },
+  "mobileCrop": {
+    "w": 512,
+    "h": 640,
+    "focusX": 0.72,
+    "srcX": 0.4953125,
+    "srcW": 0.45
+  },
+  "mobileEntry": {
+    "w": 1024,
+    "h": 576
+  },
+  "actionX": 0.72,
+  "loop": {
+    "duration": 15,
+    "fps": 24
+  },
+  "sequences": [
+    {
+      "id": "entry",
+      "to": "hospitality",
+      "frames": 192,
+      "mFrames": 97,
+      "mStep": 2
+    },
+    {
+      "id": "events",
+      "to": "events",
+      "frames": 121,
+      "mFrames": 121,
+      "mStep": 1
+    },
+    {
+      "id": "facilities",
+      "to": "facilities",
+      "frames": 121,
+      "mFrames": 121,
+      "mStep": 1
+    },
+    {
+      "id": "technical",
+      "to": "technical",
+      "frames": 121,
+      "mFrames": 121,
+      "mStep": 1
+    },
+    {
+      "id": "recruitment",
+      "to": "recruitment",
+      "frames": 121,
+      "mFrames": 121,
+      "mStep": 1
+    }
+  ]
+}

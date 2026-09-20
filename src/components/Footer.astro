@@ -1,0 +1,100 @@
+---
+import Wordmark from './Wordmark.astro';
+import { site, nav, cta } from '../data/site';
+import { worlds } from '../data/worlds';
+
+const year = new Date().getFullYear();
+const hasContact = Boolean(site.email || site.phone || site.whatsapp || site.address.length);
+---
+<footer class="ft surface" data-theme="dark">
+  <div class="wrap">
+    <div class="ft__top grid">
+      <div class="ft__lede">
+        <p class="h2">One world.<br />Many workforces.</p>
+      </div>
+
+      <nav class="ft__col" aria-label="Workforces">
+        <h2 class="label label--soft">Workforces</h2>
+        <ul>
+          {worlds.map((w) => <li><a class="ft__link" href={`/services/#${w.id}`}>{w.title}</a></li>)}
+        </ul>
+      </nav>
+
+      <nav class="ft__col" aria-label="Company">
+        <h2 class="label label--soft">Company</h2>
+        <ul>
+          {nav.map((n) => <li><a class="ft__link" href={n.href}>{n.label}</a></li>)}
+          <li><a class="ft__link" href="/contact/">Contact</a></li>
+          <li><a class="ft__link" href="/privacy/">Privacy</a></li>
+        </ul>
+      </nav>
+
+      <div class="ft__col">
+        <h2 class="label label--soft">Start here</h2>
+        <ul>
+          <li><a class="ft__link" href={cta.employer.href}>{cta.employer.label}</a></li>
+          <li><a class="ft__link" href={cta.candidate.href}>{cta.candidate.label}</a></li>
+        </ul>
+        {hasContact && (
+          <address class="ft__contact">
+            {site.email && <a class="ft__link" href={`mailto:${site.email}`}>{site.email}</a>}
+            {site.phone && <a class="ft__link" href={`tel:${site.phone.replace(/\s+/g, '')}`}>{site.phone}</a>}
+            {site.whatsapp && <a class="ft__link" href={`https://wa.me/${site.whatsapp}`} rel="noopener">WhatsApp</a>}
+            {site.address.map((line) => <span>{line}</span>)}
+          </address>
+        )}
+      </div>
+    </div>
+
+    <div class="ft__legal">
+      <p class="small soft">© {year} {site.legalName}</p>
+      <p class="small soft">Commercial Registration No. {site.cr} · {site.city}, {site.country}</p>
+      <button class="ft__motion small" type="button" data-motion-toggle hidden>
+        <span class="ft__dot" aria-hidden="true"></span><span data-motion-label>Reduce motion</span>
+      </button>
+      {site.social.length > 0 && (
+        <ul class="ft__social">
+          {site.social.map((s) => <li><a class="ft__link small" href={s.href} rel="noopener me">{s.label}</a></li>)}
+        </ul>
+      )}
+    </div>
+  </div>
+
+  <div class="ft__mark" aria-hidden="true">
+    <Wordmark title={false} />
+  </div>
+</footer>
+
+<style>
+  .ft { padding-block-start: var(--space); overflow: clip; }
+  .ft__top { row-gap: 3rem; padding-block-end: var(--space-s); }
+  .ft__lede { grid-column: 1 / span 5; }
+  .ft__col { grid-column: span 2; }
+  .ft__col:last-child { grid-column: span 3; }
+  .ft__col h2 { margin-block-end: 1.25rem; }
+  .ft__col ul { display: grid; gap: 0.15rem; }
+  .ft__link { display: inline-flex; align-items: center; min-height: 2.25rem; color: var(--bone-soft); transition: color var(--d-state) ease; }
+  .ft__link:hover, .ft__link:focus-visible { color: var(--bone); }
+  .ft__contact { display: grid; gap: 0.15rem; margin-block-start: 1.5rem; font-style: normal; color: var(--bone-soft); }
+
+  .ft__legal { display: flex; flex-wrap: wrap; gap: 0.5rem 2.5rem; align-items: center; padding-block: 1.5rem; border-block-start: 1px solid var(--line); }
+  .ft__social { display: flex; gap: 1.5rem; }
+  .ft__motion { display: inline-flex; align-items: center; gap: 0.6rem; min-block-size: 2.75rem; margin-inline-start: auto; color: var(--bone-soft); transition: color var(--d-state) ease; }
+  .ft__motion:hover, .ft__motion:focus-visible { color: var(--bone); }
+  .ft__dot { inline-size: 0.5rem; block-size: 0.5rem; border-radius: 50%; border: 1px solid currentColor; }
+  .ft__motion[aria-pressed='true'] .ft__dot { background: var(--bronze); border-color: var(--bronze); }
+
+  /* The giant wordmark is cropped by the bottom edge of the page. */
+  .ft__mark { padding-inline: var(--margin); margin-block-start: var(--space-s); color: rgba(243, 237, 227, 0.09); }
+  .ft__mark :global(svg) { width: 100%; height: auto; margin-block-end: -5.5%; }
+
+  @media (max-width: 1023px) {
+    .ft__lede { grid-column: 1 / -1; }
+    .ft__col { grid-column: span 2; }
+    .ft__col:last-child { grid-column: span 4; }
+  }
+  @media (max-width: 699px) {
+    .ft__col, .ft__col:last-child { grid-column: span 2; }
+    .ft__col:last-child { grid-column: 1 / -1; }
+  }
+</style>

@@ -1,0 +1,109 @@
+---
+/**
+ * Candidate registration. Never asks for passport, QID, photo, date of birth, religion, marital status
+ * or health — "special nature" data under Qatar's PDPPL (Law 13 of 2016). Consent is unticked and purpose-based.
+ */
+import '../../styles/forms.css';
+import Arrow from '../ui/Arrow.astro';
+import { site } from '../../data/site';
+import { worlds } from '../../data/worlds';
+
+const endpoint = site.formEndpoint.candidate;
+const experience = ['Under 1 year', '1–3 years', '3–5 years', '5–10 years', '10+ years'];
+const availability = ['Immediately', 'Within a month', '1–3 months', 'Just exploring'];
+---
+<div data-form-wrap>
+  <form class="form" data-form="candidate" method="post" action={endpoint || undefined} enctype="multipart/form-data" novalidate data-endpoint={endpoint}>
+    <div class="form__summary" data-form-summary role="alert" tabindex="-1" hidden></div>
+
+    <fieldset>
+      <legend class="h2" tabindex="-1">About you</legend>
+      <div class="form__row">
+        <div class="field">
+          <label for="cd-name">Full name <span class="field__req">required</span></label>
+          <input class="input" id="cd-name" name="name" type="text" required autocomplete="name" data-msg="Enter your full name." />
+          <p class="field__error" data-error></p>
+        </div>
+        <div class="field">
+          <label for="cd-email">Email <span class="field__req">required</span></label>
+          <input class="input" id="cd-email" name="email" type="email" required autocomplete="email" inputmode="email" data-msg="Enter an email address, like name@example.com." />
+          <p class="field__error" data-error></p>
+        </div>
+      </div>
+      <div class="form__row">
+        <div class="field">
+          <label for="cd-phone">Mobile <span class="field__req">required</span></label>
+          <input class="input" id="cd-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" value="+974 " data-rule="phone" data-msg="Enter a mobile number with its country code, like +974 5555 5555." />
+          <p class="field__error" data-error></p>
+        </div>
+        <div class="field">
+          <label for="cd-country">Country you live in now <span class="field__req">required</span></label>
+          <input class="input" id="cd-country" name="country" type="text" required autocomplete="country-name" data-msg="Tell us which country you live in now." />
+          <p class="field__error" data-error></p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="cd-nat">Nationality <span class="field__req">optional</span></label>
+        <input class="input" id="cd-nat" name="nationality" type="text" autocomplete="off" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="h2" tabindex="-1">The work you want</legend>
+      <div class="field" data-group data-required data-msg="Choose at least one kind of work.">
+        <span class="field__label" id="cd-wf">Kind of work <span class="field__req">choose any</span></span>
+        <div class="chips" role="group" aria-labelledby="cd-wf">
+          {worlds.slice(0, 4).map((w) => <label><input type="checkbox" name="workforce" value={w.id} />{w.title}</label>)}
+          <label><input type="checkbox" name="workforce" value="office" />Office and professional</label>
+        </div>
+        <p class="field__error" data-error></p>
+      </div>
+      <div class="field">
+        <label for="cd-role">Your role or main skills <span class="field__req">required</span></label>
+        <input class="input" id="cd-role" name="role" type="text" required autocomplete="off" placeholder="e.g. Banquet server, HVAC technician" data-msg="Tell us your role or main skills." />
+        <p class="field__error" data-error></p>
+      </div>
+      <div class="form__row">
+        <div class="field">
+          <label for="cd-exp">Experience</label>
+          <select id="cd-exp" name="experience"><option value="">Select</option>{experience.map((x) => <option>{x}</option>)}</select>
+        </div>
+        <div class="field">
+          <label for="cd-av">Availability</label>
+          <select id="cd-av" name="availability"><option value="">Select</option>{availability.map((x) => <option>{x}</option>)}</select>
+        </div>
+      </div>
+      <div class="field file">
+        <label for="cd-cv">Your CV <span class="field__req">required</span></label>
+        <input id="cd-cv" name="cv" type="file" required accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="cd-cv-hint" data-max-mb="5" data-msg="Attach your CV as a PDF or Word file, 5 MB or smaller." />
+        <p class="field__hint" id="cd-cv-hint">PDF or Word (.doc, .docx), up to 5 MB.</p>
+        <p class="field__error" data-error></p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="sr-only" tabindex="-1">Consent</legend>
+      <div class="field" data-group data-required data-msg="We need your consent to keep and use your details.">
+        <label class="check"><input type="checkbox" name="consent" value="yes" required /><span>I consent to {site.legalName} storing and using my details and CV to assess me for work opportunities, and to share them with prospective employers for that purpose. I can withdraw consent or ask for deletion at any time. <a class="tlink" href="/privacy/">Privacy notice</a></span></label>
+        <p class="field__error" data-error></p>
+      </div>
+      <label class="check"><input type="checkbox" name="alerts" value="yes" /><span>Optional: email me when roles matching my profile come up.</span></label>
+      <p class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label></p>
+      <div class="form__actions">
+        <button class="btn btn--solid label" type="submit">Register<Arrow /></button>
+      </div>
+      <p class="form__note">Registration is free and is not a job offer. We never ask candidates for payment.</p>
+    </fieldset>
+    <noscript><p class="form__note">This form needs JavaScript to send.</p></noscript>
+  </form>
+
+  <div class="done" data-form-done tabindex="-1" hidden>
+    <p class="preview-flag" data-form-preview hidden>Preview mode — this submission was not sent. Set <code>formEndpoint</code> in <code>src/data/site.ts</code>.</p>
+    <h2 class="h1">You’re registered.</h2>
+    <ol>
+      <li>We keep your profile and CV on file for the kinds of work you chose.</li>
+      <li>When a suitable role arises, a member of our team contacts you.</li>
+      <li>You can ask us to update or delete your details at any time.</li>
+    </ol>
+  </div>
+</div>

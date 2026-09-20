@@ -1,0 +1,52 @@
+---
+import Arrow from './ui/Arrow.astro';
+import { nav, cta } from '../data/site';
+---
+<div class="ms" id="menu-sheet" role="dialog" aria-modal="true" aria-label="Menu" data-menu data-theme="dark" hidden>
+  <div class="ms__top">
+    <span class="label label--soft">Menu</span>
+    <button class="ms__close label" type="button" data-menu-close>Close</button>
+  </div>
+  <nav aria-label="Menu">
+    <ol class="ms__list">
+      {nav.map((item, i) => (
+        <li>
+          <a class="ms__link" href={item.href}>
+            <span class="label num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="h1">{item.label}</span>
+          </a>
+        </li>
+      ))}
+      <li>
+        <a class="ms__link" href="/contact/">
+          <span class="label num">{String(nav.length + 1).padStart(2, '0')}</span>
+          <span class="h1">Contact</span>
+        </a>
+      </li>
+    </ol>
+  </nav>
+  <div class="ms__cta">
+    <a class="btn btn--solid label" href={cta.employer.href}>{cta.employer.label}<Arrow /></a>
+    <a class="btn label" href={cta.candidate.href}>{cta.candidate.label}<Arrow /></a>
+  </div>
+</div>
+
+<style>
+  .ms {
+    position: fixed; inset: 0; z-index: 150;
+    display: grid; grid-template-rows: auto 1fr auto;
+    padding: 0 var(--margin) calc(var(--margin) + env(safe-area-inset-bottom));
+    background: var(--studio); color: var(--bone);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .ms__top { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); }
+  .ms__close { min-height: 2.75rem; padding-inline: 0.5rem; }
+  .ms__list { align-self: center; display: grid; padding-block: 1.5rem; }
+  .ms__link { display: grid; grid-template-columns: 2.5rem 1fr; align-items: baseline; padding-block: 0.7rem; border-block-end: 1px solid var(--line); }
+  .ms__list li:first-child .ms__link { border-block-start: 1px solid var(--line); }
+  .ms__cta { display: grid; gap: 0.75rem; }
+  .ms__cta .btn { justify-content: space-between; }
+
+  html.motion .ms[data-open='true'] { animation: ms-in 420ms var(--ease-freeze); }
+  @keyframes ms-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+</style>

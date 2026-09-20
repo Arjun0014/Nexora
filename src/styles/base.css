@@ -1,0 +1,133 @@
+/* Reset, base typography, layout primitives and the small shared component kit. */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--header-h);
+  background: var(--studio);
+}
+html.motion { scroll-behavior: smooth; }
+/* The hero animates scroll itself; native smooth scrolling would fight it. */
+html.cinema { scroll-behavior: auto; }
+
+body {
+  min-height: 100vh;
+  font-family: var(--f-sans);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+img, video { height: auto; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+h1, h2, h3, h4 { font-weight: 400; text-wrap: balance; }
+p { text-wrap: pretty; }
+::selection { background: var(--bronze); color: var(--studio); }
+
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--mark, var(--bronze)); outline-offset: 3px; border-radius: 1px; }
+
+@view-transition { navigation: auto; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ── surfaces ─────────────────────────────────────────────────────────────── */
+.surface { background: var(--bg); color: var(--fg); position: relative; }
+.section { padding-block: var(--space); }
+.section--tight { padding-block: var(--space-s); }
+
+/* ── grid ─────────────────────────────────────────────────────────────────── */
+.wrap { width: 100%; max-width: var(--max); margin-inline: auto; padding-inline: var(--margin); }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); }
+@media (max-width: 1023px) { .grid { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+@media (max-width: 699px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ── type ─────────────────────────────────────────────────────────────────── */
+.display, .h1, .h2, .h3, .mega { font-family: var(--f-display); font-weight: 400; letter-spacing: -0.02em; }
+.mega { font-size: var(--t-mega); line-height: 0.9; letter-spacing: -0.03em; }
+.display { font-size: var(--t-display); line-height: 0.95; }
+.h1 { font-size: var(--t-h1); line-height: 1; }
+.h2 { font-size: var(--t-h2); line-height: 1.05; }
+.h3 { font-size: var(--t-h3); line-height: 1.15; letter-spacing: -0.01em; }
+.display em, .h1 em, .h2 em, .mega em { font-style: italic; }
+.lead { font-size: var(--t-lead); line-height: 1.45; max-width: var(--measure); }
+.body { max-width: var(--measure); }
+.soft { color: var(--fg-soft); }
+.small { font-size: var(--t-small); line-height: 1.5; }
+
+.label {
+  font-family: var(--f-sans);
+  font-size: var(--t-label);
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.label--soft { color: var(--fg-soft); }
+.num { color: var(--mark); font-variant-numeric: tabular-nums; }
+
+.rule { border: 0; border-top: 1px solid var(--line); }
+
+/* Stacked display lines: each line is its own clip box so it can rise behind a mask. */
+.lines { display: block; }
+.lines > .l { display: block; overflow: clip; overflow-clip-margin: 0.12em; padding-block-end: 0.08em; margin-block-end: -0.08em; }
+.lines > .l > span { display: block; }
+
+/* ── reveal (once) ────────────────────────────────────────────────────────── */
+html.motion [data-reveal] .l > span { transform: translateY(108%); }
+html.motion [data-reveal].is-in .l > span { transform: none; transition: transform var(--d-type) var(--ease-freeze); transition-delay: calc(var(--i, 0) * 70ms); }
+html.motion [data-reveal] [data-rise] { opacity: 0; transform: translateY(14px); }
+html.motion [data-reveal].is-in [data-rise] { opacity: 1; transform: none; transition: opacity var(--d-reveal) ease-out, transform var(--d-reveal) var(--ease-freeze); transition-delay: calc(var(--i, 0) * 70ms + 120ms); }
+
+/* ── links and buttons ────────────────────────────────────────────────────── */
+.arrow { width: 1.35em; height: 0.7em; flex: none; overflow: visible; transition: transform var(--d-reveal) var(--ease-freeze); }
+a:hover .arrow, button:hover .arrow, a:focus-visible .arrow { transform: translateX(0.3em); }
+[dir='rtl'] .arrow { scale: -1 1; }
+
+.tlink { display: inline-flex; align-items: center; gap: 0.75em; position: relative; padding-block: 0.35em; }
+.tlink::after { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: currentColor; opacity: 0.35; }
+.tlink::before { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: var(--mark); transform: scaleX(0); transform-origin: left; transition: transform var(--d-reveal) var(--ease-freeze); z-index: 1; }
+[dir='rtl'] .tlink::before { transform-origin: right; }
+.tlink:hover::before, .tlink:focus-visible::before { transform: scaleX(1); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.9em;
+  min-height: 3rem; padding: 0.6rem 1.35rem;
+  border: 1px solid var(--line-strong); border-radius: 2px;
+  transition: background-color var(--d-state) ease, color var(--d-state) ease, border-color var(--d-state) ease;
+}
+.btn:hover, .btn:focus-visible { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn--solid { background: var(--bronze); border-color: var(--bronze); color: var(--studio); }
+.btn--solid:hover, .btn--solid:focus-visible { background: var(--bone); border-color: var(--bone); color: var(--studio); }
+[data-theme='paper'] .btn--solid { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+[data-theme='paper'] .btn--solid:hover, [data-theme='paper'] .btn--solid:focus-visible { background: var(--bronze-deep); border-color: var(--bronze-deep); color: var(--paper); }
+.btn[disabled], .btn[aria-disabled='true'] { opacity: 0.5; pointer-events: none; }
+.btn--sm { min-height: 2.5rem; padding: 0.4rem 1rem; }
+
+.chip { display: inline-flex; align-items: center; gap: 0.6em; padding: 0.5em 0.8em; background: rgba(11, 10, 9, 0.62); color: var(--bone); border-radius: 2px; }
+
+/* ── utilities ────────────────────────────────────────────────────────────── */
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.skip { position: fixed; inset-block-start: 0.75rem; inset-inline-start: 0.75rem; z-index: 200; padding: 0.75rem 1rem; background: var(--bone); color: var(--studio); transform: translateY(-200%); }
+.skip:focus-visible { transform: none; }
+.stack > * + * { margin-block-start: var(--stack, 1.25rem); }
+.nowrap { white-space: nowrap; }
+[hidden] { display: none !important; }
+
+/* Long paper sections can skip rendering until near the viewport. */
+.cv-auto { content-visibility: auto; contain-intrinsic-size: auto 900px; }

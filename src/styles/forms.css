@@ -1,0 +1,76 @@
+/* Forms. Underlined fields, labels above, errors below in text (never colour alone). 48px controls, 16px type. */
+.form { display: grid; gap: 2.5rem; max-inline-size: 40rem; }
+.form fieldset { border: 0; padding: 0; margin: 0; min-inline-size: 0; display: grid; gap: 2rem; }
+.form legend { padding: 0; margin-block-end: 0.5rem; }
+.form legend:focus { outline: none; }
+.form__progress { display: flex; align-items: center; gap: 1rem; color: var(--fg-soft); }
+.form__bar { flex: 1; block-size: 1px; background: var(--line); position: relative; }
+.form__bar::after { content: ''; position: absolute; inset-block: -0.5px; inset-inline-start: 0; inline-size: calc(var(--p, 0.5) * 100%); background: var(--mark); transition: inline-size 520ms var(--ease-freeze); }
+
+.field { display: grid; gap: 0.5rem; }
+.field > label, .field > .field__label { font-size: var(--t-label); font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
+.field__req { color: var(--fg-soft); letter-spacing: 0.06em; text-transform: none; font-weight: 400; margin-inline-start: 0.5em; }
+.field__hint { font-size: var(--t-small); color: var(--fg-soft); }
+.field__error { font-size: var(--t-small); font-weight: 500; color: #9a2b16; display: none; }
+[data-theme='dark'] .field__error { color: #ffab91; }
+.field[data-invalid] .field__error { display: block; }
+.field[data-invalid] .field__error::before { content: '↳ '; }
+
+.input, .form select, .form textarea {
+  inline-size: 100%; min-block-size: 3rem; padding: 0.7rem 0; font-size: max(1rem, 16px); line-height: 1.4;
+  background: transparent; color: var(--fg); border: 0; border-block-end: 1px solid var(--line-strong); border-radius: 0;
+  transition: border-color var(--d-state) ease;
+  appearance: none;
+}
+.form textarea { min-block-size: 7rem; resize: vertical; padding-block: 0.8rem; }
+.form select { background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 0.6rem) 55%, calc(100% - 0.25rem) 55%; background-size: 0.35rem 0.35rem; background-repeat: no-repeat; padding-inline-end: 1.5rem; }
+.form select option { color: #15120f; background: #eee8de; }
+.input::placeholder, .form textarea::placeholder { color: var(--fg-soft); opacity: 0.75; }
+.input:hover, .form select:hover, .form textarea:hover { border-block-end-color: var(--fg); }
+.input:focus-visible, .form select:focus-visible, .form textarea:focus-visible { outline: none; border-block-end-color: var(--mark); box-shadow: 0 1px 0 0 var(--mark); }
+.field[data-invalid] .input, .field[data-invalid] select, .field[data-invalid] textarea { border-block-end-color: #9a2b16; }
+[data-theme='dark'] .field[data-invalid] .input, [data-theme='dark'] .field[data-invalid] select, [data-theme='dark'] .field[data-invalid] textarea { border-block-end-color: #ffab91; }
+
+.form__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem var(--gutter); }
+@media (max-width: 599px) { .form__row { grid-template-columns: 1fr; } }
+
+/* Choice chips: real radios/checkboxes, visually replaced. */
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chips label { position: relative; display: inline-flex; align-items: center; min-block-size: 2.75rem; padding: 0.4rem 1rem; border: 1px solid var(--line-strong); border-radius: 2px; font-size: var(--t-small); letter-spacing: 0; text-transform: none; font-weight: 400; cursor: pointer; transition: background-color var(--d-state) ease, color var(--d-state) ease, border-color var(--d-state) ease; }
+.chips input { position: absolute; opacity: 0; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; cursor: pointer; }
+.chips label:hover { border-color: var(--fg); }
+.chips label:has(input:checked) { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chips label:has(input:focus-visible) { outline: 2px solid var(--mark); outline-offset: 3px; }
+
+.check { display: grid; grid-template-columns: 1.5rem 1fr; gap: 0.9rem; align-items: start; font-size: var(--t-small); line-height: 1.55; cursor: pointer; }
+.check input { appearance: none; inline-size: 1.5rem; block-size: 1.5rem; margin: 0; border: 1px solid var(--line-strong); border-radius: 2px; display: grid; place-items: center; cursor: pointer; }
+.check input::after { content: ''; inline-size: 0.7rem; block-size: 0.7rem; background: var(--mark); transform: scale(0); transition: transform var(--d-state) var(--ease-freeze); }
+.check input:checked::after { transform: scale(1); }
+.check input:focus-visible { outline: 2px solid var(--mark); outline-offset: 3px; }
+
+.file { display: grid; gap: 0.5rem; }
+.file input[type='file'] { font-size: var(--t-small); padding-block: 0.75rem; border-block-end: 1px solid var(--line-strong); inline-size: 100%; }
+.file input[type='file']::file-selector-button { margin-inline-end: 1rem; padding: 0.55rem 1rem; border: 1px solid var(--line-strong); border-radius: 2px; background: transparent; color: inherit; font: inherit; font-size: var(--t-label); letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+
+.form__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; }
+.form__note { font-size: var(--t-small); color: var(--fg-soft); max-inline-size: 30rem; }
+.form__summary { padding: 1.25rem 1.5rem; border: 1px solid #9a2b16; font-size: var(--t-small); }
+.form__summary:focus { outline: none; }
+.form__summary ul { margin-block-start: 0.5rem; display: grid; gap: 0.25rem; }
+.form__summary a { text-decoration: underline; text-underline-offset: 0.2em; }
+[data-theme='dark'] .form__summary { border-color: #ffab91; }
+.hp { position: absolute !important; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* Success / preview panel replaces the form. */
+.done { display: grid; gap: 1.75rem; max-inline-size: 40rem; padding-block-start: 0.5rem; }
+.done:focus { outline: none; }
+.done ol { display: grid; counter-reset: s; }
+.done ol li { counter-increment: s; display: grid; grid-template-columns: 3rem 1fr; padding-block: 1rem; border-block-start: 1px solid var(--line); }
+.done ol li::before { content: '0' counter(s); font-size: var(--t-label); letter-spacing: 0.14em; color: var(--mark); padding-block-start: 0.35em; }
+.preview-flag { display: inline-flex; gap: 0.6em; align-items: center; padding: 0.6rem 0.9rem; border: 1px dashed var(--line-strong); font-size: var(--t-small); }
+.preview-flag::before { content: ''; inline-size: 0.5rem; block-size: 0.5rem; border-radius: 50%; background: #c9791f; }
+
+/* Steps: only the current fieldset is shown once the form is enhanced. */
+.form[data-enhanced] [data-step]:not([data-current]) { display: none; }
+html.motion .form[data-enhanced] [data-step][data-current] { animation: step-in 520ms var(--ease-freeze); }
+@keyframes step-in { from { clip-path: inset(0 100% 0 0); opacity: 0.4; } to { clip-path: inset(0 0 0 0); opacity: 1; } }

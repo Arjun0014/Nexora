@@ -1,0 +1,141 @@
+---
+import '@fontsource/instrument-serif/latin-400.css';
+import '@fontsource/instrument-serif/latin-400-italic.css';
+import '@fontsource-variable/instrument-sans/wght.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+import serifUrl from '@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url';
+import sansUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+
+import Header from '../components/Header.astro';
+import MenuSheet from '../components/MenuSheet.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  home?: boolean;
+  /** Surface of the first section, so the header starts with the right ink. */
+  theme?: 'dark' | 'paper';
+  noindex?: boolean;
+  skipTo?: string;
+}
+const { title, description = site.description, home = false, theme = 'dark', noindex = false, skipTo = '#main' } = Astro.props;
+
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline} Workforce solutions in Qatar`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/media/og.jpg', Astro.site).href;
+
+// Structured data carries ONLY confirmed facts. No telephone/address until the client supplies them.
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  legalName: site.legalName,
+  url: new URL('/', Astro.site).href,
+  description: site.description,
+  foundingDate: site.foundingDate,
+  address: { '@type': 'PostalAddress', addressLocality: site.city, addressCountry: 'QA' },
+  areaServed: { '@type': 'Country', name: site.country },
+  ...(site.email ? { email: site.email } : {}),
+  ...(site.phone ? { telephone: site.phone } : {}),
+  ...(site.social.length ? { sameAs: site.social.map((s) => s.href) } : {}),
+};
+const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: new URL('/', Astro.site).href, inLanguage: site.lang };
+---
+<!doctype html>
+<html lang={site.lang} dir={site.dir} data-theme={theme}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#0b0a09" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A circular architectural model divided into five lit sectors, each a different workplace." />
+    <meta property="og:locale" content="en_QA" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preload" href={serifUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={sansUrl} as="font" type="font/woff2" crossorigin />
+    {home && <link rel="preload" as="image" href="/media/hero/poster-1440.webp" type="image/webp" fetchpriority="high" media="(min-aspect-ratio: 1/1)" />}
+    {home && <link rel="preload" as="image" href="/media/hero/poster-960.webp" type="image/webp" fetchpriority="high" media="(max-aspect-ratio: 999/1000)" />}
+
+    <!--
+      Decide the rendering mode BEFORE first paint so the hero never changes layout afterwards (CLS 0)
+      and reduced-motion users never see a flash of the pinned stage.
+        js      scripting available
+        motion  animation allowed (OS preference, overridable by the footer toggle)
+        cinema  motion allowed AND the network can afford the film → hero is a pinned, scrubbed stage
+    -->
+    <script is:inline>
+      (function () {
+        var c = document.documentElement.classList;
+        c.add('js');
+        // The visitor's own choice (footer toggle) overrides the OS setting in either direction.
+        var pref = null;
+        try { pref = localStorage.getItem('nx-motion'); } catch (e) {}
+        var reduce = pref === 'off' || (pref !== 'on' && window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+        var n = navigator.connection || {};
+        var lite = !!n.saveData || /(^|-)2g$|^3g$/.test(n.effectiveType || '');
+        if (!reduce) { c.add('motion'); if (!lite) c.add('cinema'); }
+        if (lite) c.add('lite');
+      })();
+    </script>
+
+    <script type="application/ld+json" set:html={JSON.stringify(org)} />
+    <script type="application/ld+json" set:html={JSON.stringify(webSite)} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip label" href={skipTo}>Skip to content</a>
+    <Header home={home} />
+    <MenuSheet />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <div class="cursor-label label" data-cursor-label aria-hidden="true"><span></span></div>
+
+    <script>
+      import '../scripts/app';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  main:focus { outline: none; }
+
+  /* Contextual cursor label — augments the native cursor, never replaces it. */
+  .cursor-label {
+    position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: 180;
+    pointer-events: none; opacity: 0; visibility: hidden;
+    transition: opacity var(--d-state) ease, visibility 0s linear var(--d-state);
+    will-change: transform;
+  }
+  .cursor-label > span {
+    display: block; translate: 14px 18px;
+    padding: 0.45em 0.7em; border-radius: 2px;
+    background: var(--bone); color: var(--studio);
+    font-size: 0.625rem; letter-spacing: 0.16em;
+    scale: 0.6; transform-origin: 0 0;
+    transition: scale 320ms var(--ease-freeze);
+  }
+  .cursor-label[data-on='true'] { opacity: 1; visibility: visible; transition-delay: 0s; }
+  .cursor-label[data-on='true'] > span { scale: 1; }
+</style>

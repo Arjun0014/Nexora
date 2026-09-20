@@ -1,0 +1,82 @@
+---
+import Wordmark from './Wordmark.astro';
+import { site, nav, cta } from '../data/site';
+
+interface Props { home?: boolean }
+const { home = false } = Astro.props;
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+<header class="hd" data-header data-ink="light" data-clear={home ? 'true' : 'false'}>
+  <div class="hd__bar">
+    <a class="hd__brand" href="/" aria-label={`${site.name} — home`}>
+      <Wordmark class="hd__mark" title={false} />
+      <span class="hd__desc label" aria-hidden="true">
+        {site.descriptor.map((line) => <span>{line}</span>)}
+      </span>
+    </a>
+
+    <nav class="hd__nav" aria-label="Primary">
+      <ul>
+        {nav.map((item) => (
+          <li><a class="hd__link label" href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="hd__actions">
+      <a class="btn btn--sm label hd__cta" href={cta.employer.href} aria-current={isCurrent(cta.employer.href) ? 'page' : undefined}>{cta.employer.label}</a>
+      <button class="hd__menu label" type="button" data-menu-open aria-haspopup="dialog" aria-expanded="false" aria-controls="menu-sheet">Menu</button>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Without JS nothing can switch its ink or hide it, so the header simply scrolls away with the page. */
+  .hd {
+    position: absolute; inset-block-start: 0; inset-inline: 0; z-index: 100;
+    color: var(--bone);
+    transition: transform 420ms var(--ease-freeze), background-color var(--d-state) ease, color var(--d-state) ease, border-color var(--d-state) ease;
+    border-block-end: 1px solid transparent;
+  }
+  :global(html.js) .hd { position: fixed; }
+  .hd[data-ink='dark'] { color: var(--ink); }
+  :global(html:not(.js)[data-theme='paper']) .hd { color: var(--ink); }
+  /* Past the hero the header becomes a slim bar that matches the surface under it. */
+  .hd[data-solid='true'] { background: var(--studio); border-block-end-color: rgba(243, 237, 227, 0.12); }
+  .hd[data-solid='true'][data-ink='dark'] { background: var(--paper); border-block-end-color: rgba(21, 18, 15, 0.12); }
+  .hd[data-hidden='true'] { transform: translateY(-101%); }
+  .hd:focus-within { transform: none; }
+
+  .hd__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--gutter); height: var(--header-h); padding-inline: var(--margin); max-width: var(--max); margin-inline: auto; }
+  .hd__brand { display: flex; align-items: center; gap: 1.1rem; min-height: 2.75rem; }
+  /* An SVG with width:auto collapses to 0 inside a flex row, so the width is derived from the wordmark's ratio. */
+  .hd__mark { --h: 0.95rem; height: var(--h); width: calc(var(--h) * 4290 / 740); flex: none; }
+  .hd__desc { display: grid; gap: 0.15em; white-space: nowrap; opacity: 0.7; font-size: 0.625rem; letter-spacing: 0.12em; padding-inline-start: 1.1rem; border-inline-start: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); transition: opacity var(--d-state) ease; }
+  .hd[data-solid='true'] .hd__desc { opacity: 0; visibility: hidden; }
+
+  .hd__nav ul { display: flex; gap: clamp(1.25rem, 2.4vw, 2.5rem); }
+  .hd__link { position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; opacity: 0.78; transition: opacity var(--d-state) ease; }
+  .hd__link:hover, .hd__link:focus-visible, .hd__link[aria-current='page'] { opacity: 1; }
+  .hd__link[aria-current='page']::after { content: ''; position: absolute; inset-inline: 0; bottom: 0.55rem; height: 1px; background: currentColor; }
+
+  .hd__actions { display: flex; align-items: center; gap: 0.75rem; }
+  .hd__cta { border-color: color-mix(in srgb, currentColor 45%, transparent); }
+  .hd__cta:hover, .hd__cta:focus-visible { background: currentColor; border-color: currentColor; }
+  .hd__cta:hover, .hd__cta:focus-visible { color: var(--bone); }
+  .hd[data-ink='light'] .hd__cta:hover, .hd[data-ink='light'] .hd__cta:focus-visible { background: var(--bone); border-color: var(--bone); color: var(--studio); }
+  .hd[data-ink='dark'] .hd__cta:hover, .hd[data-ink='dark'] .hd__cta:focus-visible { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .hd__cta[aria-current='page'] { background: var(--bronze); border-color: var(--bronze); color: var(--studio); }
+
+  .hd__menu { display: none; min-height: 2.75rem; padding-inline: 0.5rem; }
+
+  @media (max-width: 899px) {
+    .hd__nav { display: none; }
+    .hd__menu { display: inline-flex; align-items: center; }
+    .hd__desc { display: none; }
+  }
+  @media (max-width: 420px) {
+    .hd__cta { padding-inline: 0.75rem; letter-spacing: 0.1em; }
+    .hd__mark { --h: 0.8rem; }
+  }
+</style>

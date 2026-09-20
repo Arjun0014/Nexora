@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import Arrow from '../components/ui/Arrow.astro';
+import Doors from '../components/home/Doors.astro';
+import { worlds } from '../data/worlds';
+import { engagements, process } from '../data/content';
+
+const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media/stills/${id}-${w}.${fmt} ${w}w`).join(', ');
+---
+<Base title="Services" description="The five kinds of workforce Nexora supplies in Qatar — hospitality, events, facilities, technical and recruitment — and the four ways to engage them." theme="paper">
+  <PageHead label="Services" title={['What we supply,', 'and how.']} lead="Five kinds of workforce, engaged in four ways, coordinated from Doha. Construction labour is not among them." />
+
+  <section class="sv surface" data-theme="paper" aria-label="The five workforces">
+    <div class="wrap grid">
+      <nav class="sv__index" aria-label="On this page">
+        <p class="label label--soft">On this page</p>
+        <ol>
+          {worlds.map((w) => <li><a class="sv__jump" href={`#${w.id}`}><span class="label num">{w.n}</span>{w.short}</a></li>)}
+          <li><a class="sv__jump" href="#engage"><span class="label num">→</span>Ways to engage</a></li>
+        </ol>
+      </nav>
+
+      <div class="sv__entries">
+        {worlds.map((w) => (
+          <article class="sv__entry" id={w.id} aria-labelledby={`${w.id}-h`}>
+            <figure class="sv__plate">
+              <picture>
+                <source type="image/avif" srcset={srcset(w.id, 'avif')} sizes="(max-width: 1023px) 100vw, 75vw" />
+                <img src={`/media/stills/${w.id}-1200.webp`} srcset={srcset(w.id, 'webp')} sizes="(max-width: 1023px) 100vw, 75vw" width="1672" height="941" alt={w.alt} loading="lazy" decoding="async" style={`object-position:${w.focus}`} />
+              </picture>
+              <figcaption class="chip label sv__cap"><span class="num">{w.n}</span>{w.frozen}</figcaption>
+            </figure>
+            <div class="sv__text">
+              <h2 id={`${w.id}-h`} class="display sv__title">{w.title}</h2>
+              <p class="lead">{w.line}</p>
+              <p class="body soft">{w.body}</p>
+            </div>
+            <div class="sv__roles">
+              <h3 class="label label--soft">Typical roles</h3>
+              <ul>{w.roles.map((r) => <li>{r}</li>)}</ul>
+              <a class="tlink label" href={`/request/?workforce=${w.id}`}>Request this workforce<Arrow /></a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="en surface section" id="engage" data-theme="dark" aria-labelledby="en-h">
+    <div class="wrap grid">
+      <p class="label label--soft en__label">Ways to engage</p>
+      <h2 id="en-h" class="h1 en__title">The same people,<br />arranged four ways.</h2>
+      <ol class="en__list">
+        {engagements.map((e, i) => (
+          <li class="en__item" id={e.id}>
+            <span class="label num">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="h2">{e.title}</h3>
+            <p class="lead soft">{e.body}</p>
+          </li>
+        ))}
+      </ol>
+      <div class="en__steps">
+        <h3 class="label label--soft">{process.label}</h3>
+        <p class="h3">{process.steps.map((s) => s.title).join(' · ')}</p>
+        <a class="tlink label" href="/#process">See each step<Arrow /></a>
+      </div>
+    </div>
+  </section>
+
+  <Doors />
+</Base>
+
+<style>
+  .sv { padding-block-end: var(--space); border-block-start: 1px solid var(--line); }
+  .sv__index { grid-column: 1 / span 2; position: sticky; inset-block-start: calc(var(--header-h) + 2rem); align-self: start; padding-block-start: var(--space-s); display: grid; gap: 1rem; }
+  .sv__jump { display: grid; grid-template-columns: 2rem 1fr; align-items: baseline; min-block-size: 2.25rem; padding-block: 0.35rem; font-size: var(--t-small); color: var(--fg-soft); transition: color var(--d-state) ease; }
+  .sv__jump:hover, .sv__jump:focus-visible { color: var(--fg); }
+
+  .sv__entries { grid-column: 3 / -1; }
+  .sv__entry { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 2.5rem; padding-block: var(--space-s) var(--space); border-block-end: 1px solid var(--line); scroll-margin-top: calc(var(--header-h) + 1rem); }
+  .sv__entry:last-child { border-block-end: 0; padding-block-end: 0; }
+  .sv__plate { grid-column: 1 / -1; position: relative; aspect-ratio: 21 / 9; overflow: clip; }
+  .sv__plate img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .sv__cap { position: absolute; inset-inline-start: 1rem; inset-block-end: 1rem; }
+  .sv__text { grid-column: 1 / span 6; display: grid; gap: 1.5rem; align-content: start; }
+  .sv__title { font-size: var(--t-h1); }
+  .sv__roles { grid-column: 8 / -1; display: grid; gap: 1rem; align-content: start; justify-items: start; }
+  .sv__roles ul { inline-size: 100%; margin-block-end: 0.75rem; }
+  .sv__roles li { padding-block: 0.6rem; border-block-start: 1px solid var(--line); font-size: var(--t-small); }
+  .sv__roles li:last-child { border-block-end: 1px solid var(--line); }
+
+  .en__label { grid-column: 1 / span 2; padding-block-start: 0.9rem; }
+  .en__title { grid-column: 3 / -1; margin-block-end: var(--space-s); }
+  .en__list { grid-column: 3 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gutter); }
+  .en__item { display: grid; gap: 0.9rem; align-content: start; padding-block: 2rem 2.5rem; border-block-start: 1px solid var(--line); scroll-margin-top: calc(var(--header-h) + 1rem); }
+  .en__item .lead { max-inline-size: 26rem; }
+  .en__steps { grid-column: 3 / -1; display: grid; gap: 1rem; justify-items: start; margin-block-start: var(--space-s); padding-block-start: 2rem; border-block-start: 1px solid var(--line); }
+
+  @media (max-width: 1023px) {
+    .sv__index { display: none; }
+    .sv__entries, .en__label, .en__title, .en__list, .en__steps { grid-column: 1 / -1; }
+    .sv__entry { grid-template-columns: 1fr; }
+    .sv__plate, .sv__text, .sv__roles { grid-column: 1; }
+    .sv__plate { aspect-ratio: 16 / 9; }
+  }
+  @media (max-width: 699px) { .en__list { grid-template-columns: 1fr; } }
+</style>

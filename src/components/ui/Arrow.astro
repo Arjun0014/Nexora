@@ -1,0 +1,8 @@
+---
+/** The site's only icon. Drawn rather than typed so it can travel on hover. */
+interface Props { class?: string; [key: string]: unknown }
+const { class: className, ...rest } = Astro.props;
+---
+<svg class:list={['arrow', className]} viewBox="0 0 27 14" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true" focusable="false" {...rest}>
+  <path d="M0 7h25M19 1l6 6-6 6" vector-effect="non-scaling-stroke"></path>
+</svg>

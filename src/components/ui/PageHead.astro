@@ -1,0 +1,53 @@
+---
+/** Editorial page header for subpages: label, stacked display title, lead, and an optional plate band. */
+import { worldById, type WorldId } from '../../data/worlds';
+
+interface Props {
+  label: string;
+  title: string[];
+  lead?: string;
+  theme?: 'dark' | 'paper';
+  /** Which approved still to show as a wide band under the heading. */
+  plate?: WorldId | 'overview';
+  plateCaption?: string;
+  id?: string;
+}
+const { label, title, lead, theme = 'paper', plate, plateCaption, id = 'page-h' } = Astro.props;
+const focus = plate && plate !== 'overview' ? worldById[plate].focus : '50% 42%';
+const alt = plate && plate !== 'overview' ? worldById[plate].alt : 'The Nexora diorama: five lit sectors on a circular model.';
+const srcset = (fmt: string) => [800, 1200, 1672].map((w) => `/media/stills/${plate}-${w}.${fmt} ${w}w`).join(', ');
+---
+<section class="ph surface" data-theme={theme} aria-labelledby={id}>
+  <div class="wrap grid ph__grid" data-reveal>
+    <p class="label label--soft ph__label" data-rise>{label}</p>
+    <h1 id={id} class="display ph__title lines">
+      {title.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
+    </h1>
+    {lead && <p class="lead ph__lead" data-rise style={`--i:${title.length}`}>{lead}</p>}
+    <slot />
+  </div>
+  {plate && (
+    <figure class="ph__plate">
+      <picture>
+        <source type="image/avif" srcset={srcset('avif')} sizes="100vw" />
+        <img src={`/media/stills/${plate}-1200.webp`} srcset={srcset('webp')} sizes="100vw" width="1672" height="941" alt={alt} fetchpriority="high" decoding="async" style={`object-position:${focus}`} />
+      </picture>
+      {plateCaption && <figcaption class="chip label ph__cap">{plateCaption}</figcaption>}
+    </figure>
+  )}
+</section>
+
+<style>
+  .ph { padding-block-start: calc(var(--header-h) + clamp(3rem, 8vw, 8rem)); }
+  .ph__grid { row-gap: 1.75rem; padding-block-end: clamp(3rem, 6vw, 6rem); }
+  .ph__label { grid-column: 1 / span 2; padding-block-start: 1.2rem; }
+  .ph__title { grid-column: 3 / -1; }
+  .ph__lead { grid-column: 3 / span 6; color: var(--fg-soft); }
+  .ph__plate { position: relative; block-size: clamp(16rem, 42vw, 40rem); overflow: clip; }
+  .ph__plate img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+  .ph__cap { position: absolute; inset-inline-start: var(--margin); inset-block-end: 1.25rem; }
+  @media (max-width: 1023px) {
+    .ph__label, .ph__title, .ph__lead { grid-column: 1 / -1; }
+    .ph__label { padding-block-start: 0; }
+  }
+</style>

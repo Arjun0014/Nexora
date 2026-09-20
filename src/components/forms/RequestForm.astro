@@ -1,0 +1,144 @@
+---
+/**
+ * Employer requirement form. Two steps + a short call-back path (research: docs/implementation/06).
+ * Deliberately absent: budget, website, file upload, any promise about response time.
+ * Without JS both fieldsets are simply visible as one form.
+ */
+import '../../styles/forms.css';
+import Arrow from '../ui/Arrow.astro';
+import { site } from '../../data/site';
+import { worlds } from '../../data/worlds';
+import { sectors } from '../../data/content';
+
+const endpoint = site.formEndpoint.request;
+const headcount = ['1–5', '6–20', '21–50', '50+', 'Not sure yet'];
+const duration = ['One-off event', 'Under 3 months', '3–12 months', 'Ongoing', 'Permanent hire'];
+const channels = ['Call', 'Email', 'WhatsApp'];
+---
+<div data-form-wrap>
+  <form class="form" data-form="request" method="post" action={endpoint || undefined} novalidate data-endpoint={endpoint}>
+    <p class="form__progress label" data-form-progress hidden><span data-form-stepname>Step 1 of 2</span><span class="form__bar" data-form-bar></span></p>
+    <div class="form__summary" data-form-summary role="alert" tabindex="-1" hidden></div>
+
+    <fieldset data-step>
+      <legend class="h2" tabindex="-1">The requirement</legend>
+
+      <div class="field" data-group data-required data-msg="Choose the kind of workforce you need.">
+        <span class="field__label" id="rq-wf">Workforce <span class="field__req">required</span></span>
+        <div class="chips" role="radiogroup" aria-labelledby="rq-wf">
+          {worlds.map((w) => <label><input type="radio" name="workforce" value={w.id} />{w.short === 'Recruitment' ? 'Recruitment (permanent hire)' : w.title}</label>)}
+          <label><input type="radio" name="workforce" value="other" />Something else</label>
+        </div>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field">
+        <label for="rq-sector">Your sector <span class="field__req">optional</span></label>
+        <select id="rq-sector" name="sector">
+          <option value="">Select a sector</option>
+          {sectors.map((s) => <option value={s.id}>{s.name}</option>)}
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="rq-roles">Roles you need <span class="field__req">required</span></label>
+        <input class="input" id="rq-roles" name="roles" type="text" required autocomplete="off" placeholder="e.g. 12 banquet servers, 2 supervisors" aria-describedby="rq-roles-hint" data-msg="Tell us which roles you need, even roughly." />
+        <p class="field__hint" id="rq-roles-hint">Rough is fine. We confirm the detail with you.</p>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-group>
+        <span class="field__label" id="rq-hc">How many people</span>
+        <div class="chips" role="radiogroup" aria-labelledby="rq-hc">
+          {headcount.map((h) => <label><input type="radio" name="headcount" value={h} />{h}</label>)}
+        </div>
+      </div>
+
+      <div class="form__row">
+        <div class="field">
+          <label for="rq-start">Start date</label>
+          <input class="input" id="rq-start" name="start" type="date" aria-describedby="rq-start-hint" />
+          <p class="field__hint" id="rq-start-hint">Leave empty if the date is flexible.</p>
+        </div>
+        <div class="field">
+          <label for="rq-loc">Location in Qatar</label>
+          <input class="input" id="rq-loc" name="location" type="text" autocomplete="off" placeholder="e.g. Lusail, West Bay" />
+        </div>
+      </div>
+
+      <div class="field" data-group>
+        <span class="field__label" id="rq-dur">For how long</span>
+        <div class="chips" role="radiogroup" aria-labelledby="rq-dur">
+          {duration.map((d) => <label><input type="radio" name="duration" value={d} />{d}</label>)}
+        </div>
+      </div>
+
+      <div class="form__actions" data-form-nextwrap hidden>
+        <button class="btn btn--solid label" type="button" data-next>Continue<Arrow /></button>
+      </div>
+    </fieldset>
+
+    <fieldset data-step>
+      <legend class="h2" tabindex="-1">Your details</legend>
+
+      <div class="form__row">
+        <div class="field">
+          <label for="rq-name">Your name <span class="field__req">required</span></label>
+          <input class="input" id="rq-name" name="name" type="text" required autocomplete="name" data-msg="Enter your name." />
+          <p class="field__error" data-error></p>
+        </div>
+        <div class="field">
+          <label for="rq-company">Company <span class="field__req">required</span></label>
+          <input class="input" id="rq-company" name="company" type="text" required autocomplete="organization" data-msg="Enter your company name." />
+          <p class="field__error" data-error></p>
+        </div>
+      </div>
+
+      <div class="form__row">
+        <div class="field">
+          <label for="rq-email">Work email <span class="field__req">required</span></label>
+          <input class="input" id="rq-email" name="email" type="email" required autocomplete="email" inputmode="email" data-msg="Enter an email address we can reply to, like name@company.com." />
+          <p class="field__error" data-error></p>
+        </div>
+        <div class="field">
+          <label for="rq-phone">Phone</label>
+          <input class="input" id="rq-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" value="+974 " data-rule="phone" data-msg="Enter a phone number with its country code, like +974 5555 5555." />
+          <p class="field__error" data-error></p>
+        </div>
+      </div>
+
+      <div class="field" data-group>
+        <span class="field__label" id="rq-ch">Best way to reach you</span>
+        <div class="chips" role="radiogroup" aria-labelledby="rq-ch">
+          {channels.map((c) => <label><input type="radio" name="channel" value={c} />{c}</label>)}
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rq-notes">Anything else <span class="field__req">optional</span></label>
+        <textarea id="rq-notes" name="notes" rows="3" placeholder="Shift patterns, language needs, uniform, site access…"></textarea>
+      </div>
+
+      <p class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label></p>
+
+      <div class="form__actions">
+        <button class="btn label" type="button" data-back hidden>Back</button>
+        <button class="btn btn--solid label" type="submit">Send requirement<Arrow /></button>
+      </div>
+      <p class="form__note">No commitment. Tell us what you know; we will clarify the rest with you. We use these details only to respond to this request. <a class="tlink" href="/privacy/">Privacy</a></p>
+    </fieldset>
+    <noscript><p class="form__note">This form needs JavaScript to send. If it is unavailable, please reach us through the details on the contact page.</p></noscript>
+  </form>
+
+  <div class="done" data-form-done tabindex="-1" hidden>
+    <p class="preview-flag" data-form-preview hidden>Preview mode — this submission was not sent. Set <code>formEndpoint</code> in <code>src/data/site.ts</code>.</p>
+    <h2 class="h1">Requirement received.</h2>
+    <ol>
+      <li>We review the details you sent.</li>
+      <li>A member of our team contacts you to confirm scope, roles and timing.</li>
+      <li>You receive a proposal to approve before anything proceeds.</li>
+    </ol>
+    <p><a class="tlink label" href="/services/">Read how we work<Arrow /></a></p>
+  </div>
+</div>

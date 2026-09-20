@@ -1,0 +1,41 @@
+---
+/** General enquiries. Employers and candidates are routed to their own forms before they reach this one. */
+import '../../styles/forms.css';
+import Arrow from '../ui/Arrow.astro';
+import { site } from '../../data/site';
+const endpoint = site.formEndpoint.contact;
+---
+<div data-form-wrap>
+  <form class="form" data-form="contact" method="post" action={endpoint || undefined} novalidate data-endpoint={endpoint}>
+    <div class="form__summary" data-form-summary role="alert" tabindex="-1" hidden></div>
+    <fieldset>
+      <legend class="h2" tabindex="-1">Send a message</legend>
+      <div class="form__row">
+        <div class="field">
+          <label for="ct-name">Your name <span class="field__req">required</span></label>
+          <input class="input" id="ct-name" name="name" type="text" required autocomplete="name" data-msg="Enter your name." />
+          <p class="field__error" data-error></p>
+        </div>
+        <div class="field">
+          <label for="ct-email">Email <span class="field__req">required</span></label>
+          <input class="input" id="ct-email" name="email" type="email" required autocomplete="email" inputmode="email" data-msg="Enter an email address, like name@example.com." />
+          <p class="field__error" data-error></p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ct-msg">Message <span class="field__req">required</span></label>
+        <textarea id="ct-msg" name="message" rows="4" required data-msg="Write a short message."></textarea>
+        <p class="field__error" data-error></p>
+      </div>
+      <p class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label></p>
+      <div class="form__actions"><button class="btn btn--solid label" type="submit">Send message<Arrow /></button></div>
+      <p class="form__note">We use these details only to reply to you. <a class="tlink" href="/privacy/">Privacy</a></p>
+    </fieldset>
+    <noscript><p class="form__note">This form needs JavaScript to send.</p></noscript>
+  </form>
+  <div class="done" data-form-done tabindex="-1" hidden>
+    <p class="preview-flag" data-form-preview hidden>Preview mode — this submission was not sent. Set <code>formEndpoint</code> in <code>src/data/site.ts</code>.</p>
+    <h2 class="h1">Message received.</h2>
+    <p class="lead soft">A member of our team will reply to the address you gave.</p>
+  </div>
+</div>
