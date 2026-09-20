@@ -2,6 +2,7 @@
 import '@fontsource/instrument-serif/latin-400.css';
 import '@fontsource/instrument-serif/latin-400-italic.css';
 import '@fontsource-variable/instrument-sans/wght.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
 
@@ -11,6 +12,7 @@ import sansUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-
 import Header from '../components/Header.astro';
 import MenuSheet from '../components/MenuSheet.astro';
 import Footer from '../components/Footer.astro';
+import Intro from '../components/Intro.astro';
 import { site } from '../data/site';
 
 interface Props {
@@ -46,7 +48,7 @@ const org = {
 const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: new URL('/', Astro.site).href, inLanguage: site.lang };
 ---
 <!doctype html>
-<html lang={site.lang} dir={site.dir} data-theme={theme}>
+<html lang={site.lang} dir={site.dir} data-theme={theme} data-home={home ? '' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -95,6 +97,13 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
         var lite = !!n.saveData || /(^|-)2g$|^3g$/.test(n.effectiveType || '');
         if (!reduce) { c.add('motion'); if (!lite) c.add('cinema'); }
         if (lite) c.add('lite');
+        // The intro decides itself BEFORE first paint, so the film is never visible for a frame first.
+        // Only on the homepage, only when the film will actually run, and never under reduced motion.
+        if (document.documentElement.hasAttribute('data-home') && c.contains('cinema') && !/[?&]nointro/.test(location.search) && !/[?&]stop=/.test(location.search)) {
+          var seen = false;
+          try { seen = sessionStorage.getItem('nx-intro') === '1'; } catch (e) {}
+          document.documentElement.dataset.intro = seen ? 'short' : 'on';
+        }
       })();
     </script>
 
@@ -103,6 +112,7 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
     <slot name="head" />
   </head>
   <body>
+    {home && <Intro />}
     <a class="skip label" href={skipTo}>Skip to content</a>
     <Header home={home} />
     <MenuSheet />

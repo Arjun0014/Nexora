@@ -1,0 +1,124 @@
+---
+/**
+ * The intro.
+ *
+ * Studio black. NEXORA sits at the centre and tracks open as the film's real bytes arrive; a hairline grows
+ * beneath it; the five world names cycle in their own colours. It ends by opening that hairline into a
+ * full-height band — the divider wall of the film, reused — onto the disc already turning.
+ *
+ * Visibility is decided BEFORE first paint by the inline script in Base.astro (`html[data-intro]` — the flag
+ * lives on the root element, so this component is found by `[data-intro-root]`), so the hero
+ * is never visible for a frame first. Without JS the attribute is never set and this markup never displays.
+ * `src/scripts/intro.ts` drives it from there.
+ */
+import { worlds } from '../data/worlds';
+import { site } from '../data/site';
+---
+<div class="intro" data-intro-root role="presentation">
+  <div class="intro__grain" aria-hidden="true"></div>
+
+  <p class="intro__corner intro__corner--tl label">{site.legalName}</p>
+  <p class="intro__corner intro__corner--bl label">{site.city}, {site.country}</p>
+  <p class="intro__corner intro__corner--br label">Est. {site.established}</p>
+
+  <div class="intro__centre">
+    <p class="intro__word" data-intro-word aria-hidden="true">NEXORA</p>
+
+    <div class="intro__bar">
+      <span class="intro__track"></span>
+      <span class="intro__fill" data-intro-fill></span>
+    </div>
+
+    <div class="intro__foot">
+      <span class="intro__worlds" data-intro-worlds>
+        {worlds.map((w, i) => (
+          <span class="intro__world label" data-sector={w.id} data-i={i}><span>{w.title}</span></span>
+        ))}
+        <span class="intro__world intro__world--final label" data-i="5"><span>{site.tagline}</span></span>
+      </span>
+      <span class="intro__pct label" data-intro-pct>00</span>
+    </div>
+  </div>
+
+  <!-- The wipe: two bands of divider-wall bronze that open vertically off the hairline. -->
+  <span class="intro__band intro__band--t"></span>
+  <span class="intro__band intro__band--b"></span>
+</div>
+
+<style>
+  .intro { display: none; }
+  :global(html[data-intro]) .intro {
+    display: grid; place-items: center;
+    position: fixed; inset: 0; z-index: 300;
+    background: var(--studio); color: var(--bone);
+    transition: opacity 240ms linear;
+  }
+  .intro[data-done='true'] { opacity: 0; pointer-events: none; }
+  .intro__grain { position: absolute; inset: 0; background-image: var(--grain-url); background-size: 180px 180px; opacity: 0.4; mix-blend-mode: overlay; }
+
+  .intro__corner { position: absolute; color: var(--bone-soft); opacity: 0; transition: opacity 800ms ease-out 240ms; }
+  .intro__corner--tl { inset-block-start: clamp(1.25rem, 4vh, 2.5rem); inset-inline-start: var(--margin); }
+  .intro__corner--bl { inset-block-end: clamp(1.25rem, 4vh, 2.5rem); inset-inline-start: var(--margin); }
+  .intro__corner--br { inset-block-end: clamp(1.25rem, 4vh, 2.5rem); inset-inline-end: var(--margin); }
+  .intro[data-on='true'] .intro__corner { opacity: 1; }
+
+  .intro__centre { width: min(46rem, calc(100vw - var(--margin) * 2)); }
+
+  /* The wordmark IS the progress bar: it tracks open as the film arrives (Lambert | Lambert). */
+  .intro__word {
+    font-family: var(--f-mono); font-weight: 500;
+    font-size: clamp(1.05rem, 2.1vw, 1.85rem);
+    line-height: 1;
+    text-align: center;
+    letter-spacing: var(--track, 0.06em);
+    text-indent: var(--track, 0.06em); /* keeps the optical centre while the tracking grows */
+    margin-block-end: clamp(1rem, 2.6vh, 1.75rem);
+    opacity: 0;
+    transition: opacity 900ms ease-out 200ms;
+  }
+  .intro[data-on='true'] .intro__word { opacity: 1; }
+
+  .intro__bar { position: relative; height: 1px; }
+  .intro__track { position: absolute; inset: 0; background: rgba(243, 237, 227, 0.14); transform: scaleX(0); transition: transform 1000ms var(--ease-freeze) 160ms; }
+  .intro[data-on='true'] .intro__track { transform: none; }
+  .intro__fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 100%; background: var(--bronze); transform: scaleX(0); transform-origin: left; }
+
+  .intro__foot { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-block-start: 0.85rem; }
+
+  /* World names are stacked in one box and cross-faded, so nothing reflows as they change. */
+  .intro__worlds { position: relative; display: block; height: 1.3em; flex: 1; min-width: 0; }
+  .intro__world { position: absolute; inset-block-start: 0; inset-inline-start: 0; white-space: nowrap; color: var(--accent, var(--bronze)); opacity: 0; transition: opacity 260ms linear; }
+  .intro__world > span { display: block; transform: translateY(0.45em); transition: transform 460ms var(--ease-freeze); }
+  .intro__world[data-on='true'] { opacity: 1; }
+  .intro__world[data-on='true'] > span { transform: none; }
+  .intro__world--final { color: var(--bone); }
+
+  .intro__pct { color: var(--bone-soft); font-variant-numeric: tabular-nums; }
+  .intro__pct::after { content: '%'; opacity: 0.4; margin-inline-start: 0.15em; }
+
+  /* The wipe. Both bands sit on the hairline and grow away from it. They are the film's divider wall, so
+     they carry its light: a warm gradient, and a bright bronze edge where the light catches the leading face. */
+  .intro__band {
+    position: absolute; inset-inline: 0; height: 0;
+    background: linear-gradient(var(--band-dir, 180deg), #2a1d13 0%, var(--wall) 42%, #120d09 100%);
+    transition: height 460ms var(--ease-io);
+  }
+  .intro__band::after { content: ''; position: absolute; inset-inline: 0; height: 1px; background: var(--bronze); opacity: 0.7; }
+  .intro__band--t { inset-block-end: 50%; --band-dir: 0deg; }
+  .intro__band--t::after { inset-block-end: 0; }
+  .intro__band--b { inset-block-start: 50%; }
+  .intro__band--b::after { inset-block-start: 0; }
+  .intro[data-wipe='in'] .intro__band { height: 50.5%; }
+  /* Once the wall has closed, the field behind it is dropped, so the bands open onto the film itself
+     rather than onto black. The swap happens while nothing of it can be seen. */
+  .intro[data-clear='true'] { background: transparent; }
+  .intro[data-clear='true'] .intro__grain { opacity: 0; }
+  .intro[data-wipe='out'] .intro__band { height: 0; transition-duration: 680ms; transition-timing-function: var(--ease-freeze); }
+  /* While the wall is closed the centre column is gone, so it reads as one solid surface. */
+  .intro[data-wipe] .intro__centre, .intro[data-wipe] .intro__corner { opacity: 0; transition: opacity 180ms linear; }
+
+  @media (max-width: 699px) {
+    .intro__corner--br { display: none; }
+    .intro__world { font-size: 0.625rem; }
+  }
+</style>

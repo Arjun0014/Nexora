@@ -9,11 +9,13 @@ import { initProcess } from './process';
 import { initPlate } from './plate';
 import { initForms } from './forms';
 import { initMotionToggle } from './motion';
+import { initIntro } from './intro';
 
 const boot = () => {
   initHeader();
   initMenu();
   initHero();
+  initIntro(); // after the hero: it reads the hero's real loading progress
   initReveal();
   initDeck();
   initProcess();
