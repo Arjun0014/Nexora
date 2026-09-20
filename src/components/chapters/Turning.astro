@@ -56,7 +56,8 @@ import { turning, engagements } from '../../data/content';
     position: absolute; inset: 0;
     background:
       radial-gradient(110% 80% at 12% 44%, rgba(13, 18, 25, 0.92) 0%, rgba(13, 18, 25, 0.66) 40%, rgba(13, 18, 25, 0.12) 78%),
-      linear-gradient(180deg, rgba(13, 18, 25, 0.92) 0%, rgba(13, 18, 25, 0.1) 26%, rgba(13, 18, 25, 0.12) 68%, rgba(13, 18, 25, 0.96) 100%);
+      /* The rows sit over the brightest part of the turning disc, so the ground returns under them. */
+      linear-gradient(180deg, rgba(13, 18, 25, 0.92) 0%, rgba(13, 18, 25, 0.1) 24%, rgba(13, 18, 25, 0.2) 48%, rgba(13, 18, 25, 0.72) 70%, rgba(13, 18, 25, 0.97) 100%);
   }
 
   .tn__wrap { position: relative; z-index: 1; }
