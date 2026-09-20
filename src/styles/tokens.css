@@ -17,7 +17,7 @@
 
   /* ink */
   --ink: #15120f;
-  --ink-soft: #6b6259;
+  --ink-soft: #5f564d; /* 4.86:1 on --stone; #6b6259 measured 4.16:1 and failed small text */
   --bone: #f3ede3;
   --bone-soft: rgba(243, 237, 227, 0.64);
 
