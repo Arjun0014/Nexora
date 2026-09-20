@@ -94,7 +94,7 @@ const sizes = '(max-width: 1023px) 86vw, 34vw';
   .wf__body { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: center; margin-block-start: clamp(2.5rem, 7vh, 5rem); }
 
   /* ── the readable half ── */
-  .wf__panels { grid-column: 1 / 7; position: relative; min-height: clamp(21rem, 46vh, 27rem); }
+  .wf__panels { grid-column: 1 / 7; position: relative; min-height: clamp(21rem, 48vh, 30rem); }
   .wf__panel { position: absolute; inset-block-start: 0; inset-inline: 0; opacity: 0; visibility: hidden; transition: opacity 260ms linear, visibility 0s linear 260ms; }
   .wf__panel[data-on='true'] { opacity: 1; visibility: visible; transition: opacity 420ms ease-out 80ms, visibility 0s; }
   .wf__title { font-size: clamp(2.25rem, 4.6vw, 4.5rem); line-height: 0.95; }
@@ -112,7 +112,7 @@ const sizes = '(max-width: 1023px) 86vw, 34vw';
   /* ── the stack ── */
   .wf__deck { grid-column: 8 / 13; display: grid; justify-items: end; }
   /* Sized by height, not width: the plate and its controls always fit one screen. */
-  .wf__stack { position: relative; height: clamp(19rem, 50vh, 31rem); aspect-ratio: 4 / 5; }
+  .wf__stack { position: relative; height: clamp(19rem, 52vh, 36rem); aspect-ratio: 4 / 5; }
   .wf__stack:focus-visible { outline: 2px solid var(--accent); outline-offset: 14px; }
   .wf__card { position: relative; background: var(--studio); overflow: clip; }
   .wf__card img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
@@ -120,7 +120,7 @@ const sizes = '(max-width: 1023px) 86vw, 34vw';
   .wf__cardn { color: var(--accent); }
   .wf__frozen { position: absolute; inset-block-start: 1rem; inset-inline-start: 1.1rem; color: var(--bone-soft); }
 
-  .wf__controls { display: flex; align-items: center; gap: 1.25rem; margin-block-start: 1.5rem; width: 100%; max-width: clamp(15rem, 40vh, 24.8rem); }
+  .wf__controls { display: flex; align-items: center; gap: 1.25rem; margin-block-start: 1.5rem; width: 100%; max-width: clamp(15.2rem, 41.6vh, 28.8rem); }
   .wf__btn { display: grid; place-items: center; width: 3rem; height: 3rem; border: 1px solid var(--line); border-radius: 50%; color: var(--fg-soft); transition: color var(--d-state) ease, border-color var(--d-state) ease, background-color var(--d-state) ease; }
   .wf__btn:hover, .wf__btn:focus-visible { color: var(--studio); background: var(--accent); border-color: var(--accent); }
   .wf__hint { flex: 1; text-align: center; color: var(--fg-soft); }
