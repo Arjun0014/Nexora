@@ -22,6 +22,7 @@ import { Renderer } from './renderer';
 import { TitleMask } from './mask';
 import { HeroUI } from './ui';
 import { bindInput, type Dir } from './input';
+import { sound } from '../sound';
 
 const BASE = '/media/hero';
 const NARROW = 0.8; // below this aspect the portrait-cropped frame set is used
@@ -288,7 +289,7 @@ export function initHero() {
 
     if (dir > 0 ? np >= end : np <= end) {
       p = end;
-      if (p === target) { vel = 0; restSince = now; if (p === 0) arriveIdle(now); }
+      if (p === target) { vel = 0; restSince = now; sound.play('land'); if (p === 0) arriveIdle(now); }
     } else p = np;
   }
   function starve(now: number) {
@@ -311,6 +312,7 @@ export function initHero() {
       if (dipping) return;
       const next = clamp(target + dir, 0, TITLE_STOP);
       if (next === target) return;
+      sound.play('gate');
       if (moving()) {
         // Keep the queue short: a free-spinning wheel must not be able to skip the whole film.
         const d: Dir = next > p ? 1 : -1;

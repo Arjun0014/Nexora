@@ -165,6 +165,11 @@ Synthesised with WebAudio — no files, no licences. A bandpass noise sweep for 
 falling sine for a landing, a short blip for a toggle. Off by default, remembered in `localStorage`, never
 before a user gesture, never under reduced motion.
 
+Four things speak: throwing a plate, stepping the film (the wall passing the lens), a world freezing (a low
+landing), and a chapter gate committing to its move. Each fires once per event, never per frame — the gate
+checks that its previous state was `rest` before it plays. With sound off the `AudioContext` is never
+constructed at all, so there is no cost to a visitor who never turns it on.
+
 ---
 
 ## 4. Fallbacks
