@@ -1,4 +1,11 @@
 ---
+/**
+ * Careers — the candidate conversion.
+ *
+ * There are no vacancies to list yet and the page says so rather than inventing any. What it can do is be
+ * unambiguous about the one thing a candidate needs to know before handing over a CV: registration is free,
+ * always, and that is a legal position as well as a promise.
+ */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
 import CandidateForm from '../components/forms/CandidateForm.astro';
@@ -12,69 +19,100 @@ const steps = [
 ];
 ---
 <Base title="Careers" description="Register your CV with Nexora for hospitality, events, facilities and technical work in Qatar. Registration is free; Nexora never charges candidates." theme="dark">
-  <PageHead theme="dark" label="For candidates" title={['Good work,', 'properly arranged.']} lead="There are no listed vacancies yet. Register once and we will contact you if a suitable role arises. Registration is not a job offer." plate="recruitment" plateCaption="05 — a document, mid-air" />
+  <PageHead
+    label="For candidates"
+    title={['Good work,', 'properly arranged.']}
+    lead="There are no listed vacancies yet. Register once and we will contact you if a suitable role arises. Registration is not a job offer."
+    plate="recruitment"
+    plateCaption="A document, mid-handover"
+    meta={[
+      { k: 'Cost', v: 'Free, at every stage' },
+      { k: 'Vacancies', v: 'None listed yet' },
+      { k: 'We ask for', v: 'Your experience and a CV' },
+    ]}
+  />
 
-  <section class="cr surface section" data-theme="dark" aria-labelledby="cr-h">
-    <div class="wrap grid">
-      <p class="label label--soft cr__label">How it works</p>
-      <h2 id="cr-h" class="sr-only">How registration works</h2>
-      <ol class="cr__steps">
-        {steps.map((s) => (
-          <li><span class="label num">{s.n}</span><h3 class="h2">{s.t}</h3><p class="soft">{s.b}</p></li>
-        ))}
-      </ol>
-    </div>
-  </section>
-
-  <section class="nf surface" data-theme="dark" aria-labelledby="nf-h">
-    <div class="wrap grid">
-      <p class="label nf__label">Our policy</p>
-      <div class="nf__body">
-        <h2 id="nf-h" class="display">{noFee.heading}</h2>
-        <p class="lead soft">{noFee.body}</p>
+  <section class="cr surface ch-ember lit grain" data-theme="dark" aria-labelledby="cr-h" data-reveal>
+    <div class="wrap">
+      <div class="cr__grid">
+        <p class="label cr__label" data-rise>How it works</p>
+        <h2 id="cr-h" class="sr-only">How registration works</h2>
+        <ol class="cr__steps">
+          {steps.map((s, i) => (
+            <li class="cr__step" data-rise style={`--i:${i + 1}`}>
+              <span class="label cr__n">{s.n}</span>
+              <h3 class="cr__t">{s.t}</h3>
+              <p class="cr__b">{s.b}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   </section>
 
-  <section class="rg surface section" id="register" data-theme="paper" aria-labelledby="rg-h">
-    <div class="wrap grid">
-      <div class="rg__intro">
-        <p class="label label--soft">Register</p>
-        <h2 id="rg-h" class="h1">Your details<br />and CV.</h2>
-        <p class="body soft">We ask only for what helps us match you to work. We will never ask for your passport, ID number, photograph or any payment on this form.</p>
-        <div class="rg__kinds">
-          <h3 class="label label--soft">Kinds of work</h3>
-          <ul>{worlds.slice(0, 4).map((w) => <li><a href={`/services/#${w.id}`}>{w.title}</a></li>)}</ul>
+  <section class="nf surface ch-bronze" data-theme="dark" aria-labelledby="nf-h" data-reveal>
+    <div class="wrap">
+      <div class="nf__grid">
+        <p class="label nf__label" data-rise>Our policy</p>
+        <h2 id="nf-h" class="nf__h lines"><span class="l"><span>{noFee.heading}</span></span></h2>
+        <p class="nf__b lead" data-rise style="--i:1">{noFee.body}</p>
+        <p class="nf__law mono" data-rise style="--i:2">Grounded in Qatar Labour Law No. 14 of 2004, article 33.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rg surface ch-stone" id="register" data-theme="paper" aria-labelledby="rg-h">
+    <div class="wrap">
+      <div class="rg__grid">
+        <div class="rg__intro">
+          <p class="label rg__label">Register</p>
+          <h2 id="rg-h" class="rg__h">Your details<br />and CV.</h2>
+          <p class="rg__p">We ask only for what helps us match you to work. We will never ask for your passport, ID number, photograph or any payment on this form.</p>
+          <div class="rg__kinds">
+            <p class="label rg__kh">Kinds of work</p>
+            <ul>{worlds.map((w) => <li><a class="rg__k" href={`/services/#${w.id}`}>{w.title}</a></li>)}</ul>
+          </div>
         </div>
+        <div class="rg__form"><CandidateForm /></div>
       </div>
-      <div class="rg__form"><CandidateForm /></div>
     </div>
   </section>
 </Base>
 
 <style>
-  .cr__label, .nf__label { grid-column: 1 / span 2; padding-block-start: 0.9rem; }
-  .cr__steps { grid-column: 3 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }
-  .cr__steps li { display: grid; gap: 0.9rem; align-content: start; padding-block-start: 1.5rem; border-block-start: 1px solid var(--line); }
-  .cr__steps p { max-inline-size: 22rem; }
+  .cr { padding-block: clamp(4rem, 11vh, 8rem); overflow: clip; }
+  .cr__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+  .cr__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
+  .cr__steps { grid-column: 3 / 13; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }
+  .cr__step { padding-block-start: 1.4rem; border-block-start: 1px solid var(--line); }
+  .cr__n { color: var(--bronze); }
+  .cr__t { font-family: var(--f-display); font-size: clamp(1.375rem, 2.4vw, 2rem); line-height: 1.05; letter-spacing: -0.02em; margin-block: 0.9rem 0.75rem; }
+  .cr__b { max-inline-size: 22rem; color: var(--fg-soft); font-size: var(--t-small); line-height: 1.6; }
 
-  .nf { padding-block: 0 var(--space); }
-  .nf .grid { padding-block-start: var(--space-s); border-block-start: 1px solid var(--line); }
-  .nf__label { color: var(--bronze); }
-  .nf__body { grid-column: 3 / span 8; display: grid; gap: 1.5rem; }
+  .nf { padding-block: clamp(4rem, 11vh, 8rem); }
+  .nf__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+  .nf__label { grid-column: 1 / 3; color: var(--bronze); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
+  .nf__h { grid-column: 3 / 11; font-family: var(--f-display); font-size: clamp(1.875rem, 4.6vw, 4.5rem); line-height: 0.98; letter-spacing: -0.03em; }
+  .nf__b { grid-column: 3 / 8; margin-block-start: 1.75rem; color: var(--fg-soft); }
+  .nf__law { grid-column: 8 / 12; margin-block-start: 1.75rem; font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
 
-  .rg__intro { grid-column: 1 / span 4; display: grid; gap: 1.5rem; align-content: start; position: sticky; inset-block-start: calc(var(--header-h) + 2rem); align-self: start; }
-  .rg__form { grid-column: 6 / span 6; }
-  .rg__kinds { display: grid; gap: 0.75rem; margin-block-start: 1rem; }
+  .rg { padding-block: clamp(4rem, 11vh, 8rem); }
+  .rg__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+  .rg__intro { grid-column: 1 / 5; position: sticky; inset-block-start: calc(var(--header-h) + 2rem); display: grid; gap: 1.25rem; }
+  .rg__label { color: var(--fg-soft); }
+  .rg__h { font-family: var(--f-display); font-size: clamp(1.75rem, 3.4vw, 3rem); line-height: 1; letter-spacing: -0.025em; }
+  .rg__p { color: var(--fg-soft); font-size: var(--t-small); line-height: 1.6; }
+  .rg__kh { color: var(--fg-soft); margin-block-end: 0.25rem; }
   .rg__kinds li { border-block-start: 1px solid var(--line); }
   .rg__kinds li:last-child { border-block-end: 1px solid var(--line); }
-  .rg__kinds a { display: flex; min-block-size: 2.75rem; align-items: center; font-size: var(--t-small); }
-  .rg__kinds a:hover { color: var(--bronze-deep); }
+  .rg__k { display: flex; min-block-size: 2.75rem; align-items: center; font-size: var(--t-small); transition: color var(--d-state) ease; }
+  .rg__k:hover, .rg__k:focus-visible { color: var(--bronze-deep); }
+  .rg__form { grid-column: 6 / 13; }
 
   @media (max-width: 1023px) {
-    .cr__label, .nf__label, .cr__steps, .nf__body, .rg__intro, .rg__form { grid-column: 1 / -1; }
-    .rg__intro { position: static; margin-block-end: var(--space-s); }
-    .cr__label, .nf__label { margin-block-end: 1.25rem; }
+    .cr__grid, .nf__grid, .rg__grid { grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 1.5rem; }
+    .cr__label, .cr__steps, .nf__label, .nf__h, .nf__b, .nf__law, .rg__intro, .rg__form { grid-column: 1 / 9; }
+    .rg__intro { position: static; }
   }
   @media (max-width: 699px) { .cr__steps { grid-template-columns: 1fr; row-gap: 2rem; } }
 </style>

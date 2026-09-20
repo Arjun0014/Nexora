@@ -7,11 +7,17 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
 import { site } from '../data/site';
 ---
-<Base title="Privacy" description="How Nexora Hospitality and Services W.L.L. collects and uses personal information submitted through this website." theme="paper">
-  <PageHead label="Privacy" title={['What we collect,', 'and why.']} lead="This notice covers the information you give us through the forms on this website." />
+<Base title="Privacy" description="How Nexora Hospitality and Services W.L.L. collects and uses personal information submitted through this website." theme="dark">
+  <PageHead label="Privacy" title={['What we collect,', 'and why.']} lead="This notice covers the information you give us through the forms on this website."
+    meta={[
+      { k: 'Applies to', v: 'Forms on this website' },
+      { k: 'Controller', v: site.legalName },
+      { k: 'Status', v: 'Draft, pending legal review' },
+    ]}
+  />
 
-  <section class="pv surface" data-theme="paper">
-    <div class="wrap grid">
+  <section class="pv surface ch-stone" data-theme="paper">
+    <div class="wrap pv__grid">
       <div class="pv__body">
         <h2 class="h3">Who we are</h2>
         <p>{site.legalName}, Commercial Registration No. {site.cr}, {site.city}, {site.country}, is responsible for the personal information collected through this website.</p>
@@ -48,12 +54,13 @@ import { site } from '../data/site';
 </Base>
 
 <style>
-  .pv { padding-block-end: var(--space); }
-  .pv__body { grid-column: 3 / span 7; display: grid; gap: 1.1rem; }
+  .pv { padding-block: clamp(3rem, 8vh, 5rem) clamp(5rem, 13vh, 10rem); }
+  .pv__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); }
+  .pv__body { grid-column: 3 / 10; display: grid; gap: 1.1rem; }
   .pv__body h2 { margin-block-start: 2rem; padding-block-start: 1.5rem; border-block-start: 1px solid var(--line); }
   .pv__body h2:first-child { margin-block-start: 0; }
   .pv__body ul { display: grid; gap: 0.6rem; padding-inline-start: 1.1rem; list-style: square; }
   .pv__body li::marker { color: var(--bronze-deep); }
   .pv__body p, .pv__body li { max-inline-size: 40rem; color: var(--ink); }
-  @media (max-width: 1023px) { .pv__body { grid-column: 1 / -1; } }
+  @media (max-width: 1023px) { .pv__grid { grid-template-columns: 1fr; } .pv__body { grid-column: 1; } }
 </style>

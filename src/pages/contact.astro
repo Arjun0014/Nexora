@@ -7,25 +7,34 @@ import { site, cta } from '../data/site';
 
 const hasDetails = Boolean(site.email || site.phone || site.whatsapp || site.address.length);
 ---
-<Base title="Contact" description="Contact Nexora Hospitality and Services in Doha, Qatar. Employers can request workforce; candidates can register a CV." theme="paper">
-  <PageHead label="Contact" title={['Start with', 'the right door.']} lead="Two of these get you to the right person faster than a general message." />
+<Base title="Contact" description="Contact Nexora Hospitality and Services in Doha, Qatar. Employers can request workforce; candidates can register a CV." theme="dark">
+  <PageHead
+    label="Contact"
+    title={['Start with', 'the right door.']}
+    lead="Two of these get you to the right person faster than a general message."
+    meta={[
+      { k: 'Registered', v: site.legalName },
+      { k: 'Registration', v: `CR ${site.cr}` },
+      { k: 'Based in', v: `${site.city}, ${site.country}` },
+    ]}
+  />
 
-  <section class="ct surface" data-theme="paper" aria-label="Ways to reach us">
-    <div class="wrap grid">
+  <section class="ct surface ch-stone" data-theme="paper" aria-label="Ways to reach us">
+    <div class="wrap ct__grid">
       <ul class="ct__doors">
         <li>
           <a class="ct__door" href={cta.employer.href}>
             <span class="label label--soft">For employers</span>
-            <span class="h2">I need people.</span>
-            <span class="small soft">Roles, numbers, dates. Two short steps.</span>
+            <span class="ct__dh">I need people.</span>
+            <span class="mono ct__ds">Roles, numbers, dates. Two short steps.</span>
             <span class="label ct__go">{cta.employer.label}<Arrow /></span>
           </a>
         </li>
         <li>
           <a class="ct__door" href={cta.candidate.href}>
             <span class="label label--soft">For candidates</span>
-            <span class="h2">I’m looking for work.</span>
-            <span class="small soft">Register once. It is always free.</span>
+            <span class="ct__dh">I am looking for work.</span>
+            <span class="mono ct__ds">Register once. It is always free.</span>
             <span class="label ct__go">{cta.candidate.label}<Arrow /></span>
           </a>
         </li>
@@ -34,7 +43,7 @@ const hasDetails = Boolean(site.email || site.phone || site.whatsapp || site.add
       <div class="ct__form"><ContactForm /></div>
 
       <aside class="ct__side" aria-label="Company details">
-        <h2 class="label label--soft">Company</h2>
+        <h2 class="label ct__sh">Company</h2>
         <address class="ct__addr">
           <span>{site.legalName}</span>
           <span>Commercial Registration No. {site.cr}</span>
@@ -53,19 +62,29 @@ const hasDetails = Boolean(site.email || site.phone || site.whatsapp || site.add
 </Base>
 
 <style>
-  .ct { padding-block-end: var(--space); }
-  .ct__doors { grid-column: 3 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); margin-block-end: var(--space); }
-  .ct__door { display: grid; gap: 0.9rem; align-content: start; block-size: 100%; padding: 1.75rem; border: 1px solid var(--line-strong); transition: background-color var(--d-state) ease, color var(--d-state) ease, border-color var(--d-state) ease; }
-  .ct__door:hover, .ct__door:focus-visible { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .ct__door:hover .soft, .ct__door:hover .label--soft, .ct__door:focus-visible .soft, .ct__door:focus-visible .label--soft { color: rgba(238, 232, 222, 0.7); }
+  .ct { padding-block: clamp(3rem, 8vh, 5rem) clamp(5rem, 13vh, 10rem); }
+  .ct__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+
+  /* The two doors are cells of the grid, edged by hairlines, not boxes with shadows. */
+  .ct__doors { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-block: 1px solid var(--line-strong); margin-block-end: clamp(3rem, 8vh, 5rem); }
+  .ct__door { display: grid; gap: 0.9rem; align-content: start; block-size: 100%; padding: clamp(1.5rem, 3vw, 2.5rem); transition: background-color var(--d-state) ease, color var(--d-state) ease; }
+  .ct__doors li + li .ct__door { border-inline-start: 1px solid var(--line); }
+  .ct__door:hover, .ct__door:focus-visible { background: var(--ink); color: var(--stone); }
+  .ct__door:hover .label--soft, .ct__door:focus-visible .label--soft, .ct__door:hover .ct__ds, .ct__door:focus-visible .ct__ds { color: rgba(238, 232, 222, 0.66); }
+  .ct__dh { font-family: var(--f-display); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.02; letter-spacing: -0.025em; }
+  .ct__ds { font-size: 0.75rem; line-height: 1.55; color: var(--fg-soft); }
   .ct__go { display: inline-flex; align-items: center; gap: 0.9em; margin-block-start: 1rem; }
-  .ct__form { grid-column: 3 / span 6; }
-  .ct__side { grid-column: 10 / -1; display: grid; gap: 1rem; align-content: start; }
-  .ct__addr { display: grid; gap: 0.2rem; font-style: normal; font-size: var(--t-small); line-height: 1.55; }
+  .ct__form { grid-column: 1 / 8; }
+  .ct__side { grid-column: 9 / 13; display: grid; gap: 1rem; align-content: start; }
+  .ct__sh { color: var(--fg-soft); padding-block-end: 0.75rem; border-block-end: 1px solid var(--line); }
+  .ct__addr { display: grid; gap: 0.2rem; font-style: normal; font-family: var(--f-mono); font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
   .ct__lines { display: grid; gap: 0.25rem; font-size: var(--t-small); }
   @media (max-width: 1023px) {
-    .ct__doors, .ct__form, .ct__side { grid-column: 1 / -1; }
-    .ct__side { margin-block-start: var(--space-s); }
+    .ct__grid { grid-template-columns: 1fr; row-gap: clamp(2.5rem, 6vh, 4rem); }
+    .ct__doors, .ct__form, .ct__side { grid-column: 1; }
   }
-  @media (max-width: 699px) { .ct__doors { grid-template-columns: 1fr; } }
+  @media (max-width: 699px) {
+    .ct__doors { grid-template-columns: 1fr; }
+    .ct__doors li + li .ct__door { border-inline-start: 0; border-block-start: 1px solid var(--line); }
+  }
 </style>

@@ -1,5 +1,9 @@
 ---
-/** Editorial page header for subpages: label, stacked display title, lead, and an optional plate band. */
+/**
+ * The opening of a subpage: the same ember chapter the homepage opens with, so every page starts inside the
+ * same lit space. A monument title on the left, a hairline meta table on the right, and an optional plate that
+ * bleeds to the page edges.
+ */
 import { worldById, type WorldId } from '../../data/worlds';
 
 interface Props {
@@ -10,44 +14,93 @@ interface Props {
   /** Which approved still to show as a wide band under the heading. */
   plate?: WorldId | 'overview';
   plateCaption?: string;
+  /** Right-hand hairline table: the checkable facts for this page. */
+  meta?: { k: string; v: string }[];
   id?: string;
 }
-const { label, title, lead, theme = 'paper', plate, plateCaption, id = 'page-h' } = Astro.props;
+const { label, title, lead, theme = 'dark', plate, plateCaption, meta = [], id = 'page-h' } = Astro.props;
 const focus = plate && plate !== 'overview' ? worldById[plate].focus : '50% 42%';
-const alt = plate && plate !== 'overview' ? worldById[plate].alt : 'The Nexora diorama: five lit sectors on a circular model.';
+const alt = plate && plate !== 'overview' ? worldById[plate].alt : 'The Nexora model: five lit sectors on one circular platform.';
 const srcset = (fmt: string) => [800, 1200, 1672].map((w) => `/media/stills/${plate}-${w}.${fmt} ${w}w`).join(', ');
 ---
-<section class="ph surface" data-theme={theme} aria-labelledby={id}>
-  <div class="wrap grid ph__grid" data-reveal>
-    <p class="label label--soft ph__label" data-rise>{label}</p>
-    <h1 id={id} class="display ph__title lines">
-      {title.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
-    </h1>
-    {lead && <p class="lead ph__lead" data-rise style={`--i:${title.length}`}>{lead}</p>}
-    <slot />
+<section class={`ph surface ${theme === 'paper' ? 'ch-stone' : 'ch-ember lit grain'}`} data-theme={theme} aria-labelledby={id}>
+  <div class="ph__wrap wrap" data-reveal>
+    <div class="ph__grid">
+      <p class="label ph__label" data-rise>{label}</p>
+
+      <h1 id={id} class="ph__title lines">
+        {title.map((line, i) => (
+          <span class="l" style={`--i:${i}`}><span class={i === title.length - 1 && title.length > 1 ? 'recede' : ''}>{line}</span></span>
+        ))}
+      </h1>
+
+      {lead && <p class="lead ph__lead" data-rise style={`--i:${title.length}`}>{lead}</p>}
+
+      {meta.length > 0 && (
+        <dl class="ph__meta" data-rise style={`--i:${title.length + 1}`}>
+          {meta.map((m) => (
+            <div class="ph__row">
+              <dt class="label label--soft">{m.k}</dt>
+              <dd class="mono ph__val">{m.v}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      <div class="ph__slot"><slot /></div>
+    </div>
   </div>
+
   {plate && (
     <figure class="ph__plate">
       <picture>
         <source type="image/avif" srcset={srcset('avif')} sizes="100vw" />
         <img src={`/media/stills/${plate}-1200.webp`} srcset={srcset('webp')} sizes="100vw" width="1672" height="941" alt={alt} fetchpriority="high" decoding="async" style={`object-position:${focus}`} />
       </picture>
-      {plateCaption && <figcaption class="chip label ph__cap">{plateCaption}</figcaption>}
+      {plateCaption && <figcaption class="label ph__cap">{plateCaption}</figcaption>}
     </figure>
   )}
 </section>
 
 <style>
-  .ph { padding-block-start: calc(var(--header-h) + clamp(3rem, 8vw, 8rem)); }
-  .ph__grid { row-gap: 1.75rem; padding-block-end: clamp(3rem, 6vw, 6rem); }
-  .ph__label { grid-column: 1 / span 2; padding-block-start: 1.2rem; }
-  .ph__title { grid-column: 3 / -1; }
-  .ph__lead { grid-column: 3 / span 6; color: var(--fg-soft); }
-  .ph__plate { position: relative; block-size: clamp(16rem, 42vw, 40rem); overflow: clip; }
+  .ph {
+    --light: radial-gradient(90% 85% at 4% 28%, rgba(194, 132, 86, 0.19) 0%, rgba(194, 132, 86, 0.04) 40%, rgba(194, 132, 86, 0) 72%);
+    padding-block-start: calc(var(--header-h) + clamp(3rem, 10vh, 7rem));
+    overflow: clip;
+  }
+  .ph__wrap { position: relative; z-index: 1; }
+  .ph__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; padding-block-end: clamp(3rem, 8vh, 6rem); }
+
+  .ph__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
+  .ph__title {
+    grid-column: 1 / 9; grid-row: 2;
+    font-family: var(--f-display); font-weight: 400;
+    font-size: clamp(2.5rem, 7.6vw, 8rem);
+    line-height: 0.9; letter-spacing: -0.035em;
+    margin-block-start: clamp(1.25rem, 4vh, 2.5rem);
+  }
+  .ph__lead { grid-column: 1 / 6; grid-row: 3; margin-block-start: clamp(1.75rem, 5vh, 3rem); color: var(--fg-soft); }
+  .ph__meta { grid-column: 9 / 13; grid-row: 2 / 4; margin-block-start: clamp(1.25rem, 4vh, 2.5rem); }
+  .ph__row { display: grid; grid-template-columns: minmax(5rem, 5fr) 8fr; gap: var(--gutter); align-items: baseline; padding-block: 0.8rem; border-block-start: 1px solid var(--line); }
+  .ph__row:last-child { border-block-end: 1px solid var(--line); }
+  .ph__val { font-size: 0.8125rem; line-height: 1.5; }
+  .ph__slot { grid-column: 1 / 13; grid-row: 4; }
+
+  .ph__plate { position: relative; block-size: clamp(15rem, 40vw, 38rem); overflow: clip; }
   .ph__plate img { inline-size: 100%; block-size: 100%; object-fit: cover; }
-  .ph__cap { position: absolute; inset-inline-start: var(--margin); inset-block-end: 1.25rem; }
+  .ph__cap { position: absolute; inset-inline-start: var(--margin); inset-block-end: 1.25rem; color: var(--bone-soft); }
+
   @media (max-width: 1023px) {
-    .ph__label, .ph__title, .ph__lead { grid-column: 1 / -1; }
-    .ph__label { padding-block-start: 0; }
+    .ph__grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+    .ph__label { grid-column: 1 / 5; }
+    .ph__title { grid-column: 1 / 9; font-size: clamp(2.5rem, 9vw, 5.5rem); }
+    .ph__lead { grid-column: 1 / 7; }
+    .ph__meta { grid-column: 1 / 9; grid-row: 4; margin-block-start: clamp(1.75rem, 5vh, 3rem); }
+    .ph__slot { grid-column: 1 / 9; grid-row: 5; }
+  }
+  @media (max-width: 699px) {
+    .ph__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .ph__label, .ph__title, .ph__lead, .ph__meta, .ph__slot { grid-column: 1 / 5; }
+    .ph__row { grid-template-columns: 1fr; gap: 0.25rem; }
   }
 </style>

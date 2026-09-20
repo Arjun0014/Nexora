@@ -1,15 +1,20 @@
 ---
+/**
+ * 404. A monument line on the ember ground, with the footer rising underneath (Truck'N Roll's "wrong venue").
+ * The old line joked about time stopping; this one just says what happened and offers the two real doors.
+ */
 import Base from '../layouts/Base.astro';
 import Arrow from '../components/ui/Arrow.astro';
 ---
 <Base title="Page not found" noindex theme="dark">
-  <section class="nf surface" data-theme="dark" aria-labelledby="nf-h">
-    <div class="wrap">
-      <p class="label label--soft">404</p>
-      <h1 id="nf-h" class="mega">Time stopped.<br /><em>So did this page.</em></h1>
-      <p class="lead soft">The address may have changed, or it never existed.</p>
+  <section class="nf surface ch-ember lit grain" data-theme="dark" aria-labelledby="nf-h">
+    <div class="wrap nf__wrap">
+      <p class="label nf__code">404 — not found</p>
+      <h1 id="nf-h" class="nf__h monument">This page<br /><span class="recede">isn’t here.</span></h1>
+      <p class="lead nf__lead">The address may have changed, or it never existed. Everything else is one step away.</p>
       <div class="nf__links">
         <a class="btn btn--solid label" href="/">Back to the start<Arrow /></a>
+        <a class="btn label" href="/services/">What we supply<Arrow /></a>
         <a class="btn label" href="/request/">Request workforce<Arrow /></a>
       </div>
     </div>
@@ -17,8 +22,10 @@ import Arrow from '../components/ui/Arrow.astro';
 </Base>
 
 <style>
-  .nf { min-block-size: 100svh; display: grid; align-items: center; padding-block: calc(var(--header-h) + 3rem) var(--space-s); }
-  .nf .wrap { display: grid; gap: 2rem; justify-items: start; }
-  .nf em { color: var(--bronze); }
-  .nf__links { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1rem; }
+  .nf { min-block-size: 92svh; display: grid; align-items: center; padding-block: calc(var(--header-h) + 3rem) var(--space-s); overflow: clip; }
+  .nf__wrap { position: relative; z-index: 1; display: grid; gap: clamp(1.5rem, 4vh, 2.5rem); justify-items: start; }
+  .nf__code { color: var(--bronze); }
+  .nf__h { font-size: clamp(3rem, 12vw, 13rem); }
+  .nf__lead { color: var(--fg-soft); max-inline-size: 30rem; }
+  .nf__links { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 </style>

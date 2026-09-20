@@ -1,28 +1,33 @@
-/* Forms. Underlined fields, labels above, errors below in text (never colour alone). 48px controls, 16px type. */
-.form { display: grid; gap: 2.5rem; max-inline-size: 40rem; }
+/* Forms. Underlined fields, mono labels above, errors below in text (never colour alone). 64px controls,
+   16px type. The grouping follows Truck'N Roll: parenthesised numerals on the legend, generous rules, nothing
+   boxed. See docs/redesign/00-DIRECTION.md. */
+.form { display: grid; gap: clamp(2.5rem, 6vh, 4rem); max-inline-size: 44rem; }
 .form fieldset { border: 0; padding: 0; margin: 0; min-inline-size: 0; display: grid; gap: 2rem; }
-.form legend { padding: 0; margin-block-end: 0.5rem; }
+.form legend { padding: 0 0 1rem; margin-block-end: 0.5rem; inline-size: 100%; border-block-end: 1px solid var(--line); }
+/* (01) Roles — the numeral is part of the label, in the mono, in brackets. */
+.form__legend { font-size: clamp(1.25rem, 2.2vw, 1.875rem); }
+.form legend .form__gn { font-family: var(--f-mono); color: var(--mark); margin-inline-end: 0.75em; }
 .form legend:focus { outline: none; }
 .form__progress { display: flex; align-items: center; gap: 1rem; color: var(--fg-soft); }
 .form__bar { flex: 1; block-size: 1px; background: var(--line); position: relative; }
 .form__bar::after { content: ''; position: absolute; inset-block: -0.5px; inset-inline-start: 0; inline-size: calc(var(--p, 0.5) * 100%); background: var(--mark); transition: inline-size 520ms var(--ease-freeze); }
 
 .field { display: grid; gap: 0.5rem; }
-.field > label, .field > .field__label { font-size: var(--t-label); font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
+.field > label, .field > .field__label { font-family: var(--f-mono); font-size: var(--t-label); font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
 .field__req { color: var(--fg-soft); letter-spacing: 0.06em; text-transform: none; font-weight: 400; margin-inline-start: 0.5em; }
-.field__hint { font-size: var(--t-small); color: var(--fg-soft); }
+.field__hint { font-family: var(--f-mono); font-size: 0.75rem; line-height: 1.5; color: var(--fg-soft); }
 .field__error { font-size: var(--t-small); font-weight: 500; color: #9a2b16; display: none; }
 [data-theme='dark'] .field__error { color: #ffab91; }
 .field[data-invalid] .field__error { display: block; }
 .field[data-invalid] .field__error::before { content: '↳ '; }
 
 .input, .form select, .form textarea {
-  inline-size: 100%; min-block-size: 3rem; padding: 0.7rem 0; font-size: max(1rem, 16px); line-height: 1.4;
+  inline-size: 100%; min-block-size: 4rem; padding: 1rem 0; font-size: max(1.0625rem, 16px); line-height: 1.4;
   background: transparent; color: var(--fg); border: 0; border-block-end: 1px solid var(--line-strong); border-radius: 0;
   transition: border-color var(--d-state) ease;
   appearance: none;
 }
-.form textarea { min-block-size: 7rem; resize: vertical; padding-block: 0.8rem; }
+.form textarea { min-block-size: 8rem; resize: vertical; padding-block: 1rem; }
 .form select { background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 0.6rem) 55%, calc(100% - 0.25rem) 55%; background-size: 0.35rem 0.35rem; background-repeat: no-repeat; padding-inline-end: 1.5rem; }
 .form select option { color: #15120f; background: #eee8de; }
 .input::placeholder, .form textarea::placeholder { color: var(--fg-soft); opacity: 0.75; }
@@ -36,7 +41,7 @@
 
 /* Choice chips: real radios/checkboxes, visually replaced. */
 .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.chips label { position: relative; display: inline-flex; align-items: center; min-block-size: 2.75rem; padding: 0.4rem 1rem; border: 1px solid var(--line-strong); border-radius: 2px; font-size: var(--t-small); letter-spacing: 0; text-transform: none; font-weight: 400; cursor: pointer; transition: background-color var(--d-state) ease, color var(--d-state) ease, border-color var(--d-state) ease; }
+.chips label { position: relative; display: inline-flex; align-items: center; min-block-size: 3rem; padding: 0.5rem 1.15rem; border: 1px solid var(--line); border-radius: 0; font-size: var(--t-small); letter-spacing: 0; text-transform: none; font-weight: 400; cursor: pointer; transition: background-color var(--d-state) ease, color var(--d-state) ease, border-color var(--d-state) ease; }
 .chips input { position: absolute; opacity: 0; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; cursor: pointer; }
 .chips label:hover { border-color: var(--fg); }
 .chips label:has(input:checked) { background: var(--fg); color: var(--bg); border-color: var(--fg); }

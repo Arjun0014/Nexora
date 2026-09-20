@@ -1,4 +1,10 @@
 ---
+/**
+ * About — the manifesto, the registry and the policy.
+ *
+ * A new company cannot show a record, so this page shows the two things it can: what it is legally, and how it
+ * intends to work. Both are checkable. Nothing here is a number we cannot stand behind.
+ */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
 import HowWeWork from '../components/chapters/HowWeWork.astro';
@@ -16,30 +22,48 @@ const identity = [
 ];
 ---
 <Base title="About" description="Nexora Hospitality and Services W.L.L. is a Qatar-registered workforce company established in 2026, supplying hospitality, events, facilities and technical teams." theme="dark">
-  <PageHead theme="dark" label="About" title={['A workforce company.', 'Established 2026.']} lead={statement.body} plate="overview" plateCaption="One world, many workforces" />
+  <PageHead
+    label="About"
+    title={['A workforce company.', 'Established 2026.']}
+    lead={statement.body}
+    plate="overview"
+    plateCaption="The Nexora model — five worlds, one operation"
+    meta={[
+      { k: 'Legal name', v: site.legalName },
+      { k: 'Registration', v: `CR ${site.cr}` },
+      { k: 'Established', v: '7 September 2026' },
+      { k: 'Based in', v: `${site.city}, ${site.country}` },
+    ]}
+  />
 
-  <section class="ab surface section" data-theme="paper" aria-labelledby="ab-h">
-    <div class="wrap grid">
-      <p class="label label--soft ab__label">Why we exist</p>
-      <div class="ab__body">
-        <h2 id="ab-h" class="h1">Operations are made of people. Someone has to arrange them.</h2>
-        <div class="ab__cols">
-          <p class="lead soft">A hotel opens a new outlet. A conference doubles its delegate list. A plant schedules a shutdown. A building changes hands. In each case the work is clear and the question is the same: who, how many, from when, and who looks after them once they are there.</p>
-          <p class="lead soft">That arranging is what Nexora does. We are new, and we say so. What we can show you today is not a record but a way of working: a clear brief, people matched to the setting, terms in writing, and a coordinator who stays involved.</p>
-        </div>
+  <section class="ab surface ch-linen" data-theme="paper" aria-labelledby="ab-h" data-reveal>
+    <div class="wrap">
+      <div class="ab__grid">
+        <p class="label ab__label" data-rise>Why we exist</p>
+        <h2 id="ab-h" class="ab__h lines">
+          <span class="l" style="--i:0"><span>Operations are made of people.</span></span>
+          <span class="l" style="--i:1"><span class="recede">Someone has to arrange them.</span></span>
+        </h2>
+        <p class="ab__p" data-rise style="--i:2">A hotel opens a new outlet. A conference doubles its delegate list. A plant schedules a shutdown. A building changes hands. In each case the work is clear and the question is the same: who, how many, from when, and who looks after them once they are there.</p>
+        <p class="ab__p ab__p--b" data-rise style="--i:3">That arranging is what Nexora does. We are new, and we say so. What we can show you today is not a record but a way of working: a clear brief, people matched to the setting, terms in writing, and a coordinator who stays involved.</p>
       </div>
     </div>
   </section>
 
-  <section class="id surface section--tight" data-theme="paper" aria-labelledby="id-h">
-    <div class="wrap grid">
-      <h2 id="id-h" class="label label--soft id__label">Legal identity</h2>
-      <dl class="id__list">
-        {identity.map((row) => (
-          <div class="id__row"><dt class="label label--soft">{row.k}</dt><dd class="h3">{row.v}</dd></div>
-        ))}
-      </dl>
-      <p class="small soft id__note">These details are taken from the company’s commercial registration.</p>
+  <section class="id surface ch-stone" data-theme="paper" aria-labelledby="id-h" data-reveal>
+    <div class="wrap">
+      <div class="id__grid">
+        <h2 id="id-h" class="label id__label" data-rise>Legal identity</h2>
+        <dl class="id__list">
+          {identity.map((row, i) => (
+            <div class="id__row" data-rise style={`--i:${i * 0.4 + 1}`}>
+              <dt class="label label--soft">{row.k}</dt>
+              <dd class="id__v mono">{row.v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="id__note mono" data-rise style="--i:4">These details are taken from the company’s commercial registration. The registration lists hospitality services and the organisation of events; the wider workforce scope described on this site reflects the business Nexora is built to do.</p>
+      </div>
     </div>
   </section>
 
@@ -48,23 +72,29 @@ const identity = [
 </Base>
 
 <style>
-  .ab__label, .id__label { grid-column: 1 / span 2; padding-block-start: 0.9rem; }
-  .ab__body { grid-column: 3 / -1; display: grid; gap: var(--space-s); }
-  .ab__body .h1 { max-inline-size: 16em; }
-  .ab__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gutter); }
-  .ab__cols .lead { max-inline-size: 30rem; }
+  .ab { padding-block: clamp(4.5rem, 12vh, 9rem); }
+  .ab__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+  .ab__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
+  .ab__h { grid-column: 3 / 11; font-family: var(--f-display); font-size: clamp(1.875rem, 4.2vw, 4.25rem); line-height: 1; letter-spacing: -0.03em; }
+  .ab__p { grid-column: 3 / 7; margin-block-start: clamp(2rem, 5vh, 3.5rem); color: var(--fg-soft); }
+  .ab__p--b { grid-column: 7 / 11; }
 
-  .id { padding-block-end: var(--space); }
-  .id__list { grid-column: 3 / -1; border-block-end: 1px solid var(--line); }
-  .id__row { display: grid; grid-template-columns: minmax(10rem, 3fr) 7fr; gap: var(--gutter); align-items: baseline; padding-block: 1.25rem; border-block-start: 1px solid var(--line); }
-  .id__note { grid-column: 3 / span 6; margin-block-start: 1.5rem; }
+  .id { padding-block: clamp(4rem, 10vh, 7rem); }
+  .id__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+  .id__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
+  .id__list { grid-column: 3 / 10; }
+  .id__row { display: grid; grid-template-columns: minmax(8rem, 4fr) 8fr; gap: var(--gutter); align-items: baseline; padding-block: 1rem; border-block-start: 1px solid var(--line); }
+  .id__row:last-child { border-block-end: 1px solid var(--line); }
+  .id__v { font-size: clamp(0.875rem, 1.2vw, 1.0625rem); }
+  .id__note { grid-column: 3 / 9; margin-block-start: 1.5rem; font-size: 0.75rem; line-height: 1.65; color: var(--fg-soft); }
 
   @media (max-width: 1023px) {
-    .ab__label, .ab__body, .id__label, .id__list, .id__note { grid-column: 1 / -1; }
-    .ab__label, .id__label { margin-block-end: 1.25rem; }
+    .ab__grid, .id__grid { grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 1.5rem; }
+    .ab__label, .ab__h, .ab__p, .ab__p--b { grid-column: 1 / 9; }
+    .ab__p { margin-block-start: 0.5rem; }
+    .id__label, .id__list, .id__note { grid-column: 1 / 9; }
   }
   @media (max-width: 699px) {
-    .ab__cols { grid-template-columns: 1fr; }
-    .id__row { grid-template-columns: 1fr; gap: 0.4rem; }
+    .id__row { grid-template-columns: 1fr; gap: 0.25rem; }
   }
 </style>

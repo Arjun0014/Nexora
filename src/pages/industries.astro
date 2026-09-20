@@ -1,39 +1,59 @@
 ---
+/**
+ * Industries — the sector grid, expanded.
+ *
+ * The homepage shows the ten sectors as one hairline list; here each one gets its own row of the same grid
+ * with the roles, the workforces it draws on and a way to ask for people. Stone throughout: this is the
+ * reference page, and it should read like a document.
+ */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
 import Arrow from '../components/ui/Arrow.astro';
 import Doors from '../components/chapters/Doors.astro';
-import { sectors } from '../data/content';
+import { sectors, sectorNote } from '../data/content';
 import { worldById } from '../data/worlds';
 ---
-<Base title="Industries" description="The sectors Nexora staffs in Qatar: hospitality, events, facilities, retail, oil and gas operations, utilities, manufacturing, maintenance, IT and logistics." theme="paper">
-  <PageHead label="Industries" title={['Ten sectors.', 'One way of working.']} lead="Every sector has its own rhythm: a banquet, a shutdown, a product launch, a night shift. We staff for the rhythm, not just the headcount." />
+<Base title="Industries" description="The sectors Nexora staffs in Qatar: hospitality, events, facilities, retail, oil and gas operations, utilities, manufacturing, maintenance, IT and logistics." theme="dark">
+  <PageHead
+    label="Industries"
+    title={['Ten sectors.', 'One way of working.']}
+    lead="Every sector has its own rhythm: a banquet, a shutdown, a product launch, a night shift. We staff for the rhythm, not just the headcount."
+    meta={[
+      { k: 'Sectors', v: `${sectors.length} listed` },
+      { k: 'Drawn from', v: 'Five workforces' },
+      { k: 'Excluded', v: 'Construction labour' },
+    ]}
+  />
 
-  <section class="ind surface" data-theme="paper" aria-label="Sectors">
+  <section class="ind surface ch-stone" data-theme="paper" aria-label="Sectors">
     <div class="wrap">
       <ol class="ind__list">
         {sectors.map((s, i) => (
-          <li class="ind__row" id={s.id}>
-            <span class="label num ind__n">{String(i + 1).padStart(2, '0')}</span>
-            <div class="ind__main">
-              <h2 class="h1 ind__name">{s.name}</h2>
-              <p class="lead soft">{s.body}</p>
-            </div>
+          <li class="ind__row" id={s.id} data-sector={s.worlds[0]} data-reveal>
+            <span class="label ind__n" data-rise>{String(i + 1).padStart(2, '0')}</span>
+
+            <h2 class="ind__name lines"><span class="l"><span>{s.name}</span></span></h2>
+            <p class="ind__body" data-rise style="--i:1">{s.body}</p>
+
             <div class="ind__side">
-              <h3 class="label label--soft">Roles we supply</h3>
-              <ul class="ind__roles">{s.roles.split(' · ').map((r) => <li>{r}</li>)}</ul>
-              <p class="small soft ind__wf">
-                Drawn from {s.worlds.map((id, k) => <><a class="ind__wlink" href={`/services/#${id}`}>{worldById[id].title}</a>{k < s.worlds.length - 1 ? ' and ' : ''}</>)}
+              <p class="label ind__sh" data-rise style="--i:1">Roles we supply</p>
+              <ul class="ind__roles">
+                {s.roles.split(' · ').map((r, k) => <li class="mono ind__role" data-rise style={`--i:${2 + k * 0.2}`}>{r}</li>)}
+              </ul>
+              <p class="mono ind__wf" data-rise style="--i:3">
+                Drawn from {s.worlds.map((id, k) => (
+                  <><a class="ind__wlink" href={`/services/#${id}`}>{worldById[id].title}</a>{k < s.worlds.length - 1 ? ' and ' : ''}</>
+                ))}
               </p>
-              <a class="tlink label" href={`/request/?sector=${s.id}`}>Request staff<Arrow /></a>
+              <a class="tlink label ind__cta" href={`/request/?sector=${s.id}`} data-rise style="--i:4">Request staff<Arrow /></a>
             </div>
           </li>
         ))}
       </ol>
 
-      <aside class="ind__note" aria-label="Not on this list">
-        <p class="label">Not on this list</p>
-        <p class="h3">Construction. We supply people for operating, serving, maintaining and supporting — not for building sites.</p>
+      <aside class="ind__note" aria-label="Scope">
+        <p class="label ind__nh">Something not listed?</p>
+        <p class="ind__nb">Tell us the roles and the setting. If we can staff it well we will say so, and if we cannot we will say that instead. {sectorNote}</p>
       </aside>
     </div>
   </section>
@@ -42,27 +62,43 @@ import { worldById } from '../data/worlds';
 </Base>
 
 <style>
-  .ind { padding-block-end: var(--space); }
-  .ind__row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 1.75rem; padding-block: clamp(2.5rem, 5vw, 5rem); border-block-start: 1px solid var(--line); scroll-margin-top: var(--header-h); }
-  .ind__n { grid-column: 1 / span 2; padding-block-start: 1.1rem; }
-  .ind__main { grid-column: 3 / span 6; display: grid; gap: 1.25rem; align-content: start; }
-  .ind__side { grid-column: 10 / -1; display: grid; gap: 1rem; align-content: start; justify-items: start; }
-  .ind__roles { inline-size: 100%; }
-  .ind__roles li { padding-block: 0.55rem; border-block-start: 1px solid var(--line); font-size: var(--t-small); }
-  .ind__roles li:last-child { border-block-end: 1px solid var(--line); }
-  .ind__wlink { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
-  .ind__wlink:hover { color: var(--fg); }
-  .ind__row:target .ind__name { color: var(--bronze-deep); }
+  .ind { padding-block: clamp(3rem, 8vh, 6rem) clamp(4.5rem, 12vh, 9rem); }
 
-  .ind__note { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 1rem; margin-block-start: var(--space-s); padding: 2rem 0; border-block: 1px solid var(--line-strong); }
-  .ind__note .label { grid-column: 1 / span 2; padding-block-start: 0.4rem; }
-  .ind__note .h3 { grid-column: 3 / span 7; }
+  .ind__list { border-block-start: 1px solid var(--line-strong); }
+  .ind__row {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 6fr) minmax(0, 5fr);
+    column-gap: var(--gutter);
+    align-items: start;
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+    border-block-end: 1px solid var(--line);
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+  .ind__n { color: var(--bronze-deep); padding-block-start: 0.55em; }
+  .ind__name { grid-column: 2; font-family: var(--f-display); font-size: clamp(1.5rem, 3.2vw, 3rem); line-height: 1; letter-spacing: -0.025em; }
+  .ind__body { grid-column: 2; margin-block-start: 1rem; max-width: 30rem; color: var(--fg-soft); }
+  .ind__side { grid-column: 3; grid-row: 1 / 4; }
+  .ind__sh { color: var(--fg-soft); padding-block-end: 0.75rem; border-block-end: 1px solid var(--line); }
+  .ind__roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gutter); }
+  .ind__role { font-size: 0.75rem; line-height: 1.5; padding-block: 0.55rem; border-block-end: 1px solid var(--line-soft); color: var(--fg-soft); }
+  .ind__wf { margin-block-start: 1.25rem; font-size: 0.75rem; color: var(--fg-soft); }
+  .ind__wlink { border-block-end: 1px solid var(--line-strong); }
+  .ind__wlink:hover, .ind__wlink:focus-visible { color: var(--bronze-deep); border-color: currentColor; }
+  .ind__cta { margin-block-start: 1.25rem; }
+
+  .ind__note { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 1rem; margin-block-start: clamp(2.5rem, 6vh, 4rem); padding-block: clamp(2rem, 5vh, 3rem); border-block: 1px solid var(--line-strong); }
+  .ind__nh { grid-column: 1 / 4; color: var(--fg-soft); padding-block-start: 0.35em; }
+  .ind__nb { grid-column: 4 / 11; font-family: var(--f-display); font-size: clamp(1.125rem, 2vw, 1.75rem); line-height: 1.25; letter-spacing: -0.015em; }
 
   @media (max-width: 1023px) {
-    .ind__row { grid-template-columns: 2.5rem 1fr; }
-    .ind__n { grid-column: 1; }
-    .ind__main, .ind__side { grid-column: 2; }
+    .ind__row { grid-template-columns: 3rem minmax(0, 1fr); row-gap: 1.25rem; }
+    .ind__name, .ind__body { grid-column: 2; }
+    .ind__side { grid-column: 2; grid-row: auto; }
     .ind__note { grid-template-columns: 1fr; }
-    .ind__note .label, .ind__note .h3 { grid-column: 1; }
+    .ind__nh, .ind__nb { grid-column: 1; }
+  }
+  @media (max-width: 699px) {
+    .ind__row { grid-template-columns: 2.5rem minmax(0, 1fr); }
+    .ind__roles { grid-template-columns: 1fr; }
   }
 </style>
