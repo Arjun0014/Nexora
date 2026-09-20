@@ -7,6 +7,7 @@
  */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
+import Seam from '../components/chapters/Seam.astro';
 import HowWeWork from '../components/chapters/HowWeWork.astro';
 import Doors from '../components/chapters/Doors.astro';
 import { site } from '../data/site';
@@ -67,6 +68,7 @@ const identity = [
     </div>
   </section>
 
+  <Seam from="var(--stone)" to="var(--ink-ground)" />
   <HowWeWork />
   <Doors />
 </Base>

@@ -1,0 +1,41 @@
+---
+/**
+ * A seam between two chapters that would otherwise meet on a straight line.
+ *
+ * ERA Residence hides every one of its colour changes behind a shape or an overlapping element; the one we
+ * borrow is the arch — the next ground rises out of the current one as a very wide, very shallow curve, so the
+ * eye reads a form arriving rather than a band ending. Used where the light chapter gives way to the dark one,
+ * which is the only place on the page where two flat colours would otherwise butt together.
+ *
+ * Decorative only: it carries no content and is hidden from assistive tech.
+ */
+interface Props {
+  /** CSS colour of the chapter above. */
+  from: string;
+  /** CSS colour of the chapter below — this is what rises. */
+  to: string;
+  /** How tall the seam is; the curve is always much wider than it is tall. */
+  height?: string;
+  /** A hairline along the curve, for when both grounds are close in value. */
+  line?: boolean;
+}
+const { from, to, height = 'clamp(4rem, 9vw, 9rem)', line = false } = Astro.props;
+---
+<div class="seam" aria-hidden="true" style={`--from:${from};--to:${to};--h:${height}`} data-line={line ? 'true' : undefined}>
+  <span class="seam__arch"></span>
+</div>
+
+<style>
+  .seam { position: relative; height: var(--h); background: var(--from); overflow: clip; }
+  .seam__arch {
+    position: absolute;
+    /* Wider than the viewport so only the flattest part of the curve is ever on screen. */
+    inset-inline: -30%;
+    inset-block-start: 0;
+    block-size: 200%;
+    background: var(--to);
+    border-start-start-radius: 50% 28%;
+    border-start-end-radius: 50% 28%;
+  }
+  .seam[data-line] .seam__arch { box-shadow: inset 0 1px 0 0 rgba(243, 237, 227, 0.14); }
+</style>

@@ -12,6 +12,7 @@ import Workforces from '../components/chapters/Workforces.astro';
 import Turning from '../components/chapters/Turning.astro';
 import Sectors from '../components/chapters/Sectors.astro';
 import Engagement from '../components/chapters/Engagement.astro';
+import Seam from '../components/chapters/Seam.astro';
 import HowWeWork from '../components/chapters/HowWeWork.astro';
 import Doors from '../components/chapters/Doors.astro';
 ---
@@ -26,6 +27,8 @@ import Doors from '../components/chapters/Doors.astro';
     label="Chapter IV" caption="Where our people work" />
   <Sectors />
   <Engagement />
+  <!-- The one place two flat grounds would meet on a straight line: the ink rises out of the linen. -->
+  <Seam from="var(--linen)" to="var(--ink-ground)" />
   <HowWeWork />
   <Doors />
 </Base>
