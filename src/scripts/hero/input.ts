@@ -3,8 +3,10 @@
  *
  * One physical gesture = one intent, whatever the device:
  *   mouse wheel      separate notches → notches closer together than GAP are one roll of the finger = one intent
- *   trackpad /       a long decaying stream (inertia lasts ~1 s). The whole stream is ONE intent. A second flick
- *   free-spin wheel  inside it shows up as the deltas growing again after they had died down → a new intent
+ *   trackpad         a long decaying stream (inertia lasts ~1 s). The whole stream is ONE intent. A second flick
+ *                    inside it shows up as the deltas growing again after they had died down → a new intent
+ *   free-spin wheel  equal notches that gradually slow down. A pause only counts as a new gesture when it is long
+ *                    RELATIVE to the stream's own rhythm, so a wheel coasting to a stop stays one intent
  *   touch            one intent per touch, fired the moment the swipe passes a small threshold
  *   keys             one intent per press; auto-repeat is throttled
  *
@@ -37,7 +39,7 @@ export function bindInput(owner: InputOwner, surface: HTMLElement): () => void {
   const opts = { passive: false, signal: ac.signal } as const;
 
   // ── wheel ───────────────────────────────────────────────────────────────────────────────
-  let lastT = -1e9, lastDir = 0, lastFire = -1e9;
+  let lastT = -1e9, lastDir = 0, lastFire = -1e9, prevGap = 1e9, lastFresh = false;
   let peak = 0, floor = 0, decaying = false, travelled = 0, fired = false, ours = false;
 
   addEventListener('wheel', (e) => {
@@ -49,7 +51,9 @@ export function bindInput(owner: InputOwner, surface: HTMLElement): () => void {
     const mag = Math.abs(dy);
     const now = e.timeStamp;
 
-    let fresh = now - lastT > GAP;
+    const gap = now - lastT;
+    // A pause starts a new gesture — unless the stream was already slowing down towards it (a coasting wheel).
+    let fresh = gap > GAP && (lastFresh || gap > prevGap * 2.2 || gap > 500);
     // Lifting the fingers often emits a stray 1–2 px the other way: only a real reversal starts a gesture.
     if (!fresh && dir !== lastDir) { if (mag < 4) { if (ours && e.cancelable) e.preventDefault(); return; } fresh = true; }
     // A new flick inside an inertia tail: the stream had died down to `floor`, and is clearly growing again.
@@ -61,7 +65,7 @@ export function bindInput(owner: InputOwner, surface: HTMLElement): () => void {
       if (!decaying && mag < peak * 0.7) { decaying = true; floor = mag; }
       else if (decaying && mag < floor) floor = mag;
     }
-    lastT = now; lastDir = dir;
+    lastT = now; lastDir = dir; prevGap = gap; lastFresh = fresh;
 
     if (!ours) return;
     if (e.cancelable) e.preventDefault();

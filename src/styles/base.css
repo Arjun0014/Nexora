@@ -9,8 +9,9 @@ html {
   background: var(--studio);
 }
 html.motion { scroll-behavior: smooth; }
-/* The hero animates scroll itself; native smooth scrolling would fight it. */
-html.cinema { scroll-behavior: auto; }
+/* No visible scrollbar anywhere on the site. Scrolling itself (wheel, touch, keyboard, anchors) is untouched. */
+html, body { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 body {
   min-height: 100vh;

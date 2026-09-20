@@ -27,3 +27,6 @@ Thumbs.db
 
 # media pipeline scratch (derivatives in public/media ARE committed; temp frames are not)
 .media-cache/
+
+# QA scratch
+.qa/out/
