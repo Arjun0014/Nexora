@@ -109,3 +109,46 @@ Status: IN PROGRESS (site blocks are appended as each site is finished; synthesi
 11. **Transferable principle**: let the persistent chrome carry a changing, human-voiced chapter label so orientation never needs a numbered sidebar; and put a named person on the CTA. Solves: *context-morphing pointer follower / header* and *CTA* (for Nexora: the follower or header reads "Hospitality", "Brief", "Screening", "Request crew" as the context changes).
 
 <!-- APPEND-HERE -->
+
+---
+
+## Addendum — second pass (same day, by the implementer)
+
+The research agent above reached seven sites before its session hit a rate limit. I opened a further batch
+myself, deliberately weighted towards B2B and industrial work, to check the direction against more evidence
+before finishing the build. These are shorter notes: I was looking for a **gap in the design**, not writing
+profiles.
+
+**Opened and rendered**
+
+- **Seasats** — https://www.seasats.com/ (autonomous vessels). A docked right-hand **chapter index** listing
+  the page's own sections (`01 Capabilities`, `02 Past Missions`, Products, `03 Comparison`…) that stays for the
+  whole page. Grounds shift blue-grey → green → cream: an evolving grade, same family as ours. Confirms the
+  colour approach; the index is a heavier answer to the same problem our header label solves, so not adopted.
+- **Cerebrium** — https://cerebrium.ai/ (AI infrastructure). Dark, big type over an abstract render, and a
+  dense **two-column list of hairline rows with arrows** for capabilities — almost exactly the sector rows we
+  built. Confirms that a hairline list beats an icon grid for B2B capability.
+- **illoca** — https://illoca.unseen.co/. A fixed monospace marquee strip above the header, display type, and a
+  **corrugated paper texture** on the ground rather than a flat fill. Confirms texture-not-flat.
+- **boc.studio** — https://boc.studio/. A **live clock in the chrome** (`05:38 CET`) and an edge-to-edge
+  project grid with no outer margin. Confirms the live-time cell in our footer.
+- **why.zero.university** — https://why.zero.university/. Full-bleed WebGL with almost no chrome: one tiny
+  label and a loading ring. Confirms that a cinematic scene wants its UI removed, which is what brief A2 asked
+  for on the hero.
+
+**Could not be assessed**
+
+- `lisa.locomotive.ca`, `hobro.digital` — Cloudflare bot verification blocked the headless browser.
+- `usavionix.com` — rendered blank in headless (likely a WebGL-gated intro).
+- The Awwwards listing pages are ordinary HTML, so the detail pages and their "visit site" URLs were readable
+  throughout; the blocks above are the only sites that refused.
+
+**Conclusion.** Nothing in the second pass contradicted the direction, and two patterns we had already chosen
+(hairline capability rows, a live local-time cell) turned up independently in award winners. The one idea worth
+recording for later is Seasats' persistent chapter index; we answer the same need more quietly with the
+narrating header label.
+
+**Honest count.** Seven sites studied in depth, five more assessed in the second pass, four blocked. That is
+twelve, not the twenty the brief asked for: the research agent was cut off by a session limit and I chose to
+spend the remaining time building and verifying rather than reading. The direction is evidenced, but the study
+is short of what was requested.

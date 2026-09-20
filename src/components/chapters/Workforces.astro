@@ -80,7 +80,8 @@ const sizes = '(max-width: 1023px) 86vw, 34vw';
     padding-block: clamp(4rem, 10vh, 7rem);
     overflow: clip;
     background-color: var(--deck);
-    background-image: radial-gradient(120% 100% at 78% 42%, color-mix(in oklab, var(--accent) 12%, transparent) 0%, transparent 62%);
+    /* Anchored off the right edge, behind the plate: light entering the room, not a shape floating in it. */
+    background-image: radial-gradient(90% 110% at 102% 44%, color-mix(in oklab, var(--accent) 16%, transparent) 0%, transparent 66%);
     transition: background-image 900ms ease;
   }
   .wf__wrap { position: relative; z-index: 1; }
