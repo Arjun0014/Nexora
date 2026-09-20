@@ -16,6 +16,9 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
       </span>
     </a>
 
+    <!-- The chrome says which chapter you are in, so no numbered sidebar is needed. -->
+    <p class="hd__chapter label" data-chapter-label aria-hidden="true"><span data-chapter-text></span></p>
+
     <nav class="hd__nav" aria-label="Primary">
       <ul>
         {nav.map((item) => (
@@ -55,6 +58,11 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
   .hd__desc { display: grid; gap: 0.15em; white-space: nowrap; opacity: 0.7; font-size: 0.625rem; letter-spacing: 0.12em; padding-inline-start: 1.1rem; border-inline-start: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); transition: opacity var(--d-state) ease; }
   .hd[data-solid='true'] .hd__desc { opacity: 0; visibility: hidden; }
 
+  .hd__chapter { flex: 1; text-align: center; color: currentColor; opacity: 0; min-width: 0; overflow: clip; white-space: nowrap; }
+  .hd__chapter[data-on='true'] { opacity: 0.55; }
+  .hd__chapter > span { display: inline-block; transition: opacity 260ms linear, transform 420ms var(--ease-freeze); }
+  .hd__chapter[data-swap='true'] > span { opacity: 0; transform: translateY(-0.45em); }
+
   .hd__nav ul { display: flex; gap: clamp(1.25rem, 2.4vw, 2.5rem); }
   .hd__link { position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; opacity: 0.78; transition: opacity var(--d-state) ease; }
   .hd__link:hover, .hd__link:focus-visible, .hd__link[aria-current='page'] { opacity: 1; }
@@ -70,6 +78,7 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
 
   .hd__menu { display: none; min-height: 2.75rem; padding-inline: 0.5rem; }
 
+  @media (max-width: 1199px) { .hd__chapter { display: none; } }
   @media (max-width: 899px) {
     .hd__nav { display: none; }
     .hd__menu { display: inline-flex; align-items: center; }

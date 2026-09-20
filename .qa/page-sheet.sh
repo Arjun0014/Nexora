@@ -14,6 +14,8 @@ cd "/c/Web UI/Nexora" || exit 1
 $B viewport "$VP" >/dev/null 2>&1
 $B goto "$URL" >/dev/null 2>&1
 sleep 3
+# The site scrolls smoothly; QA needs to land exactly where it asks and screenshot a settled frame.
+$B js "document.documentElement.style.scrollBehavior='auto'; 0" >/dev/null 2>&1
 H=$($B js "document.body.scrollHeight" 2>/dev/null | tail -1 | tr -d '\r')
 VH=${VP#*x}
 i=0
