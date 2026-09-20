@@ -46,8 +46,8 @@ export function initCursor() {
   };
 
   /** What the pointer is over decides the shape. Explicit hooks win; then the usual suspects. */
-  function resolve(target: Element | null) {
-    if (!target) return setState('dot');
+  function resolve(target: EventTarget | null) {
+    if (!(target instanceof Element)) return setState('dot');
     const el2 = target as HTMLElement;
     if (el2.closest('input, textarea, select, [contenteditable="true"]')) { wantShown = 0; return; }
     wantShown = 1;
@@ -70,11 +70,23 @@ export function initCursor() {
     setState('dot');
   }
 
+  const move = (cx: number, cy: number, target: EventTarget | null) => {
+    tx = cx; ty = cy;
+    resolve(target);
+    wake();
+  };
+  // Pointer events carry the device type, which is what lets us ignore pen and touch. Not every stack emits
+  // them for a mouse, though, so mousemove stands in until a real pointermove has been seen.
+  let sawPointer = false;
   addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
-    tx = e.clientX; ty = e.clientY;
-    resolve(e.target as Element);
-    wake();
+    sawPointer = true;
+    move(e.clientX, e.clientY, e.target);
+  }, { passive: true });
+  addEventListener('mousemove', (e) => {
+    // A tap on a touch screen also emits a mousemove; sourceCapabilities is how you tell them apart.
+    if (sawPointer || (e as MouseEvent & { sourceCapabilities?: { firesTouchEvents?: boolean } }).sourceCapabilities?.firesTouchEvents) return;
+    move(e.clientX, e.clientY, e.target);
   }, { passive: true });
 
   addEventListener('pointerdown', () => { el.dataset.press = 'true'; }, { passive: true });

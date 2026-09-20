@@ -37,7 +37,8 @@ const srcset = (fmt: string) => [800, 1200, 1672].map((w) => `/media/stills/over
 
       <!-- One picture, five states. It is sticky, so the stations pass it. -->
       <figure class="pr__figure">
-        <div class="pr__frame" data-process-figure data-stage="0">
+        <!-- Starts finished: JS drops it back to the blueprint on boot, so without JS the render stands. -->
+          <div class="pr__frame" data-process-figure data-stage="4">
           <picture>
             <source type="image/avif" srcset={srcset('avif')} sizes="(max-width: 1023px) 90vw, 38vw" />
             <img src="/media/stills/overview-1200.webp" srcset={srcset('webp')} sizes="(max-width: 1023px) 90vw, 38vw" width="1672" height="941" alt="The Nexora model: one circular platform divided into five lit sectors." loading="lazy" decoding="async" />

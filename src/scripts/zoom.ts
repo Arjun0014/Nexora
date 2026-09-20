@@ -22,7 +22,8 @@ const EXP = 3.4;       // measured: ln(scale) eases as p^3.4
 const IMG_MAX = 0.9;   // the picture behind reaches 1 + 0.9 = 1.9x
 const IMG_EXP = 1.6;
 const SWAP = 0.72;     // the letters own the stage from here on
-const REST_WIDTH = 0.9; // the word spans this much of the stage at rest
+const REST_WIDTH = 0.9;  // landscape: the word spans this much of the stage
+const REST_HEIGHT = 0.13; // portrait: cap height instead, so the word crops rather than shrinking to a hairline
 
 type Word = { width: number; height: number; d: string; anchor: { x: number; y: number; r: number } };
 
@@ -56,10 +57,19 @@ function setup(root: HTMLElement) {
     lastDrawn = -1;
   };
 
-  /** Geometry of the word at rest, in backing pixels. */
+  /**
+   * Geometry of the word at rest, in backing pixels. On a narrow screen a word this wide would set at 36 px
+   * tall, which is not a composition — so there the HEIGHT sets the scale and the word crops at both edges.
+   * It is flown into either way, so cropping costs nothing.
+   */
   const restBox = () => {
-    const k = (W * REST_WIDTH) / spec.width;
-    return { k, w: spec.width * k, h: spec.height * k, x: (W - spec.width * k) / 2, y: (H - spec.height * k) / 2 };
+    const byWidth = (W * REST_WIDTH) / spec.width;
+    const byHeight = (H * REST_HEIGHT) / spec.height;
+    const k = Math.max(byWidth, byHeight);
+    // When it crops, centre the ANCHOR letter rather than the word, so what is on screen is the letter you
+    // are about to fly into.
+    const x = byHeight > byWidth ? W / 2 - spec.anchor.x * k : (W - spec.width * k) / 2;
+    return { k, w: spec.width * k, h: spec.height * k, x, y: (H - spec.height * k) / 2 };
   };
 
   function draw(t: number) {
