@@ -2,8 +2,10 @@
 /**
  * Services — the five workforces at full depth.
  *
- * One chapter per workforce, alternating ember and stone so the page keeps the homepage's evolving grade
- * rather than repeating a template. Each chapter is the same three things: the plate, the argument, the roles.
+ * One chapter per workforce on ONE ground, tinted by that workforce's own colour and lit from alternating
+ * sides — the homepage's evolving grade, not a stack of light/dark bands. The light chapter arrives once, at
+ * the end, for the four shapes of work. Each chapter is the same three things: the plate, the argument, the
+ * roles, mirrored left/right so the rhythm comes from composition rather than from colour.
  */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
@@ -34,7 +36,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   </PageHead>
 
   {worlds.map((w, i) => (
-    <section class={`sv surface ${i % 2 ? 'ch-stone' : 'ch-ember lit grain'}`} id={w.id} data-theme={i % 2 ? 'paper' : 'dark'} data-sector={w.id} aria-labelledby={`${w.id}-h`} data-reveal>
+    <section class="sv surface ch-ember grain" id={w.id} data-theme="dark" data-sector={w.id} data-flip={i % 2 ? 'true' : 'false'} aria-labelledby={`${w.id}-h`} data-reveal>
       <div class="sv__wrap wrap">
         <div class="sv__grid">
           <p class="label sv__label" data-rise>{w.n} — Workforce</p>
@@ -96,7 +98,16 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .sv__jn { color: var(--bronze); }
   .sv__jt { font-family: var(--f-display); font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.1; }
 
-  .sv { padding-block: clamp(4.5rem, 12vh, 9rem); overflow: clip; }
+  /* One ground for all five. The colour change is the world's own accent, low and wide, and it swaps sides
+     chapter to chapter so the page has rhythm without ever becoming a band. */
+  .sv {
+    padding-block: clamp(4.5rem, 12vh, 9rem);
+    overflow: clip;
+    background-color: var(--ember);
+    background-image: radial-gradient(85% 75% at 6% 36%, color-mix(in oklab, var(--accent) 13%, transparent) 0%, transparent 64%);
+  }
+  .sv[data-flip='true'] { background-image: radial-gradient(85% 75% at 94% 36%, color-mix(in oklab, var(--accent) 13%, transparent) 0%, transparent 64%); }
+  .sv + .sv { border-block-start: 1px solid var(--line-soft); }
   .sv__wrap { position: relative; z-index: 1; }
   .sv__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
 
@@ -105,6 +116,13 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .sv__line { grid-column: 1 / 6; grid-row: 3; margin-block-start: 1.5rem; }
   .sv__body { grid-column: 1 / 6; grid-row: 4; margin-block-start: 1.25rem; color: var(--fg-soft); }
   .sv__plate { grid-column: 7 / 13; grid-row: 2 / 5; margin-block-start: clamp(1rem, 3vh, 2rem); }
+  .sv[data-flip='true'] .sv__label { grid-column: 11 / 13; }
+  .sv[data-flip='true'] .sv__title,
+  .sv[data-flip='true'] .sv__line,
+  .sv[data-flip='true'] .sv__body { grid-column: 8 / 13; text-align: right; }
+  .sv[data-flip='true'] .sv__line, .sv[data-flip='true'] .sv__body { margin-inline-start: auto; }
+  .sv[data-flip='true'] .sv__plate { grid-column: 1 / 7; }
+  .sv[data-flip='true'] .sv__title { grid-column: 7 / 13; }
   .sv__plate img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
   .sv__cap { margin-block-start: 0.85rem; padding-block-start: 0.85rem; border-block-start: 1px solid var(--line); color: var(--fg-soft); }
   .sv__roles { grid-column: 1 / 13; grid-row: 5; margin-block-start: clamp(2rem, 5vh, 3.5rem); }
@@ -129,7 +147,9 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
     .sv__grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
     .sv__label { grid-column: 1 / 5; }
     .sv__title { grid-column: 1 / 9; }
-    .sv__plate { grid-column: 1 / 9; grid-row: 3; margin-block: 1.75rem 0; }
+    .sv__plate, .sv[data-flip='true'] .sv__plate { grid-column: 1 / 9; grid-row: 3; margin-block: 1.75rem 0; }
+    .sv[data-flip='true'] .sv__label { grid-column: 1 / 5; }
+    .sv[data-flip='true'] .sv__title, .sv[data-flip='true'] .sv__line, .sv[data-flip='true'] .sv__body { grid-column: 1 / 9; text-align: left; margin-inline-start: 0; }
     .sv__line { grid-row: 4; }
     .sv__body { grid-row: 5; }
     .sv__roles { grid-column: 1 / 9; grid-row: 6; }
