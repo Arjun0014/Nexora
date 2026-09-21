@@ -109,8 +109,9 @@ reference behind each: `docs/redesign/02-DIRECTION-V3.md`. Engineering: `docs/re
 ```
 0  hero          black       the film, unchanged; ends on the NEXORA title card
 1  portal        → sky       a sky dome with a lit rim rises out of the title card and becomes the ground
-2  the world     sky         "Five worlds, one partner." — press and HOLD the disc: it accelerates, dusk
-                             falls, a line per world arrives, then the answer
+2  the world     sky         "Five worlds, one partner." — press and HOLD the moon: it opens to the whole
+                             screen, you fall into the disc, the five worlds burst open one by one, then
+                             the answer; let go and it all collapses back into the moon
 3  workforces    sky → gold  WORKFORCES knocked out of the sky; fly through the O into a photograph, which
                              shrinks into the top card of the deck
 4  the deck      5 colours   throwable cards; the whole scene changes colour with each throw

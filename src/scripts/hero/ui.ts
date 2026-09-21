@@ -32,13 +32,14 @@ export class HeroUI {
   }
 
   /**
-   * Copy leaves the instant time resumes and arrives, with a hard stop, as the clip freezes — but ONLY on the stop
-   * the film is actually going to end on. Worlds that are merely passed through in a chain stay silent.
+   * Copy leaves the instant time resumes and arrives while the camera is still settling (62% into the leg: the new
+   * world has been on screen since the divider wall passed at ~50%), so it is in place by the freeze rather than
+   * starting there — but ONLY on the stop the film is going to end on. Worlds passed through in a chain stay silent.
    */
   private chapterFor({ p, target, arrival }: UIState): string {
     if (p === target) return chapterId(target);
     const nearTarget = Math.abs(target - p) < 1;
-    const threshold = target === TITLE_STOP ? 0.8 : target === 0 ? 1 : 0.9;
+    const threshold = target === TITLE_STOP ? 0.8 : target === 0 ? 1 : 0.62;
     return nearTarget && arrival >= threshold ? chapterId(target) : '';
   }
 

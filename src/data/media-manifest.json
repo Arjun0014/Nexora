@@ -31,29 +31,29 @@
     {
       "id": "events",
       "to": "events",
-      "frames": 121,
-      "mFrames": 121,
+      "frames": 120,
+      "mFrames": 120,
       "mStep": 1
     },
     {
       "id": "facilities",
       "to": "facilities",
-      "frames": 121,
-      "mFrames": 121,
+      "frames": 120,
+      "mFrames": 120,
       "mStep": 1
     },
     {
       "id": "technical",
       "to": "technical",
-      "frames": 121,
-      "mFrames": 121,
+      "frames": 120,
+      "mFrames": 120,
       "mStep": 1
     },
     {
       "id": "recruitment",
       "to": "recruitment",
-      "frames": 121,
-      "mFrames": 121,
+      "frames": 120,
+      "mFrames": 120,
       "mStep": 1
     }
   ]

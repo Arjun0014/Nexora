@@ -1,175 +1,223 @@
 ---
 /**
- * Scene 2 — the world, held.
+ * Scene 2 — the world, held. (src/scripts/scenes/held.ts)
  *
- * Sky ground (the portal's dome has become it). "Five worlds, one partner." A circular night window — a moon in
- * the day sky — holds the turning disc, the film's loop, whole, and grows as you arrive. Press and hold the arch (or the hold button, or Space on
- * it): the disc accelerates the longer you hold, dusk falls over the page, and a line for each world arrives,
- * then the answer. Let go and time runs back to day. (Cerebrium's click-and-hold; ERA's window growth.)
- * Driven by src/scripts/scenes/held.ts. Without motion it is a still composition with the lines as a list.
+ * At rest: sky ground, "Five worlds, one partner.", and a small night MOON holding the turning disc — the film's
+ * loop, whole. The moon is the portal: `.hx` is a full-stage layer clipped to a circle, and at rest that circle is
+ * the moon.
+ *
+ * Hold it (pointer, touch, or Space/Enter on the button) and it becomes a dive:
+ *   open     the page draws back; the circle grows past every edge; the camera falls into the spinning disc
+ *            while amber light streaks rush past from the centre
+ *   worlds   one after another, each world bursts open from the centre as a lit circle, full screen, pushing in,
+ *            its line set large in the middle, its colour in the light. The rhythm quickens as you hold.
+ *   answer   the disc irises back over the last world and pulls all the way out to show all five at full spin;
+ *            then "Behind all five, people. We supply them."
+ * Let go at any point and the whole world collapses back into the moon.
+ *
+ * Without motion it is a still composition: the moon, and the five lines as a list.
  */
 import { held } from '../../data/content';
 import { worldById } from '../../data/worlds';
 ---
 <section class="held" id="company" data-held data-bg="light" aria-labelledby="held-h">
-  <div class="held__pin">
+  <div class="held__pin" data-held-pin>
     <div class="held__ground" aria-hidden="true"></div>
     <img class="held__cloud held__cloud--l" data-held-cloud src="/media/clouds/px-cloud-01.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
     <img class="held__cloud held__cloud--r" data-held-cloud src="/media/clouds/px-cloud-05.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
 
     <div class="held__stage" data-held-stage>
       <header class="held__head">
-        <p class="label held__label" data-split="a">{held.label}</p>
-        <h2 class="display held__h" id="held-h" data-split="h">{held.heading.a} <em>{held.heading.em}</em> {held.heading.b}</h2>
+        <p class="label held__label">{held.label}</p>
+        <h2 class="display held__h" id="held-h">{held.heading.a} <em>{held.heading.em}</em> {held.heading.b}</h2>
       </header>
-
-      <div class="held__arch" data-held-arch>
-        <div class="held__window" data-cursor="hold">
-          <video class="held__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1" aria-hidden="true"
-            poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
-          <div class="held__night" aria-hidden="true"></div>
-        </div>
-        <p class="held__answer display" data-held-answer aria-live="polite">
-          <span class="held__answer-a">{held.answer.a}</span>
-          <span class="held__answer-b"><em>{held.answer.b}</em></span>
-        </p>
-      </div>
-
-      <ol class="held__lines" data-held-lines>
-        {held.lines.map((l, i) => (
-          <li class={`held__line held__line--${i}`} data-sector={l.world} data-i={i}>
+      <p class="held__body">{held.body}</p>
+      <!-- The lines as text, for a linear read and for the static composition. -->
+      <ol class="held__lines">
+        {held.lines.map((l) => (
+          <li class="held__line" data-sector={l.world}>
             <span class="label held__line-k"><i class="held__dot" aria-hidden="true"></i>{worldById[l.world].short}</span>
             <span class="held__line-t acc">{l.text}</span>
           </li>
         ))}
       </ol>
-
-      <p class="held__body" data-split="p">{held.body}</p>
-
-      <button class="held__hold" type="button" data-held-button data-cursor="hold">
-        <svg class="held__ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-          <circle cx="32" cy="32" r="30" class="held__ring-track" />
-          <circle cx="32" cy="32" r="30" class="held__ring-fill" pathLength="1" data-held-ring />
-          <circle cx="32" cy="32" r="4" class="held__ring-dot" />
-        </svg>
-        <span class="label" data-held-hint data-again={held.hintAgain}>{held.hint}</span>
-      </button>
     </div>
+
+    <!-- THE PORTAL: a full-stage layer clipped to a circle. At rest the circle is the moon. -->
+    <div class="hx" data-hx aria-hidden="true">
+      <div class="hx__night"></div>
+      <div class="hx__disc" data-hx-disc>
+        <video class="hx__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1"
+          poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
+      </div>
+      {held.lines.map((l, i) => (
+        <div class="hx__world" data-hx-world={i} data-sector={l.world}>
+          <picture>
+            <source media="(max-aspect-ratio: 1/1)" srcset={`/media/hero/rest/${l.world}-m.webp`} />
+            <img src={`/media/hero/rest/${l.world}-hd.webp`} alt="" width="1920" height="1080" loading="lazy" decoding="async" />
+          </picture>
+          <span class="hx__iris"></span>
+        </div>
+      ))}
+      <div class="hx__return" data-hx-return><span class="hx__iris"></span></div>
+      <canvas class="hx__streaks" data-hx-streaks></canvas>
+      <div class="hx__vignette"></div>
+
+      <div class="hx__texts">
+        {held.lines.map((l, i) => (
+          <p class="hx__text" data-hx-text={i} data-sector={l.world}>
+            <span class="label hx__k"><i class="held__dot"></i>{worldById[l.world].title}</span>
+            <span class="display hx__t">{l.text}</span>
+          </p>
+        ))}
+        <p class="hx__text hx__answer" data-hx-text="5">
+          <span class="display hx__t">{held.answer.a}</span>
+          <span class="display hx__t hx__t--em"><em>{held.answer.b}</em></span>
+        </p>
+      </div>
+
+      <ol class="hx__ticks">
+        {held.lines.map((l, i) => <li data-hx-tick={i} data-sector={l.world}><span class="label">{worldById[l.world].short}</span></li>)}
+      </ol>
+    </div>
+    <span class="hx__rim" aria-hidden="true"></span>
+    <!-- The hold target: always the moon's size, over the moon. -->
+    <span class="hx__target" data-hx-target data-cursor="hold" aria-hidden="true"></span>
+
+    <p class="held__answer" aria-live="polite"><span class="display">{held.answer.a}</span> <span class="display"><em>{held.answer.b}</em></span></p>
+
+    <button class="held__hold" type="button" data-held-button data-cursor="hold">
+      <svg class="held__ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <circle cx="32" cy="32" r="30" class="held__ring-track" />
+        <circle cx="32" cy="32" r="30" class="held__ring-fill" pathLength="1" />
+        <circle cx="32" cy="32" r="4" class="held__ring-dot" />
+      </svg>
+      <span class="label" data-held-hint data-again={held.hintAgain}>{held.hint}</span>
+    </button>
   </div>
 </section>
 
 <style>
-  .held {
-    --bg: var(--sky);
-    --fg: var(--ink);
-    position: relative; color: var(--fg);
-    transition: color 360ms linear;
-  }
-  .held[data-night] { --fg: var(--bone); }
+  .held { --bg: var(--sky); --fg: var(--ink); position: relative; color: var(--fg); }
   :global(html.motion) .held { height: 300vh; height: 300svh; }
   .held__pin { position: relative; min-height: 100svh; overflow: clip; }
   :global(html.motion) .held__pin { position: sticky; top: 0; height: 100vh; height: 100svh; }
-
-  .held__stage { position: absolute; inset: 0; will-change: transform, opacity; }
   .held__ground { position: absolute; inset: 0; background: var(--bg); }
-  /* In the cinema the ground stays off until the portal's dome covers the screen (held.ts). */
   :global(html.cinema) .held:not([data-ground]) .held__ground { opacity: 0; }
+
+  /* Everything that is not the portal draws back while you hold (--dim 0 → 1). */
+  .held__stage { position: absolute; inset: 0; will-change: transform, opacity, filter; }
+  :global(html.motion) .held__stage { opacity: calc(1 - var(--dim, 0)); transform: scale(calc(1 - 0.06 * var(--dim, 0))); filter: blur(calc(var(--dim, 0) * 6px)); }
+  :global(html.motion) .held__cloud { opacity: calc(0.9 * (1 - var(--dim, 0))); }
 
   .held__head { position: absolute; inset-inline: var(--margin); top: calc(var(--header-h) + 3vh); text-align: center; }
   .held__label { margin-block-end: 1.1rem; opacity: 0.75; }
   .held__h { font-size: clamp(3rem, 6.4vw, 8rem); }
+  .held__body { position: absolute; left: var(--margin); bottom: 7vh; max-width: 21rem; font-size: var(--t-small); line-height: 1.6; }
+  :global(html.motion) .held__lines { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .held__line { display: grid; gap: 0.5rem; }
+  .held__line-k { display: inline-flex; align-items: center; gap: 0.6em; opacity: 0.8; }
+  .held__dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .held__line-t { font-size: clamp(1.6rem, 2.5vw, 3rem); line-height: 1.02; }
 
-  /* The window: a circle, like the portal's dome and the disc itself. Its final size is fixed; arrival is a
-     uniform scale, so the disc is always whole. A lit amber rim, the same light as the disc's edge. */
-  .held__arch {
-    --D: min(62vh, 44vw);
-    position: absolute; left: 50%; top: 59%;
-    width: var(--D); height: var(--D);
-    translate: -50% -50%;
-    will-change: transform;
+  /* ── the portal ─────────────────────────────────────────────────────────────────────────
+     --R is the circle's radius, --cx/--cy its centre (all px, written by held.ts). At rest: the moon. */
+  .hx {
+    --cx: 50%; --cy: 59%; --R: min(31vh, 22vw);
+    position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden;
+    clip-path: circle(var(--R) at var(--cx) var(--cy));
+    color: var(--bone);
   }
-  .held__window {
-    position: absolute; inset: 0; overflow: hidden; border-radius: 50%;
-    background: radial-gradient(circle at 50% 42%, #1c1612 0%, #0f0c0b 70%);
-    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.75), 0 0 46px rgba(208, 149, 96, 0.32), inset 0 0 60px rgba(0, 0, 0, 0.6);
-    touch-action: none;
-    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
-  }
-  /* Framed so the disc (73% of the loop's width, centred at 49% / 40%) spans 86% of the circle. The frame's own
-     backdrop fades into the window's dark so no rectangle edge shows. */
-  .held__video {
-    position: absolute; max-width: none;
-    width: calc(var(--D) * 1.18); height: calc(var(--D) * 0.664);
-    left: calc(var(--D) * -0.078); top: calc(var(--D) * 0.234);
+  .hx__night { position: absolute; inset: 0; background: radial-gradient(circle at var(--cx) var(--cy), #1d1713 0%, #0c0a0b 60%); }
+  .hx__disc { position: absolute; inset: 0; }
+  /* raised over the worlds for the finale: it brings its own night with it */
+  .hx__disc[data-raised] { background: radial-gradient(circle at var(--cx) var(--cy), #1d1713 0%, #0c0a0b 60%); }
+  .hx__video {
+    position: absolute; max-width: none; left: 0; top: 0;
+    width: var(--vw, 600px); height: calc(var(--vw, 600px) * 0.5625);
+    transform-origin: 0 0; will-change: transform;
     -webkit-mask-image: radial-gradient(58% 62% at 49% 41%, #000 62%, transparent 100%);
     mask-image: radial-gradient(58% 62% at 49% 41%, #000 62%, transparent 100%);
   }
-  /* Speed shows up as a warm vignette tightening around the disc. */
-  .held__night { position: absolute; inset: 0; pointer-events: none; opacity: var(--charge, 0);
-    background: radial-gradient(70% 60% at 50% 60%, transparent 40%, rgba(12, 8, 6, 0.55) 100%); }
+  .hx__world { position: absolute; inset: 0; clip-path: circle(var(--wr, 0px) at var(--cx) var(--cy)); visibility: hidden; }
+  .hx__world img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--wz, 1.2)); will-change: transform; }
+  .hx__world::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at var(--cx) var(--cy), transparent 30%, color-mix(in oklab, var(--accent) 35%, rgba(8, 6, 6, 0.8)) 110%); }
+  .hx__return { position: absolute; inset: 0; clip-path: circle(var(--wr, 0px) at var(--cx) var(--cy)); visibility: hidden; }
+  /* the lit edge of each opening circle */
+  .hx__iris { position: absolute; left: var(--cx); top: var(--cy); width: calc(var(--wr, 0px) * 2); height: calc(var(--wr, 0px) * 2); translate: -50% -50%; border-radius: 50%;
+    box-shadow: 0 0 0 1.5px rgba(255, 214, 165, 0.9), 0 0 40px 6px rgba(240, 170, 100, 0.55), inset 0 0 70px 14px rgba(240, 170, 100, 0.4); pointer-events: none; }
+  .hx__streaks { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; mix-blend-mode: screen; }
+  .hx__vignette { position: absolute; inset: 0; z-index: 4; background: radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(6, 4, 4, 0.72) 100%); opacity: var(--open, 0); }
 
+  /* Above everything in the portal, including the disc when it is raised for the finale. A soft dark pool behind
+     the words keeps them legible on the brightest world. */
+  .hx__texts::before { content: ''; position: absolute; left: 50%; top: 50%; width: min(90vw, 70rem); height: min(60vh, 34rem); translate: -50% -50%;
+    background: radial-gradient(closest-side, rgba(8, 6, 6, 0.5), transparent); opacity: var(--open, 0); pointer-events: none; }
+  .hx__texts { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; text-align: center; padding-inline: var(--margin); }
+  .hx__text { grid-area: 1 / 1; display: grid; justify-items: center; gap: 1.4rem; visibility: hidden; }
+  .hx__k { display: inline-flex; align-items: center; gap: 0.7em; opacity: 0.9; }
+  .hx__t { display: block; font-size: clamp(3rem, 8.6vw, 11rem); line-height: 0.86; text-shadow: 0 4px 80px rgba(0, 0, 0, 0.55); max-width: 12ch; perspective: 800px; }
+  .hx__t :global(.char) { display: inline-block; transform-origin: 50% 80%; }
+  .hx__t :global(.word) { display: inline-block; white-space: nowrap; }
+  .hx__answer { gap: 0.2rem; }
+  .hx__answer .hx__t { max-width: none; }
+  .hx__t--em em { color: #f6c893; }
+
+  .hx__ticks { position: absolute; z-index: 5; left: 50%; bottom: 6vh; translate: -50% 0; display: flex; gap: 0.6rem; opacity: var(--open, 0); }
+  .hx__ticks li { position: relative; width: clamp(3.4rem, 9vw, 8rem); padding-block-start: 0.8rem; text-align: left; }
+  .hx__ticks li::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: rgba(244, 239, 230, 0.25); }
+  .hx__ticks li::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--accent); transform-origin: left; transform: scaleX(var(--f, 0)); box-shadow: 0 0 10px var(--accent); }
+  .hx__ticks .label { font-size: 0.56rem; opacity: 0.75; }
+
+  /* The moon's lit rim and the hold target sit outside the clipped layer so they stay crisp. */
+  .hx__rim, .hx__target { position: absolute; left: var(--cx, 50%); top: var(--cy, 59%); translate: -50% -50%; border-radius: 50%; }
+  .hx__rim { z-index: 4; width: calc(var(--R, 31vh) * 2); height: calc(var(--R, 31vh) * 2); pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.75), 0 0 calc(46px + var(--charge, 0) * 120px) rgba(208, 149, 96, calc(0.32 + var(--charge, 0) * 0.6));
+    opacity: calc(1 - var(--open, 0)); }
+  .hx__target { z-index: 6; width: calc(var(--Rm, 31vh) * 2); height: calc(var(--Rm, 31vh) * 2); touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .held[data-holding] .hx__target { width: 200vmax; height: 200vmax; } /* while holding, the whole stage keeps the hold */
+  :global(html:not(.motion)) .hx__target, :global(html:not(.motion)) .hx__rim { display: none; }
+
+  /* after the first complete dive, the answer rests on the moon */
   .held__answer {
-    position: absolute; left: 50%; bottom: 7%; translate: -50% 0; width: max-content; max-width: 92vw;
-    text-align: center; color: var(--bone); font-size: clamp(2.2rem, 4.2vw, 5rem); line-height: 0.92;
-    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5);
-    pointer-events: none;
+    position: absolute; z-index: 5; left: 50%; bottom: 9vh; translate: -50% 0; width: max-content; max-width: 92vw; text-align: center; pointer-events: none;
+    color: var(--bone); font-size: clamp(1.8rem, 3vw, 3.6rem); line-height: 0.95; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.6);
+    opacity: 0; transition: opacity 900ms linear;
   }
   .held__answer > span { display: block; }
   .held__answer em { color: #f1c28f; }
+  .held[data-done]:not([data-holding]) .held__answer { opacity: calc(1 - var(--open, 0)); }
 
-  .held__lines { position: absolute; inset: 0; pointer-events: none; }
-  .held__line { position: absolute; display: grid; gap: 0.6rem; max-width: 20rem; }
-  .held__line-k { display: inline-flex; align-items: center; gap: 0.6em; color: var(--fg); opacity: 0.8; }
-  .held__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-  .held__line-t { font-size: clamp(1.6rem, 2.5vw, 3rem); line-height: 1.02; }
-  .held__line--0 { left: var(--margin); top: 36vh; }
-  .held__line--1 { right: var(--margin); top: 40vh; text-align: right; justify-items: end; }
-  .held__line--2 { left: calc(var(--margin) + 3vw); top: 56vh; }
-  .held__line--3 { right: calc(var(--margin) + 3vw); top: 60vh; text-align: right; justify-items: end; }
-  .held__line--4 { left: var(--margin); top: 76vh; }
-
-  .held__body { position: absolute; left: var(--margin); bottom: 7vh; max-width: 21rem; font-size: var(--t-small); line-height: 1.6; transition: opacity 400ms linear; }
-  .held[data-holding] .held__body { opacity: 0; }
-
-  .held__hold {
-    position: absolute; right: var(--margin); bottom: 7vh;
-    display: inline-flex; align-items: center; gap: 1rem; color: var(--fg);
-    -webkit-user-select: none; user-select: none; touch-action: none; -webkit-touch-callout: none;
-  }
+  .held__hold { position: absolute; z-index: 7; right: var(--margin); bottom: 7vh; display: inline-flex; align-items: center; gap: 1rem; color: var(--fg);
+    -webkit-user-select: none; user-select: none; touch-action: none; -webkit-touch-callout: none; transition: color 300ms linear, opacity 300ms linear; }
+  .held[data-holding] .held__hold { color: var(--bone); }
   .held__ring { width: 64px; height: 64px; rotate: -90deg; overflow: visible; }
   .held__ring-track { fill: none; stroke: currentColor; stroke-opacity: 0.28; stroke-width: 1; }
   .held__ring-fill { fill: none; stroke: var(--amber); stroke-width: 1.6; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--charge, 0)); stroke-linecap: round; }
   .held__ring-dot { fill: currentColor; transform-origin: 32px 32px; scale: calc(1 + var(--charge, 0) * 1.6); }
   .held__hold:focus-visible { outline-offset: 8px; }
 
-  .held__cloud { position: absolute; pointer-events: none; will-change: transform; transition: opacity 500ms linear; }
-  .held__cloud--l { width: min(46vw, 760px); left: -14vw; top: 18vh; opacity: 0.9; }
-  .held__cloud--r { width: min(40vw, 640px); right: -12vw; top: 46vh; opacity: 0.85; }
-  .held[data-night] .held__cloud { opacity: 0 !important; }
+  .held__cloud { position: absolute; pointer-events: none; will-change: transform; }
+  .held__cloud--l { width: min(46vw, 760px); left: -14vw; top: 18vh; }
+  .held__cloud--r { width: min(40vw, 640px); right: -12vw; top: 46vh; }
 
-  /* Lines and the answer only exist while holding (motion). Without motion they read as a list. */
-  :global(html.motion) .held__line { opacity: 0; translate: 0 18px; transition: opacity 500ms linear, translate 900ms var(--ease-out); }
-  :global(html.motion) .held__line[data-on] { opacity: 1; translate: 0 0; }
-  :global(html.motion) .held__answer > span { opacity: 0; translate: 0 0.35em; transition: opacity 600ms linear, translate 1000ms var(--ease-out); }
-  :global(html.motion) .held__answer[data-on] > span { opacity: 1; translate: 0 0; }
-  :global(html.motion) .held__answer[data-on] > span + span { transition-delay: 160ms; }
-
-  :global(html:not(.motion)) .held__pin { padding-block: calc(var(--header-h) + 3rem) 4rem; display: grid; }
+  /* ── without motion: a still composition ── */
+  :global(html:not(.motion)) .held__pin { padding-block: calc(var(--header-h) + 3rem) 4rem; display: grid; gap: 2.5rem; background: var(--bg); }
   :global(html:not(.motion)) .held__stage { position: static; display: grid; gap: 2.5rem; padding-inline: var(--margin); }
-  :global(html:not(.motion)) .held__head, :global(html:not(.motion)) .held__arch, :global(html:not(.motion)) .held__lines,
-  :global(html:not(.motion)) .held__line, :global(html:not(.motion)) .held__body, :global(html:not(.motion)) .held__answer { position: static; translate: none; }
-  :global(html:not(.motion)) .held__arch { --D: min(84vw, 36rem); margin-inline: auto; position: relative; left: auto; top: auto; translate: none; }
-  :global(html:not(.motion)) .held__answer { display: none; }
+  :global(html:not(.motion)) .held__head, :global(html:not(.motion)) .held__body { position: static; }
   :global(html:not(.motion)) .held__lines { display: grid; gap: 1.5rem; }
-  :global(html:not(.motion)) .held__hold, :global(html:not(.motion)) .held__cloud { display: none; }
+  :global(html:not(.motion)) .hx { position: relative; inset: auto; width: min(84vw, 36rem); aspect-ratio: 1; margin-inline: auto; --cx: 50%; --cy: 50%; --R: 50%; }
+  :global(html:not(.motion)) .hx__world, :global(html:not(.motion)) .hx__return, :global(html:not(.motion)) .hx__texts, :global(html:not(.motion)) .hx__ticks,
+  :global(html:not(.motion)) .hx__streaks, :global(html:not(.motion)) .held__hold, :global(html:not(.motion)) .held__answer, :global(html:not(.motion)) .held__cloud { display: none; }
+  :global(html:not(.motion)) .hx__video { width: 118%; height: 66.4%; left: -7.8%; top: 23.4%; }
 
   @media (max-width: 767px) {
-    .held__arch { --D: min(84vw, 52vh); top: 62%; }
-    .held__line { max-width: 14rem; }
-    .held__line--0, .held__line--2, .held__line--4 { left: var(--margin); }
-    .held__line--1, .held__line--3 { right: var(--margin); }
-    .held__line--0 { top: 24vh; } .held__line--1 { top: 31vh; } .held__line--2 { top: 38vh; } .held__line--3 { top: 45vh; } .held__line--4 { top: 52vh; }
     .held__body { display: none; }
-    .held__hold { right: 50%; translate: 50% 0; bottom: 3vh; }
+    .held__hold { right: 50%; translate: 50% 0; bottom: 4vh; }
+    .hx__ticks { bottom: 14vh; }
+    .hx__ticks li { width: 14vw; }
+    .hx__ticks .label { display: none; }
+    .hx__t { font-size: clamp(2.6rem, 13vw, 4.4rem); }
   }
 </style>
