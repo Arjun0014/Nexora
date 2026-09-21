@@ -55,7 +55,6 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
               <source type="image/avif" srcset={srcset(w.id, 'avif')} sizes="(max-width: 1023px) 100vw, 52vw" />
               <img src={`/media/stills/${w.id}-1200.webp`} srcset={srcset(w.id, 'webp')} sizes="(max-width: 1023px) 100vw, 52vw" width="1672" height="941" alt={w.alt} loading="lazy" decoding="async" style={`object-position:${w.focus}`} />
             </picture>
-            <figcaption class="label sv__cap">{w.frozen}</figcaption>
           </figure>
 
           <div class="sv__roles" data-rise style="--i:4">
@@ -126,7 +125,6 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .sv[data-flip='true'] .sv__plate { grid-column: 1 / 7; }
   .sv[data-flip='true'] .sv__title { grid-column: 7 / 13; }
   .sv__plate img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-  .sv__cap { margin-block-start: 0.85rem; padding-block-start: 0.85rem; border-block-start: 1px solid var(--line); color: var(--fg-soft); }
   .sv__roles { grid-column: 1 / 13; grid-row: 5; margin-block-start: clamp(2rem, 5vh, 3.5rem); }
   .sv__rh { color: var(--fg-soft); padding-block-end: 0.9rem; border-block-end: 1px solid var(--line); }
   .sv__rlist { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }

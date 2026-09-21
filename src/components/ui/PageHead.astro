@@ -16,11 +16,10 @@ interface Props {
   /** A workforce (its photograph) or 'overview' (the Doha skyline). Superseded by `photo`. */
   plate?: WorldId | 'overview';
   photo?: Photo;
-  plateCaption?: string;
   meta?: { k: string; v: string }[];
   id?: string;
 }
-const { label, title, lead, plate, photo, plateCaption, meta = [], id = 'page-h' } = Astro.props;
+const { label, title, lead, plate, photo, meta = [], id = 'page-h' } = Astro.props;
 const img: Photo | undefined = photo ?? (plate ? (plate === 'overview' ? stock.doha.skyline : stock.workforces[plate]) : undefined);
 const parts = (line: string) => line.split(/(\*[^*]+\*)/).filter(Boolean).map((p) => (p.startsWith('*') ? { em: true, t: p.slice(1, -1) } : { em: false, t: p }));
 ---
@@ -47,7 +46,6 @@ const parts = (line: string) => line.split(/(\*[^*]+\*)/).filter(Boolean).map((p
   {img && (
     <figure class="ph__plate" data-ph-plate>
       <img src={img.src} srcset={img.srcset} sizes="100vw" width="2400" height="1600" alt={img.alt} fetchpriority="high" decoding="async" style={`object-position:${img.focus}`} />
-      {plateCaption && <figcaption class="label ph__cap">{plateCaption}</figcaption>}
     </figure>
   )}
 </section>
@@ -73,7 +71,6 @@ const parts = (line: string) => line.split(/(\*[^*]+\*)/).filter(Boolean).map((p
   .ph__plate img { width: 100%; height: 100%; object-fit: cover; }
   :global(html.motion) .ph__plate { --o: 0; clip-path: inset(0 calc(32vw * (1 - var(--o))) 0 calc(32vw * (1 - var(--o))) round calc(18vw * (1 - var(--o))) calc(18vw * (1 - var(--o))) 0 0); }
   :global(html.motion) .ph__plate img { transform: scale(calc(1.12 - 0.12 * var(--o))); }
-  .ph__cap { position: absolute; left: var(--margin); bottom: 1.25rem; color: var(--bone); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5); }
 
   @media (max-width: 767px) {
     :global(html.motion) .ph__plate { clip-path: inset(0 calc(14vw * (1 - var(--o))) 0 calc(14vw * (1 - var(--o))) round calc(36vw * (1 - var(--o))) calc(36vw * (1 - var(--o))) 0 0); }

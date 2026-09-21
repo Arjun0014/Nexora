@@ -43,26 +43,12 @@ import { worldById } from '../../data/worlds';
       </ol>
     </div>
 
-    <!-- THE PORTAL: a full-stage layer clipped to a circle. At rest the circle is the moon. -->
+    <!-- THE PORTAL: one canvas. At rest it draws the moon; held, the disc parts into its five sectors
+         (src/scripts/scenes/held.ts). The video is only a source for the canvas. -->
     <div class="hx" data-hx aria-hidden="true">
-      <div class="hx__night"></div>
-      <div class="hx__disc" data-hx-disc>
-        <video class="hx__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1"
-          poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
-      </div>
-      {held.lines.map((l, i) => (
-        <div class="hx__world" data-hx-world={i} data-sector={l.world}>
-          <picture>
-            <source media="(max-aspect-ratio: 1/1)" srcset={`/media/hero/rest/${l.world}-m.webp`} />
-            <img src={`/media/hero/rest/${l.world}-hd.webp`} alt="" width="1920" height="1080" loading="lazy" decoding="async" />
-          </picture>
-          <span class="hx__iris"></span>
-        </div>
-      ))}
-      <div class="hx__return" data-hx-return><span class="hx__iris"></span></div>
-      <canvas class="hx__streaks" data-hx-streaks></canvas>
-      <div class="hx__vignette"></div>
-
+      <canvas class="hx__canvas" data-hx-canvas></canvas>
+      <video class="hx__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1"
+        poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
       <div class="hx__texts">
         {held.lines.map((l, i) => (
           <p class="hx__text" data-hx-text={i} data-sector={l.world}>
@@ -75,12 +61,7 @@ import { worldById } from '../../data/worlds';
           <span class="display hx__t hx__t--em"><em>{held.answer.b}</em></span>
         </p>
       </div>
-
-      <ol class="hx__ticks">
-        {held.lines.map((l, i) => <li data-hx-tick={i} data-sector={l.world}><span class="label">{worldById[l.world].short}</span></li>)}
-      </ol>
     </div>
-    <span class="hx__rim" aria-hidden="true"></span>
     <!-- The hold target: always the moon's size, over the moon. -->
     <span class="hx__target" data-hx-target data-cursor="hold" aria-hidden="true"></span>
 
@@ -120,42 +101,14 @@ import { worldById } from '../../data/worlds';
   .held__dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
   .held__line-t { font-size: clamp(1.6rem, 2.5vw, 3rem); line-height: 1.02; }
 
-  /* ── the portal ─────────────────────────────────────────────────────────────────────────
-     --R is the circle's radius, --cx/--cy its centre (all px, written by held.ts). At rest: the moon. */
-  .hx {
-    --cx: 50%; --cy: 59%; --R: min(31vh, 22vw);
-    position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden;
-    clip-path: circle(var(--R) at var(--cx) var(--cy));
-    color: var(--bone);
-  }
-  .hx__night { position: absolute; inset: 0; background: radial-gradient(circle at var(--cx) var(--cy), #1d1713 0%, #0c0a0b 60%); }
-  .hx__disc { position: absolute; inset: 0; }
-  /* raised over the worlds for the finale: it brings its own night with it */
-  .hx__disc[data-raised] { background: radial-gradient(circle at var(--cx) var(--cy), #1d1713 0%, #0c0a0b 60%); }
-  .hx__video {
-    position: absolute; max-width: none; left: 0; top: 0;
-    width: var(--vw, 600px); height: calc(var(--vw, 600px) * 0.5625);
-    transform-origin: 0 0; will-change: transform;
-    -webkit-mask-image: radial-gradient(58% 62% at 49% 41%, #000 62%, transparent 100%);
-    mask-image: radial-gradient(58% 62% at 49% 41%, #000 62%, transparent 100%);
-  }
-  .hx__world { position: absolute; inset: 0; clip-path: circle(var(--wr, 0px) at var(--cx) var(--cy)); visibility: hidden; }
-  .hx__world img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--wz, 1.2)); will-change: transform; }
-  .hx__world::after { content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(circle at var(--cx) var(--cy), transparent 30%, color-mix(in oklab, var(--accent) 35%, rgba(8, 6, 6, 0.8)) 110%); }
-  .hx__return { position: absolute; inset: 0; clip-path: circle(var(--wr, 0px) at var(--cx) var(--cy)); visibility: hidden; }
-  /* the lit edge of each opening circle */
-  .hx__iris { position: absolute; left: var(--cx); top: var(--cy); width: calc(var(--wr, 0px) * 2); height: calc(var(--wr, 0px) * 2); translate: -50% -50%; border-radius: 50%;
-    box-shadow: 0 0 0 1.5px rgba(255, 214, 165, 0.9), 0 0 40px 6px rgba(240, 170, 100, 0.55), inset 0 0 70px 14px rgba(240, 170, 100, 0.4); pointer-events: none; }
-  .hx__streaks { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; mix-blend-mode: screen; }
-  .hx__vignette { position: absolute; inset: 0; z-index: 4; background: radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(6, 4, 4, 0.72) 100%); opacity: var(--open, 0); }
-
-  /* Above everything in the portal, including the disc when it is raised for the finale. A soft dark pool behind
-     the words keeps them legible on the brightest world. */
+  /* ── the portal: one canvas, full stage; the text sits above it ── */
+  .hx { position: absolute; inset: 0; z-index: 3; pointer-events: none; color: var(--bone); }
+  .hx__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hx__video { position: absolute; left: 0; top: 0; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+  .hx__texts { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding-inline: var(--margin); }
   .hx__texts::before { content: ''; position: absolute; left: 50%; top: 50%; width: min(90vw, 70rem); height: min(60vh, 34rem); translate: -50% -50%;
-    background: radial-gradient(closest-side, rgba(8, 6, 6, 0.5), transparent); opacity: var(--open, 0); pointer-events: none; }
-  .hx__texts { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; text-align: center; padding-inline: var(--margin); }
-  .hx__text { grid-area: 1 / 1; display: grid; justify-items: center; gap: 1.4rem; visibility: hidden; }
+    background: radial-gradient(closest-side, rgba(8, 6, 6, 0.45), transparent); opacity: var(--open, 0); pointer-events: none; }
+  .hx__text { grid-area: 1 / 1; display: grid; justify-items: center; gap: 1.4rem; visibility: hidden; position: relative; }
   .hx__k { display: inline-flex; align-items: center; gap: 0.7em; opacity: 0.9; }
   .hx__t { display: block; font-size: clamp(3rem, 8.6vw, 11rem); line-height: 0.86; text-shadow: 0 4px 80px rgba(0, 0, 0, 0.55); max-width: 12ch; perspective: 800px; }
   .hx__t :global(.char) { display: inline-block; transform-origin: 50% 80%; }
@@ -164,20 +117,11 @@ import { worldById } from '../../data/worlds';
   .hx__answer .hx__t { max-width: none; }
   .hx__t--em em { color: #f6c893; }
 
-  .hx__ticks { position: absolute; z-index: 5; left: 50%; bottom: 6vh; translate: -50% 0; display: flex; gap: 0.6rem; opacity: var(--open, 0); }
-  .hx__ticks li { position: relative; width: clamp(3.4rem, 9vw, 8rem); padding-block-start: 0.8rem; text-align: left; }
-  .hx__ticks li::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: rgba(244, 239, 230, 0.25); }
-  .hx__ticks li::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--accent); transform-origin: left; transform: scaleX(var(--f, 0)); box-shadow: 0 0 10px var(--accent); }
-  .hx__ticks .label { font-size: 0.56rem; opacity: 0.75; }
-
-  /* The moon's lit rim and the hold target sit outside the clipped layer so they stay crisp. */
-  .hx__rim, .hx__target { position: absolute; left: var(--cx, 50%); top: var(--cy, 59%); translate: -50% -50%; border-radius: 50%; }
-  .hx__rim { z-index: 4; width: calc(var(--R, 31vh) * 2); height: calc(var(--R, 31vh) * 2); pointer-events: none;
-    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.75), 0 0 calc(46px + var(--charge, 0) * 120px) rgba(208, 149, 96, calc(0.32 + var(--charge, 0) * 0.6));
-    opacity: calc(1 - var(--open, 0)); }
+  /* The hold target: always the moon's size, over the moon (--cx/--cy/--Rm from JS). */
+  .hx__target { position: absolute; left: var(--cx, 50%); top: var(--cy, 59%); translate: -50% -50%; border-radius: 50%; }
   .hx__target { z-index: 6; width: calc(var(--Rm, 31vh) * 2); height: calc(var(--Rm, 31vh) * 2); touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .held[data-holding] .hx__target { width: 200vmax; height: 200vmax; } /* while holding, the whole stage keeps the hold */
-  :global(html:not(.motion)) .hx__target, :global(html:not(.motion)) .hx__rim { display: none; }
+  :global(html:not(.motion)) .hx__target { display: none; }
 
   /* after the first complete dive, the answer rests on the moon */
   .held__answer {
@@ -207,17 +151,14 @@ import { worldById } from '../../data/worlds';
   :global(html:not(.motion)) .held__stage { position: static; display: grid; gap: 2.5rem; padding-inline: var(--margin); }
   :global(html:not(.motion)) .held__head, :global(html:not(.motion)) .held__body { position: static; }
   :global(html:not(.motion)) .held__lines { display: grid; gap: 1.5rem; }
-  :global(html:not(.motion)) .hx { position: relative; inset: auto; width: min(84vw, 36rem); aspect-ratio: 1; margin-inline: auto; --cx: 50%; --cy: 50%; --R: 50%; }
-  :global(html:not(.motion)) .hx__world, :global(html:not(.motion)) .hx__return, :global(html:not(.motion)) .hx__texts, :global(html:not(.motion)) .hx__ticks,
-  :global(html:not(.motion)) .hx__streaks, :global(html:not(.motion)) .held__hold, :global(html:not(.motion)) .held__answer, :global(html:not(.motion)) .held__cloud { display: none; }
-  :global(html:not(.motion)) .hx__video { width: 118%; height: 66.4%; left: -7.8%; top: 23.4%; }
+  :global(html:not(.motion)) .hx { position: relative; inset: auto; width: min(84vw, 36rem); aspect-ratio: 1; margin-inline: auto; border-radius: 50%; overflow: hidden;
+    background: #0f0c0b url('/media/hero/poster-960.webp') 49% 45% / 118% auto no-repeat; box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.75); }
+  :global(html:not(.motion)) .hx__canvas, :global(html:not(.motion)) .hx__texts, :global(html:not(.motion)) .held__hold,
+  :global(html:not(.motion)) .held__answer, :global(html:not(.motion)) .held__cloud { display: none; }
 
   @media (max-width: 767px) {
     .held__body { display: none; }
     .held__hold { right: 50%; translate: 50% 0; bottom: 4vh; }
-    .hx__ticks { bottom: 14vh; }
-    .hx__ticks li { width: 14vw; }
-    .hx__ticks .label { display: none; }
     .hx__t { font-size: clamp(2.6rem, 13vw, 4.4rem); }
   }
 </style>

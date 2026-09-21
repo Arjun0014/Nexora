@@ -51,6 +51,14 @@ const city = stock.doha.skyline;
         ))}
       </ol>
 
+      <!-- The same names in bone, clipped to the picture window: every letter is ink on limestone and bone where it
+           crosses the photograph, so a name reads on any picture. -->
+      <ol class="sgx__names sgx__names--over" data-sgx-over-names aria-hidden="true">
+        {sectors.map((s, i) => (
+          <li class="sgx__name display" data-sgx-name-over={i} data-long={s.name.length > 24 ? '' : undefined} data-on={i === 0 ? '' : undefined}>{s.name}</li>
+        ))}
+      </ol>
+
       <div class="sgx__details">
         {sectors.map((s, i) => (
           <div class="sgx__detail" data-sgx-detail={i} data-on={i === 0 ? '' : undefined}>
@@ -128,6 +136,7 @@ const city = stock.doha.skyline;
   .sgx__names { position: absolute; left: 50%; top: calc(44% + min(38vw, 64vh) / 3 - 0.4em); translate: -50% 0; width: 92vw; font-size: clamp(3rem, 7.4vw, 9.5rem); text-align: center; z-index: 2; pointer-events: none; }
   .sgx__name { position: absolute; inset-inline: 0; top: 0; line-height: 0.86; visibility: hidden; perspective: 900px; }
   .sgx__name[data-on] { visibility: visible; }
+  .sgx__names--over { color: var(--bone); z-index: 3; text-shadow: 0 2px 30px rgba(10, 6, 4, 0.35); }
   .sgx__name[data-long] { font-size: 0.72em; }
   .sgx__name :global(.word) { display: inline-block; white-space: nowrap; }
   .sgx__name :global(.char) { display: inline-block; transform-origin: 50% 70%; backface-visibility: hidden; }

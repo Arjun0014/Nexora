@@ -13,8 +13,8 @@
  * The knock-out is a Path2D fill on a canvas (the hero's title card, reversed), so it is sharp at any scale.
  */
 import words from '../../data/words.json';
-import { $, $$, clamp, lerp } from '../core/env';
-import { ScrollTrigger, EASE } from '../core/motion';
+import { $, $$, clamp, lerp, whenNear } from '../core/env';
+import { gsap, ScrollTrigger, SplitText, EASE } from '../core/motion';
 
 type Word = { width: number; height: number; d: string; anchor: { x: number; y: number; r: number } };
 const SKY = '#c4d4db';
@@ -33,7 +33,20 @@ export function initWorkforces() {
   const stack = $('[data-deck-stack]', root)!;
   const ctx = canvas.getContext('2d')!;
   const path = new Path2D(spec.d);
-  photoImg.loading = 'eager';
+  whenNear(root, () => { $$<HTMLImageElement>('img', root).forEach((i) => { i.loading = 'eager'; }); });
+
+  // The monument turns over with each throw: the old name's letters fall away, the new ones rise and turn in.
+  const monos = $$('[data-mono]', root);
+  const chars = new Map(monos.map((m) => [m, new SplitText(m, { type: 'chars', charsClass: 'char' }).chars as HTMLElement[]]));
+  new MutationObserver((list) => {
+    for (const m of list) {
+      const el = m.target as HTMLElement;
+      const c = chars.get(el);
+      if (!c) continue;
+      if (el.dataset.on === 'true') gsap.fromTo(c, { yPercent: 70, rotateX: -85, opacity: 0 }, { yPercent: 0, rotateX: 0, opacity: 1, duration: 1.1, ease: EASE.out, stagger: 0.035, overwrite: true });
+      else gsap.to(c, { yPercent: -40, rotateX: 70, opacity: 0, duration: 0.4, ease: EASE.in, stagger: 0.015, overwrite: true });
+    }
+  }).observe(root.querySelector('.wfx__monos')!, { subtree: true, attributes: true, attributeFilter: ['data-on'] });
 
   let W = 1, H = 1, dpr = 1, q = 0, lastT = -1;
   let card = { x: 0, y: 0, w: 1, h: 1 };
@@ -108,5 +121,4 @@ export function initWorkforces() {
   });
   measure();
   render();
-  $$('img', root).forEach((img) => img.addEventListener('load', () => ScrollTrigger.refresh(), { once: true }));
 }

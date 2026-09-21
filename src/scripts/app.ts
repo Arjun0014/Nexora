@@ -6,6 +6,7 @@ import { initCursor } from './cursor';
 import { initHero } from './hero/index';
 import { initDeck } from './deck';
 import { initPageHead } from './pagehead';
+import { initTransitions } from './transition';
 import { initForms } from './forms';
 import { initMotionToggle } from './motion';
 import { initIntro } from './intro';
@@ -38,6 +39,7 @@ const boot = () => {
   initFooter();
   initDeck();
   initPageHead();
+  initTransitions();
   initForms();
   initCursor();
   initMotionToggle();

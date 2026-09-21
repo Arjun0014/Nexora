@@ -19,3 +19,12 @@ export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(
 
 export const $ = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = document) => scope.querySelector<T>(sel);
 export const $$ = <T extends Element = HTMLElement>(sel: string, scope: ParentNode = document) => Array.from(scope.querySelectorAll<T>(sel));
+
+/**
+ * Run `fn` once, when `el` comes within `margin` of the viewport. Scenes use it to switch their big images to
+ * eager loading only as they approach, so nothing competes with the intro's preloading of the film.
+ */
+export function whenNear(el: Element, fn: () => void, margin = '120% 0px') {
+  const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); fn(); } }, { rootMargin: margin });
+  io.observe(el);
+}

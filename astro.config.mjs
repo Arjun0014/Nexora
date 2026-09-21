@@ -12,6 +12,8 @@ export default defineConfig({
   trailingSlash: 'always',
   integrations: [sitemap()],
   devToolbar: { enabled: false },
+  // Links start loading when hovered, so the page transition rarely has to wait.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   build: {
     // Small CSS is inlined to avoid a render-blocking request before the hero paints.
     inlineStylesheets: 'auto',

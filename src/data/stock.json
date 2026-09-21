@@ -1,44 +1,160 @@
 {
   "_": "Licence-clean photography (Unsplash License). Originals in media/stock (credits: media/stock/SOURCES.md). Derivatives built by `npm run stock`. focus = object-position / card-crop centre.",
   "workforces": {
-    "hospitality": { "file": "A1-hospitality-1", "focus": "58% 45%", "alt": "A server sets down coffee and cake beside a stack of plates." },
-    "events": { "file": "A2-events-1", "focus": "70% 45%", "alt": "A registration host helps a guest sign in at an event desk." },
-    "facilities": { "file": "A3-facilities-1", "focus": "62% 55%", "alt": "A cleaning crew at work in a long, sunlit colonnade." },
-    "technical": { "file": "A4-technical-1", "focus": "60% 40%", "alt": "A technician repairs a machine part in a workshop." },
-    "recruitment": { "file": "A5-recruitment-1", "focus": "45% 45%", "alt": "Two people talk across a table in window light, an interview in progress." }
+    "hospitality": {
+      "file": "A1-hospitality-1",
+      "focus": "58% 45%",
+      "alt": "A server sets down coffee and cake beside a stack of plates."
+    },
+    "events": {
+      "file": "A2-events-1",
+      "focus": "70% 45%",
+      "alt": "A registration host helps a guest sign in at an event desk."
+    },
+    "facilities": {
+      "file": "A3-facilities-1",
+      "focus": "62% 55%",
+      "alt": "A cleaning crew at work in a long, sunlit colonnade."
+    },
+    "technical": {
+      "file": "A4-technical-2",
+      "focus": "62% 40%",
+      "alt": "A technician checks process equipment in a clean plant."
+    },
+    "recruitment": {
+      "file": "A5-recruitment-1",
+      "focus": "45% 45%",
+      "alt": "Two people talk across a table in window light, an interview in progress."
+    }
   },
   "sectors": {
-    "hotels": { "file": "B1-hotels-1", "focus": "50% 50%", "alt": "A bright hotel lobby with palms beyond tall windows." },
-    "events": { "file": "B2-exhibitions-1", "focus": "50% 45%", "alt": "Visitors fill a grand exhibition hall." },
-    "facilities": { "file": "B3-facilities-2", "focus": "55% 50%", "alt": "A cleaner vacuums a glass-walled office." },
-    "retail": { "file": "B4-retail-1", "focus": "50% 40%", "alt": "A shop assistant among wooden shelves of products." },
-    "oil-gas": { "file": "B5-oil-gas-1", "focus": "55% 50%", "alt": "An offshore platform and supply vessel at golden hour." },
-    "power": { "file": "B6-power-1", "focus": "50% 55%", "alt": "Rows of solar panels across a desert plain." },
-    "manufacturing": { "file": "B7-manufacturing-1", "focus": "60% 50%", "alt": "Workers at stations along a factory floor." },
-    "maintenance": { "file": "B8-tech-ops-1", "focus": "45% 50%", "alt": "An engineer works on a machine part in a workshop." },
-    "it-telecom": { "file": "B9-it-telecom-1", "focus": "70% 45%", "alt": "A technician works at a server rack." },
-    "logistics": { "file": "B10-logistics-3", "focus": "50% 55%", "alt": "Staff walk the aisle of a large warehouse." }
+    "hotels": {
+      "file": "B1-hotels-1",
+      "focus": "50% 50%",
+      "alt": "A bright hotel lobby with palms beyond tall windows."
+    },
+    "events": {
+      "file": "B2-exhibitions-1",
+      "focus": "50% 45%",
+      "alt": "Visitors fill a grand exhibition hall."
+    },
+    "facilities": {
+      "file": "B3-facilities-2",
+      "focus": "55% 50%",
+      "alt": "A cleaner vacuums a glass-walled office."
+    },
+    "retail": {
+      "file": "B4-retail-1",
+      "focus": "50% 40%",
+      "alt": "A shop assistant among wooden shelves of products."
+    },
+    "oil-gas": {
+      "file": "B5-oil-gas-1",
+      "focus": "55% 50%",
+      "alt": "An offshore platform and supply vessel at golden hour."
+    },
+    "power": {
+      "file": "B6-power-1",
+      "focus": "50% 55%",
+      "alt": "Rows of solar panels across a desert plain."
+    },
+    "manufacturing": {
+      "file": "B7-manufacturing-1",
+      "focus": "60% 50%",
+      "alt": "Workers at stations along a factory floor."
+    },
+    "maintenance": {
+      "file": "B8-tech-ops-1",
+      "focus": "45% 50%",
+      "alt": "An engineer works on a machine part in a workshop."
+    },
+    "it-telecom": {
+      "file": "B9-it-telecom-1",
+      "focus": "70% 45%",
+      "alt": "A technician works at a server rack."
+    },
+    "logistics": {
+      "file": "B10-logistics-3",
+      "focus": "50% 55%",
+      "alt": "Staff walk the aisle of a large warehouse."
+    }
   },
   "doha": {
-    "skyline": { "file": "C1-doha-skyline-1", "focus": "50% 55%", "alt": "The West Bay skyline of Doha across the water at sunset." },
-    "arches": { "file": "C3-doha-landmark-2", "focus": "40% 50%", "alt": "A colonnade of arches framing the Doha skyline over still water." },
-    "dhows": { "file": "C3-doha-landmark-1", "focus": "55% 50%", "alt": "Dhows on the water near the Museum of Islamic Art, Doha." }
+    "skyline": {
+      "file": "C1-doha-skyline-1",
+      "focus": "50% 55%",
+      "alt": "The West Bay skyline of Doha across the water at sunset."
+    },
+    "arches": {
+      "file": "C3-doha-landmark-2",
+      "focus": "40% 50%",
+      "alt": "A colonnade of arches framing the Doha skyline over still water."
+    },
+    "dhows": {
+      "file": "C3-doha-landmark-1",
+      "focus": "55% 50%",
+      "alt": "Dhows on the water near the Museum of Islamic Art, Doha."
+    }
   },
   "steps": {
-    "brief": { "file": "D1-brief-1", "focus": "50% 45%", "alt": "Two people discuss a brief at a laptop." },
-    "source": { "file": "E2-candidate-3", "focus": "68% 40%", "alt": "Portrait of a young man in warm evening light." },
-    "screen": { "file": "D3-screen-1", "focus": "45% 45%", "alt": "An interview across a desk." },
-    "deploy": { "file": "D4-deploy-1", "focus": "52% 45%", "alt": "A team briefing before a shift." },
-    "support": { "file": "D5-support-2", "focus": "55% 40%", "alt": "A supervisor checks in with a colleague on site." }
+    "brief": {
+      "file": "D1-brief-1",
+      "focus": "50% 45%",
+      "alt": "Two people discuss a brief at a laptop."
+    },
+    "source": {
+      "file": "E2-candidate-3",
+      "focus": "68% 40%",
+      "alt": "Portrait of a young man in warm evening light."
+    },
+    "screen": {
+      "file": "D3-screen-1",
+      "focus": "45% 45%",
+      "alt": "An interview across a desk."
+    },
+    "deploy": {
+      "file": "D4-deploy-1",
+      "focus": "52% 45%",
+      "alt": "A team briefing before a shift."
+    },
+    "support": {
+      "file": "D5-support-2",
+      "focus": "55% 40%",
+      "alt": "A supervisor checks in with a colleague on site."
+    }
   },
   "engage": {
-    "short-term": { "file": "A2-events-2", "focus": "55% 45%", "alt": "A server offers food to guests at a reception." },
-    "contract": { "file": "A3-facilities-2", "focus": "55% 45%", "alt": "A housekeeper prepares a hotel bed." },
-    "project": { "file": "B8-tech-ops-1", "focus": "45% 50%", "alt": "An engineer works on a machine part in a workshop." },
-    "permanent": { "file": "A5-recruitment-3", "focus": "35% 45%", "alt": "Two women talk at a table by a window." }
+    "short-term": {
+      "file": "A2-events-2",
+      "focus": "55% 45%",
+      "alt": "A server offers food to guests at a reception."
+    },
+    "contract": {
+      "file": "A3-facilities-2",
+      "focus": "55% 45%",
+      "alt": "A housekeeper prepares a hotel bed."
+    },
+    "project": {
+      "file": "B8-tech-ops-1",
+      "focus": "45% 50%",
+      "alt": "An engineer works on a machine part in a workshop."
+    },
+    "permanent": {
+      "file": "A5-recruitment-3",
+      "focus": "35% 45%",
+      "alt": "Two women talk at a table by a window."
+    }
   },
   "doors": {
-    "employer": { "file": "E1-employer-2", "focus": "40% 45%", "alt": "Two colleagues walk a warehouse aisle, reviewing notes." },
-    "candidate": { "file": "E2-candidate-1", "focus": "60% 40%", "alt": "A young man looks out of a window, thinking ahead." }
+    "employer": {
+      "file": "E1-employer-2",
+      "focus": "40% 45%",
+      "alt": "Two colleagues walk a warehouse aisle, reviewing notes."
+    },
+    "candidate": {
+      "file": "E2-candidate-1",
+      "focus": "60% 40%",
+      "alt": "A young man looks out of a window, thinking ahead."
+    }
   }
 }

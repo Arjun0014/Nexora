@@ -6,7 +6,7 @@
  *                         another; the title's lines rise out of their masks; the numeral turns over.
  * The filmstrip on the right rises continuously with the scroll (Love & Money).
  */
-import { $, $$, clamp, lerp } from '../core/env';
+import { $, $$, clamp, lerp, whenNear } from '../core/env';
 import { gsap, ScrollTrigger, SplitText, EASE, DUR } from '../core/motion';
 
 const GROW = 0.12, COL = 0.2, PLAY_END = 0.96;
@@ -20,7 +20,7 @@ export function initEmployers() {
   const steps = $$('[data-emp-step]', root);
   const nEl = $('[data-emp-n]', root)!;
   const reel = $('[data-emp-reel]', root)!;
-  $$<HTMLImageElement>('img', photo).forEach((i) => { i.loading = 'eager'; });
+  whenNear(root, () => { $$<HTMLImageElement>('img', photo).forEach((i) => { i.loading = 'eager'; }); });
 
   const splits = steps.map((s) => new SplitText($('.emp__t', s)!, { type: 'lines', linesClass: 'line', mask: 'lines' }));
 

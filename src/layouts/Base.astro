@@ -99,10 +99,14 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
         var lite = !!n.saveData || /(^|-)2g$|^3g$/.test(n.effectiveType || '');
         if (!reduce) { c.add('motion'); if (!lite) c.add('cinema'); }
         if (lite) c.add('lite');
+        // Arriving through a page transition: the cover is already up before the first paint, and it lifts away.
+        var pt = null;
+        try { pt = sessionStorage.getItem('nx-pt'); sessionStorage.removeItem('nx-pt'); } catch (e) {}
+        if (pt && c.contains('motion')) { document.documentElement.dataset.pt = 'in'; document.documentElement.style.setProperty('--pt-label', JSON.stringify(pt)); }
         // The intro decides itself BEFORE first paint, so the film is never visible for a frame first.
         // Only on the homepage, only when the film will actually run, and never under reduced motion.
-        if (document.documentElement.hasAttribute('data-home') && c.contains('cinema') && !/[?&]nointro\b/.test(location.search) && !/[?&]stop=/.test(location.search)) {
-          document.documentElement.dataset.intro = 'on'; // every load, not once per session (brief #16)
+        if (document.documentElement.hasAttribute('data-home') && c.contains('cinema') && !pt && !/[?&]nointro\b/.test(location.search) && !/[?&]stop=/.test(location.search)) {
+          document.documentElement.dataset.intro = 'on'; // every load and reload; an in-site page change uses the page transition instead
         }
       })();
     </script>
@@ -120,6 +124,16 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
       <slot />
     </main>
     <Footer from={home ? 'maroon' : 'sand'} />
+    <!-- The page transition (src/scripts/transition.ts): a maroon circle opens from the click; the next page lifts it away. -->
+    <div class="pt" data-pt aria-hidden="true">
+      <div class="pt__inner">
+        <p class="label pt__k">Nexora</p>
+        <p class="display pt__name" data-pt-name></p>
+        <span class="pt__line"></span>
+      </div>
+      <span class="pt__rim" data-pt-rim></span>
+    </div>
+
     <!-- The pointer follower (src/scripts/cursor.ts). Augments the native cursor, never replaces it. -->
     <div class="cursor" data-cursor-root data-state="dot" aria-hidden="true">
       <span class="cursor__disc"></span>
@@ -135,6 +149,34 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
 
 <style is:global>
   main:focus { outline: none; }
+
+  /* ── page transition ───────────────────────────────────────────────────────── */
+  .pt {
+    --r: 0px; --x: 50vw; --y: 50vh; --lift: 0;
+    position: fixed; inset: 0; z-index: 450; pointer-events: none; visibility: hidden;
+    background: var(--maroon);
+    background-image: radial-gradient(70% 60% at 50% 100%, rgba(208, 149, 96, 0.22), transparent 70%);
+    color: var(--bone);
+    clip-path: circle(var(--r) at var(--x) var(--y));
+  }
+  .pt[data-state] { visibility: visible; pointer-events: auto; }
+  /* arriving: already covering before the first paint */
+  html[data-pt='in'] .pt { visibility: visible; clip-path: none; }
+  .pt[data-state='out'] { clip-path: ellipse(120vw calc((1 - var(--lift)) * 160vh) at 50% 0%); }
+  .pt__inner { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; text-align: center; translate: 0 calc(var(--lift) * -18vh); opacity: calc(1 - var(--lift) * 1.6); }
+  .pt__k { color: var(--amber); opacity: 0; translate: 0 10px; transition: opacity 400ms linear 120ms, translate 800ms var(--ease-out) 120ms; }
+  .pt__name { font-size: clamp(3rem, 9vw, 11rem); opacity: 0; translate: 0 0.4em; transition: opacity 500ms linear 180ms, translate 900ms var(--ease-out) 180ms; }
+  .pt[data-state] .pt__k, .pt[data-state] .pt__name, html[data-pt='in'] .pt__k, html[data-pt='in'] .pt__name { opacity: 1; translate: 0 0; }
+  html[data-pt='in'] .pt__k, html[data-pt='in'] .pt__name { transition: none; }
+  html[data-pt='in'] .pt__name:empty::before { content: var(--pt-label, ''); }
+  .pt__line { width: 9rem; height: 1px; background: rgba(244, 239, 230, 0.2); position: relative; overflow: hidden; margin-block-start: 0.6rem; }
+  .pt__line::after { content: ''; position: absolute; inset: 0; background: var(--amber); transform-origin: left; animation: pt-breathe 1.6s var(--ease-io) infinite; }
+  @keyframes pt-breathe { 0% { transform: scaleX(0); transform-origin: left; } 50% { transform: scaleX(1); transform-origin: left; } 50.01% { transform-origin: right; } 100% { transform: scaleX(0); transform-origin: right; } }
+  .pt__rim { position: absolute; left: var(--x); top: var(--y); width: calc(var(--r) * 2); height: calc(var(--r) * 2); translate: -50% -50%; border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.85), 0 0 36px 4px rgba(208, 149, 96, 0.5); pointer-events: none; }
+  .pt[data-state='out'] .pt__rim, html[data-pt='in'] .pt__rim { display: none; }
+  /* while the cover lifts, the page underneath settles up into place */
+  html[data-pt] main { translate: 0 calc((1 - var(--settle, 1)) * 5vh); }
 
   /* ── pointer follower ────────────────────────────────────────────────────────
      noho.ink's model: a small disc that eases to the pointer and morphs by context. The disc is laid out at its

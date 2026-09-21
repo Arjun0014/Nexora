@@ -1,112 +1,238 @@
 /**
- * Scene 2 — the world, held (src/components/scenes/Held.astro).
+ * Scene 2 — the world, held (src/components/scenes/Held.astro). Everything in the portal is drawn on one canvas.
  *
- * The moon is a circle clip on a full-stage layer (`.hx`). Everything is drawn from one proxy `P` by `render()`:
- *   P.open   0 → 1   the circle's radius, from the moon to beyond every corner
- *   P.zoom           the camera on the disc (1 = the disc whole inside the moon)
- *   P.rate           the loop's playbackRate
- *   P.dim            the page drawing back (headline, clouds, copy recede and blur)
- *   P.streak         the amber light rushing past from the centre
- *   W[k].r / W[k].z  each world's iris (0 → covering) and its push-in
- *   P.ret            the disc irising back over the last world
+ * The idea is the model itself: one world divided into five sectors. At rest the canvas draws the moon — the disc
+ * footage in a circle. Holding it plays one timeline:
+ *   lift     (0 – 1.0 s)  the page draws back to night; the circle grows; an instrument dial draws itself around it —
+ *                         a fine ring, ticks, five hairline spokes, turning slowly like a watch face
+ *   part     (0.85 – 2.2) the disc splits along its five sectors, the seams lit amber, the slices drawing apart; in
+ *                         each slice the footage gives way to that world's scene, held upright while the slices turn
+ *   bloom    (2.4 – 3.5)  the slices grow past the edges: the whole screen becomes one radial composition of the
+ *                         five worlds, turning
+ *   dial     (3.4 – 8.4)  one world at a time sweeps round like a clock hand to take the screen, with its line
+ *   close    (8.4 – 9.9)  back to five equal slices, back into the circle; the seams close, the footage returns, the
+ *                         answer arrives
+ * Letting go at any point tweens every parameter back to rest from wherever it is: the slices close into the moon.
  *
- * HOLDING plays one timeline (seconds):
- *   0.0 – 1.2  open      the moon becomes the screen; the camera starts to fall into the disc
- *   1.2 – 2.1  plunge    zoom 1.7 → 3.4, the disc winds up to 6x, the streaks at full rush
- *   1.9 → 8.0  worlds    five irises, each shorter than the last (1.5 … 1.0 s): burst open from the centre with
- *                        a lit rim, push in, the world's line set large, its colour in the light
- *   8.0 → 9.0  return    the disc irises back on top and pulls all the way out: all five at full spin
- *   8.9        answer    "Behind all five, people. We supply them." It stays while you hold.
- * LETTING GO plays a collapse from wherever you are: the circle closes back to the moon (0.95 s), the page returns.
- * Pressing again mid-collapse re-opens from the current size (the timeline is invalidated, not restarted cold).
+ * Parameters (all drawn by `draw()` every frame while visible):
+ *   g      0 moon → 1 large circle → 2 beyond every corner        ex    how far the slices have drawn apart
+ *   M[k]   footage → world scene, per slice                       Wt[k] share of the circle, per slice (the dial)
+ *   guide  the instrument dial            seam  the lit seams      lab   the world names at the rim
+ *   dim    the page drawing back          sp    the turning speed  rate  the footage's playbackRate
  */
 import { $, $$, clamp, lerp } from '../core/env';
 import { gsap, ScrollTrigger, SplitText, EASE } from '../core/motion';
+import { worlds } from '../../data/worlds';
+import { held } from '../../data/content';
 
-const STARTS = [1.9, 3.4, 4.75, 5.95, 7.05];
-const DURS = [1.5, 1.35, 1.2, 1.1, 1.0];
-const FIN = STARTS[4] + DURS[4]; // 8.05
-const ANSWER_AT = FIN + 0.9;
+const TAU = Math.PI * 2;
+const DIAL0 = 3.4, DIAL_STEP = 1.0;
+const CLOSE = DIAL0 + 5 * DIAL_STEP; // 8.4
+const ANSWER_AT = CLOSE + 1.5;
+const AMBER = '240,189,134';
 
 export function initHeld() {
   const root = $('[data-held]');
   if (!root) return;
   const video = $<HTMLVideoElement>('[data-held-video]', root)!;
-  const motion = document.documentElement.classList.contains('motion');
-
-  new IntersectionObserver(([e]) => {
-    if (e.isIntersecting && !video.src) { video.src = video.dataset.src!; video.preload = 'auto'; }
-    if (e.isIntersecting && motion) video.play().catch(() => {}); else video.pause();
-  }, { rootMargin: '60% 0px' }).observe(root);
-  if (!motion) return;
+  if (!document.documentElement.classList.contains('motion')) return;
 
   const pin = $('[data-held-pin]', root)!;
   const stage = $('[data-held-stage]', root)!;
   const hx = $('[data-hx]', root)!;
-  const disc = $('[data-hx-disc]', root)!;
-  const worldEls = $$('[data-hx-world]', root);
-  const ret = $('[data-hx-return]', root)!;
+  const canvas = $<HTMLCanvasElement>('[data-hx-canvas]', root)!;
+  const ctx = canvas.getContext('2d')!;
   const texts = $$('[data-hx-text]', root);
-  const ticks = $$('[data-hx-tick]', root);
-  const canvas = $<HTMLCanvasElement>('[data-hx-streaks]', root)!;
   const target = $('[data-hx-target]', root)!;
   const button = $('[data-held-button]', root)!;
   const hint = $('[data-held-hint]', root)!;
-  const rim = $('.hx__rim', root)!;
   const answer = $('.held__answer', root)!;
   const clouds = $$('[data-held-cloud]', root);
   const header = $('[data-header]');
-  $$<HTMLImageElement>('img', hx).forEach((i) => { i.loading = 'eager'; });
+
+  // ── sources ──────────────────────────────────────────────────────────────────────────────
+  const order = held.lines.map((l) => worlds.findIndex((w) => w.id === l.world));
+  const imgs: HTMLImageElement[] = [];
+  const focusX = order.map((wi) => parseFloat(worlds[wi].focus) / 100 || 0.5);
+  const loadSources = () => {
+    if (!video.src) { video.src = video.dataset.src!; video.preload = 'auto'; }
+    if (imgs.length) return;
+    const portrait = innerWidth / innerHeight < 1;
+    held.lines.forEach((l) => { const im = new Image(); im.decoding = 'async'; im.src = `/media/hero/rest/${l.world}${portrait ? '-m' : '-hd'}.webp`; imgs.push(im); });
+  };
+  // The footage, feathered into the night (the frame's rectangle must never show inside the circle).
+  const ofs = document.createElement('canvas');
+  const octx = ofs.getContext('2d')!;
+  const maskedVideo = () => {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || video.readyState < 2) return null;
+    if (ofs.width !== vw) { ofs.width = vw; ofs.height = vh; }
+    octx.globalCompositeOperation = 'source-over';
+    octx.drawImage(video, 0, 0, vw, vh);
+    octx.save();
+    octx.globalCompositeOperation = 'destination-in';
+    octx.translate(vw * 0.49, vh * 0.41);
+    octx.scale(1, (0.62 * vh) / (0.58 * vw));
+    const g = octx.createRadialGradient(0, 0, 0, 0, 0, 0.58 * vw);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.62, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    octx.fillStyle = g; octx.fillRect(-vw, -vh * 2, vw * 2, vh * 4);
+    octx.restore();
+    return ofs;
+  };
 
   // ── state ────────────────────────────────────────────────────────────────────────────────
-  const P = { open: 0, zoom: 1, rate: 1, dim: 0, streak: 0, ret: 0 };
-  const W = worldEls.map(() => ({ r: 0, z: 1.3 }));
-  const T = ticks.map(() => ({ f: 0 }));
-  let s = 0.3, exit = 0; // from scroll: the moon's arrival scale, and the scene's departure
-  let holding = false, done = false, raised = false;
+  const REST = { g: 0, ex: 0, guide: 0, seam: 0, lab: 0, dim: 0, sp: 0.1, rate: 1 };
+  const P = { ...REST };
+  const M = order.map(() => ({ m: 0 }));
+  const Wt = order.map(() => ({ w: 1 }));
+  let rot = -Math.PI / 2;
+  let s = 0.3, exit = 0; // scroll: the moon's arrival scale, the scene's departure
+  let holding = false, done = false;
 
-  // ── geometry + drawing ──────────────────────────────────────────────────────────────────
-  let Wd = 0, Hd = 0, D = 0, cx = 0, cy = 0, cover = 0;
+  // ── geometry ─────────────────────────────────────────────────────────────────────────────
+  let Wd = 0, Hd = 0, dpr = 1, D = 0, cx = 0, cy = 0, cover = 0, minD = 0, Rbig = 0;
   const measure = () => {
-    Wd = pin.clientWidth; Hd = pin.clientHeight;
+    Wd = pin.clientWidth; Hd = pin.clientHeight; dpr = Math.min(devicePixelRatio || 1, 1.5);
+    canvas.width = Math.round(Wd * dpr); canvas.height = Math.round(Hd * dpr);
     const phone = Wd < 768;
     D = phone ? Math.min(Wd * 0.84, Hd * 0.52) : Math.min(Hd * 0.62, Wd * 0.44);
     cx = Wd / 2; cy = Hd * (phone ? 0.62 : 0.59);
-    cover = Math.hypot(Math.max(cx, Wd - cx), Math.max(cy, Hd - cy)) + 12;
-    canvas.width = Wd; canvas.height = Hd;
+    minD = Math.min(Wd, Hd);
+    Rbig = phone ? Wd * 0.46 : minD * 0.43;
+    cover = Math.hypot(Math.max(cx, Wd - cx), Math.max(cy, Hd - cy)) + 20;
   };
+  const radius = () => (P.g <= 1 ? lerp((D / 2) * s, Rbig, EASE.ease(P.g)) : lerp(Rbig, cover, P.g - 1));
+  // the circle's centre: the moon's place at rest, the middle of the screen once it has grown
+  const centre = () => [cx, lerp(cy, Hd / 2, clamp(P.g))];
 
-  let shownRate = 1;
-  const render = () => {
-    const Rm = (D / 2) * s;
-    const R = lerp(Rm, cover, P.open);
-    for (const el of [hx, rim, target]) { el.style.setProperty('--cx', `${cx}px`); el.style.setProperty('--cy', `${cy}px`); }
-    hx.style.setProperty('--R', `${R.toFixed(1)}px`);
-    rim.style.setProperty('--R', `${R.toFixed(1)}px`);
-    target.style.setProperty('--Rm', `${Rm.toFixed(1)}px`);
-    root.style.setProperty('--open', P.open.toFixed(3));
+  // ── drawing ──────────────────────────────────────────────────────────────────────────────
+  const drawDisc = (x: number, y: number, R: number) => {
+    const v = maskedVideo();
+    if (!v) return;
+    const vw = 2.36 * R, vh = vw * (v.height / v.width);
+    ctx.drawImage(v, x - 0.49 * vw, y - 0.41 * vh, vw, vh);
+  };
+  const drawWorld = (k: number, ox: number, oy: number, mix: number) => {
+    const im = imgs[k];
+    if (!im || !im.complete || !im.naturalWidth) return;
+    const z = 1.14 - 0.08 * mix;
+    const sc = Math.max(Wd / im.naturalWidth, Hd / im.naturalHeight) * z;
+    const w = im.naturalWidth * sc, h = im.naturalHeight * sc;
+    const x = (Wd - w) * focusX[k] + ox * 0.5, y = (Hd - h) / 2 + oy * 0.5;
+    ctx.globalAlpha = mix;
+    ctx.drawImage(im, x, y, w, h);
+    ctx.globalAlpha = 1;
+  };
+  const charge = () => (holding ? clamp(tl.time() / ANSWER_AT) : done ? 1 : 0);
 
-    // the camera on the disc: scale about the disc's centre (49% / 41% of the frame)
-    const vw = D * 1.18, z = s * P.zoom;
-    hx.style.setProperty('--vw', `${vw.toFixed(1)}px`);
-    video.style.transform = `translate3d(${(cx - 0.49 * vw * z).toFixed(1)}px, ${(cy - 0.41 * vw * 0.5625 * z).toFixed(1)}px, 0) scale(${z.toFixed(4)})`;
+  const draw = () => {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, Wd, Hd);
+    const R = radius();
+    const [x0, y0] = centre();
+    const e = P.ex * minD;
+    const total = Wt.reduce((a, b) => a + b.w, 0);
+    const spans = Wt.map((t) => (t.w / total) * TAU);
+    const whole = e < 0.3 && M.every((q) => q.m < 0.001);
+    const discR = P.g <= 1 ? R : Rbig * (1 + (P.g - 1) * 0.6);
 
-    worldEls.forEach((el, k) => {
-      const r = W[k].r * cover;
-      el.style.visibility = r > 0.5 ? 'visible' : 'hidden';
-      el.style.setProperty('--wr', `${r.toFixed(1)}px`);
-      el.style.setProperty('--wz', W[k].z.toFixed(4));
-    });
-    ticks.forEach((t, k) => t.style.setProperty('--f', T[k].f.toFixed(3)));
-    // the return: the disc is raised above the worlds and irised open over them
-    disc.style.zIndex = raised ? '2' : '';
-    disc.toggleAttribute('data-raised', raised);
-    disc.style.clipPath = raised ? `circle(${(P.ret * cover).toFixed(1)}px at ${cx}px ${cy}px)` : '';
-    ret.style.zIndex = raised ? '3' : '';
-    ret.style.visibility = raised && P.ret > 0.001 && P.ret < 0.999 ? 'visible' : 'hidden';
-    ret.style.setProperty('--wr', `${(P.ret * cover).toFixed(1)}px`);
+    // the night behind the circle, as the page draws back
+    if (P.dim > 0.001) {
+      const g = ctx.createRadialGradient(x0, y0, 0, x0, y0, cover);
+      g.addColorStop(0, `rgba(29,23,19,${P.dim})`); g.addColorStop(1, `rgba(10,8,9,${P.dim})`);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, Wd, Hd);
+    }
 
-    // the page draws back; the scene departs on scroll
+    // the instrument dial
+    if (P.guide > 0.01 && R < cover) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(${AMBER},${0.35 * P.guide})`; ctx.lineWidth = 1;
+      for (const k of [1.07, 1.17]) { ctx.beginPath(); ctx.arc(x0, y0, R * k, 0, TAU); ctx.stroke(); }
+      const t0 = rot * 0.35;
+      for (let i = 0; i < 120; i++) {
+        const a = t0 + (i / 120) * TAU, major = i % 24 === 0, r0 = R * 1.085, r1 = R * (major ? 1.155 : i % 6 === 0 ? 1.125 : 1.105);
+        ctx.globalAlpha = P.guide * (major ? 0.9 : 0.45);
+        ctx.beginPath(); ctx.moveTo(x0 + Math.cos(a) * r0, y0 + Math.sin(a) * r0); ctx.lineTo(x0 + Math.cos(a) * r1, y0 + Math.sin(a) * r1); ctx.stroke();
+      }
+      ctx.globalAlpha = P.guide * 0.5;
+      let a = rot;
+      for (const sp of spans) { // the five spokes carry on past the rim to the edge of the screen
+        ctx.beginPath(); ctx.moveTo(x0 + Math.cos(a) * R * 1.2, y0 + Math.sin(a) * R * 1.2); ctx.lineTo(x0 + Math.cos(a) * cover, y0 + Math.sin(a) * cover); ctx.stroke();
+        a += sp;
+      }
+      ctx.restore();
+    }
+
+    if (whole) {
+      // the moon: one circle of footage
+      ctx.save(); ctx.beginPath(); ctx.arc(x0, y0, R, 0, TAU); ctx.clip();
+      ctx.fillStyle = '#0f0c0b'; ctx.fillRect(x0 - R, y0 - R, R * 2, R * 2);
+      drawDisc(x0, y0, discR);
+      ctx.restore();
+    } else {
+      let a = rot;
+      spans.forEach((sp, k) => {
+        const a0 = a, a1 = a + sp; a = a1;
+        if (sp < 0.004) return;
+        const mid = (a0 + a1) / 2, ox = Math.cos(mid) * e, oy = Math.sin(mid) * e;
+        ctx.save();
+        ctx.beginPath(); ctx.moveTo(x0 + ox, y0 + oy); ctx.arc(x0 + ox, y0 + oy, R, a0, a1); ctx.closePath(); ctx.clip();
+        ctx.fillStyle = '#0f0c0b'; ctx.fillRect(0, 0, Wd, Hd);
+        if (M[k].m < 0.999) drawDisc(x0 + ox, y0 + oy, discR);
+        if (M[k].m > 0.001) drawWorld(k, ox, oy, M[k].m);
+        ctx.restore();
+      });
+      // the lit seams
+      if (P.seam > 0.01) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(${AMBER},${0.95 * P.seam})`; ctx.lineWidth = 1.3;
+        ctx.shadowColor = `rgba(224,150,90,${0.9 * P.seam})`; ctx.shadowBlur = 16;
+        let b = rot;
+        spans.forEach((sp) => {
+          const a0 = b, a1 = b + sp; b = a1;
+          if (sp < 0.02) return;
+          const mid = (a0 + a1) / 2, px = x0 + Math.cos(mid) * e, py = y0 + Math.sin(mid) * e;
+          ctx.beginPath(); ctx.moveTo(px, py); ctx.arc(px, py, R, a0, a1); ctx.closePath(); ctx.stroke();
+        });
+        ctx.restore();
+      }
+    }
+
+    // the moon's lit rim (at rest and while lifting)
+    const rimA = (1 - clamp(P.seam * 2)) * (1 - clamp(P.g - 0.9));
+    if (rimA > 0.01) {
+      const c = charge();
+      ctx.save();
+      ctx.strokeStyle = `rgba(${AMBER},${0.8 * rimA})`; ctx.lineWidth = 1;
+      ctx.shadowColor = `rgba(208,149,96,${(0.45 + c * 0.4) * rimA})`; ctx.shadowBlur = 30 + c * 50;
+      ctx.beginPath(); ctx.arc(x0, y0, R, 0, TAU); ctx.stroke();
+      ctx.restore();
+    }
+
+    // the world names at the rim
+    if (P.lab > 0.01) {
+      ctx.save();
+      ctx.font = `500 ${Wd < 768 ? 9 : 11}px "Archivo Variable", Arial, sans-serif`;
+      try { (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = '0.18em'; } catch { /* older engines */ }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      let a = rot;
+      spans.forEach((sp, k) => {
+        const mid = a + sp / 2; a += sp;
+        if (sp < 0.5) return;
+        const rl = Math.min(R * 0.8, minD * 0.42);
+        const lx = x0 + Math.cos(mid) * rl, ly = y0 + Math.sin(mid) * rl;
+        const name = worlds[order[k]].short.toUpperCase();
+        ctx.globalAlpha = P.lab;
+        ctx.fillStyle = 'rgba(10,8,8,0.4)'; ctx.fillText(name, lx + 1, ly + 1);
+        ctx.fillStyle = '#f4efe6'; ctx.fillText(name, lx, ly);
+      });
+      ctx.restore();
+    }
+
+    // DOM that follows the canvas
+    target.style.setProperty('--cx', `${cx}px`); target.style.setProperty('--cy', `${cy}px`);
+    target.style.setProperty('--Rm', `${((D / 2) * s).toFixed(1)}px`);
+    root.style.setProperty('--open', clamp(P.g - 1).toFixed(3));
     const d = P.dim;
     stage.style.opacity = String((1 - d) * (1 - exit));
     stage.style.transform = `scale(${((1 - 0.06 * d) * (1 + 0.1 * exit)).toFixed(4)})`;
@@ -114,36 +240,12 @@ export function initHeld() {
     clouds.forEach((c) => { c.style.opacity = String(0.9 * (1 - d)); });
     hx.style.opacity = String(1 - exit);
     hx.style.scale = String(1 + 0.1 * exit);
-    rim.style.opacity = String((1 - P.open) * (1 - exit));
     button.style.opacity = String(1 - exit);
     answer.style.visibility = exit > 0.9 ? 'hidden' : '';
-
-    const charge = holding ? clamp(tl.time() / ANSWER_AT) : done ? 1 : 0;
-    root.style.setProperty('--charge', charge.toFixed(3));
-    document.documentElement.style.setProperty('--hold', charge.toFixed(3));
-
-    if (Math.abs(P.rate - shownRate) > 0.05) { shownRate = P.rate; video.playbackRate = Math.min(8, Math.max(0.5, P.rate)); }
-  };
-
-  // ── the light rushing past ──────────────────────────────────────────────────────────────
-  const ctx = canvas.getContext('2d')!;
-  const parts = Array.from({ length: 170 }, () => ({ a: Math.random() * Math.PI * 2, d: Math.random(), v: 0.4 + Math.random() * 0.9, w: 0.6 + Math.random() * 1.6, hot: Math.random() < 0.3 }));
-  const streaks = (dt: number) => {
-    ctx.clearRect(0, 0, Wd, Hd);
-    const k = P.streak;
-    if (k < 0.01) return;
-    const far = cover * 1.05;
-    for (const p of parts) {
-      p.d += dt * p.v * (0.15 + 2.6 * k) * (0.25 + p.d);
-      if (p.d > 1.15) { p.d = Math.random() * 0.08; p.a = Math.random() * Math.PI * 2; }
-      const len = (0.015 + 0.22 * k * p.d) * far;
-      const r0 = p.d * far, r1 = r0 + len;
-      const ca = Math.cos(p.a), sa = Math.sin(p.a);
-      const alpha = k * Math.min(1, p.d * 4) * (p.hot ? 0.9 : 0.45);
-      ctx.strokeStyle = p.hot ? `rgba(255,214,168,${alpha.toFixed(3)})` : `rgba(232,160,98,${alpha.toFixed(3)})`;
-      ctx.lineWidth = p.w * (0.5 + p.d);
-      ctx.beginPath(); ctx.moveTo(cx + ca * r0, cy + sa * r0); ctx.lineTo(cx + ca * r1, cy + sa * r1); ctx.stroke();
-    }
+    const c = charge();
+    root.style.setProperty('--charge', c.toFixed(3));
+    document.documentElement.style.setProperty('--hold', c.toFixed(3));
+    if (Math.abs(video.playbackRate - P.rate) > 0.05) video.playbackRate = Math.min(8, Math.max(0.5, P.rate));
   };
 
   // ── the lines ────────────────────────────────────────────────────────────────────────────
@@ -163,69 +265,70 @@ export function initHeld() {
       onComplete: () => { t.style.visibility = 'hidden'; } });
   };
 
-  // ── the dive ─────────────────────────────────────────────────────────────────────────────
-  // zoom at which the whole disc sits comfortably on screen: 60% of a wide stage, 95% of a phone's width
-  // (the disc is 86% of D wide at zoom 1)
-  const fullZoom = () => ((Wd < 768 ? 0.95 * Wd : 0.6 * Math.min(Wd, Hd * 1.5)) / (0.86 * Math.max(1, D)));
-  const tl = gsap.timeline({ paused: true, onUpdate: render });
-  tl.to(P, { open: 1, duration: 1.2, ease: EASE.inOut }, 0)
-    .to(P, { dim: 1, duration: 0.8, ease: 'power2.out' }, 0)
-    .to(P, { zoom: 1.7, duration: 1.2, ease: 'power2.in' }, 0)
-    .to(P, { zoom: 3.4, duration: 0.9, ease: 'power2.in' }, 1.2)
-    .to(P, { rate: 6, duration: 2.1, ease: 'power1.in' }, 0)
-    .to(P, { streak: 1, duration: 1.5, ease: 'power2.in' }, 0.25);
-  STARTS.forEach((st, k) => {
-    tl.fromTo(W[k], { r: 0 }, { r: 1, duration: 0.62, ease: EASE.inOut, immediateRender: false }, st)
-      .fromTo(W[k], { z: 1.32 }, { z: 1.02, duration: DURS[k] + 0.9, ease: 'power2.out', immediateRender: false }, st)
-      .fromTo(T[k], { f: 0 }, { f: 1, duration: DURS[k], ease: 'none', immediateRender: false }, st)
-      .call(() => showText(k), [], st + 0.22)
-      .call(() => hideText(k), [], st + DURS[k] - 0.05);
-  });
-  tl.call(() => { raised = true; }, [], FIN)
-    .fromTo(P, { ret: 0 }, { ret: 1, duration: 0.85, ease: EASE.inOut, immediateRender: false }, FIN)
-    .to(P, { zoom: () => fullZoom(), duration: 1.5, ease: EASE.out }, FIN)
-    .to(P, { rate: 2.4, duration: 1.8, ease: 'power2.out' }, FIN)
-    .to(P, { streak: 0.2, duration: 1.2, ease: 'power2.out' }, FIN)
-    .call(() => { showText(5); if (!done) { done = true; root.dataset.done = ''; hint.textContent = hint.dataset.again || hint.textContent; } }, [], ANSWER_AT)
+  // ── the timeline ────────────────────────────────────────────────────────────────────────
+  const tl = gsap.timeline({ paused: true });
+  tl.to(P, { g: 1, duration: 0.95, ease: EASE.inOut }, 0)
+    .to(P, { dim: 1, duration: 0.7, ease: 'power2.out' }, 0)
+    .to(P, { guide: 1, duration: 0.9, ease: EASE.out }, 0.25)
+    .to(P, { sp: 0.32, rate: 2.5, duration: 1.2, ease: 'power2.inOut' }, 0)
+    // part
+    .to(P, { seam: 1, duration: 0.45, ease: EASE.out }, 0.85)
+    .to(P, { ex: 0.022, duration: 0.9, ease: EASE.out }, 0.95)
+    .to(P, { lab: 1, duration: 0.6, ease: 'power1.out' }, 1.3);
+  M.forEach((q, k) => tl.to(q, { m: 1, duration: 0.8, ease: EASE.inOut }, 1.15 + 0.14 * k));
+  // bloom
+  tl.to(P, { g: 2, duration: 1.1, ease: EASE.inOut }, 2.4)
+    .to(P, { ex: 0.008, duration: 1.1, ease: EASE.inOut }, 2.4)
+    .to(P, { guide: 0, duration: 0.5 }, 2.4)
+    .to(P, { lab: 0, duration: 0.4 }, 3.0)
+    .to(P, { sp: 0.14, duration: 1 }, 2.4);
+  // dial: each world sweeps round to take the screen
+  for (let k = 0; k < 5; k++) {
+    const t = DIAL0 + k * DIAL_STEP;
+    Wt.forEach((q, j) => tl.to(q, { w: j === k ? 1 : 0.003, duration: 0.6, ease: EASE.inOut }, t));
+    tl.call(() => showText(k), [], t + 0.3).call(() => hideText(k), [], t + DIAL_STEP - 0.08);
+  }
+  // close
+  Wt.forEach((q) => tl.to(q, { w: 1, duration: 0.7, ease: EASE.inOut }, CLOSE));
+  tl.to(P, { g: 1, duration: 0.9, ease: EASE.inOut }, CLOSE + 0.2)
+    .to(P, { ex: 0.022, duration: 0.6 }, CLOSE + 0.2)
+    .to(P, { lab: 1, duration: 0.5 }, CLOSE + 0.5)
+    .to(P, { guide: 0.6, duration: 0.6 }, CLOSE + 0.9)
+    .to(P, { lab: 0, duration: 0.4 }, CLOSE + 1.1)
+    .to(P, { ex: 0, duration: 0.6, ease: EASE.inOut }, CLOSE + 1.2)
+    .to(P, { seam: 0, rate: 3, duration: 0.8 }, CLOSE + 1.3);
+  M.forEach((q, j) => tl.to(q, { m: 0, duration: 0.7, ease: EASE.inOut }, CLOSE + 0.9 + 0.08 * j));
+  tl.call(() => { showText(5); if (!done) { done = true; root.dataset.done = ''; hint.textContent = hint.dataset.again || hint.textContent; } }, [], ANSWER_AT)
     .to({}, { duration: 0.6 });
 
   // ── press / release ─────────────────────────────────────────────────────────────────────
-  let collapse: gsap.core.Tween | null = null;
-  let looping = false, last = 0;
-  const loop = (time: number) => { const dt = last ? Math.min(0.05, time - last) : 0.016; last = time; streaks(dt); };
-  const startLoop = () => { if (!looping) { looping = true; last = 0; gsap.ticker.add(loop); } };
-  const stopLoop = () => { if (looping) { looping = false; gsap.ticker.remove(loop); ctx.clearRect(0, 0, Wd, Hd); } };
+  let collapse: gsap.core.Timeline | null = null;
+  let running = false;
+  const tick = (_t: number, dtMs: number) => { rot += (P.sp * Math.min(dtMs, 64)) / 1000; draw(); };
+  const wake = () => { if (!running) { running = true; gsap.ticker.add(tick); } };
+  const sleep = () => { if (running && !holding) { running = false; gsap.ticker.remove(tick); } };
 
-  const reset = () => {
-    tl.pause(0);
-    raised = false; P.ret = 0;
-    W.forEach((w) => { w.r = 0; w.z = 1.3; }); T.forEach((t) => { t.f = 0; });
-    worldEls.forEach((el) => { el.style.opacity = ''; });
-    texts.forEach((t) => { t.style.visibility = 'hidden'; });
-    if (header) header.dataset.hidden = 'false';
-    render();
-    stopLoop();
-  };
   const press = (e?: Event) => {
     if (e?.cancelable) e.preventDefault();
     if (holding) return;
+    loadSources();
     holding = true; root.dataset.holding = '';
     collapse?.kill(); collapse = null;
-    worldEls.forEach((el) => { gsap.killTweensOf(el); el.style.opacity = ''; });
     if (video.paused) video.play().catch(() => {});
     if (header) header.dataset.hidden = 'true';
     tl.invalidate().restart();
-    startLoop();
+    wake();
   };
   const release = () => {
     if (!holding) return;
     holding = false; delete root.dataset.holding;
     tl.pause();
     texts.forEach((_, i) => hideText(i, true));
-    gsap.to(worldEls, { opacity: 0, duration: 0.45, delay: 0.35, ease: 'power1.in' });
-    collapse = gsap.to(P, { open: 0, dim: 0, zoom: 1, rate: 1, streak: 0, duration: 0.95, ease: EASE.inOut, onUpdate: render, onComplete: reset });
+    collapse = gsap.timeline({ onComplete: () => { tl.pause(0); if (header) header.dataset.hidden = 'false'; } })
+      .to(P, { ...REST, duration: 1.0, ease: EASE.inOut }, 0)
+      .to(Wt, { w: 1, duration: 0.6, ease: EASE.inOut }, 0)
+      .to(M, { m: 0, duration: 0.6, ease: EASE.inOut }, 0.15);
   };
-
   for (const el of [target, button]) {
     el.addEventListener('pointerdown', (e) => { if (e.button !== 0) return; el.setPointerCapture?.(e.pointerId); press(e); });
     el.addEventListener('pointerup', release);
@@ -238,21 +341,21 @@ export function initHeld() {
   button.addEventListener('blur', release);
   addEventListener('blur', release);
 
+  // The frame loop runs while the scene is on screen (the footage needs redrawing anyway), and while held.
+  new IntersectionObserver(([e]) => {
+    if (e.isIntersecting) { loadSources(); video.play().catch(() => {}); wake(); }
+    else { release(); video.pause(); sleep(); }
+  }, { rootMargin: '30% 0px' }).observe(root);
+
   // ── scroll: the moon arrives, the scene departs ─────────────────────────────────────────
   ScrollTrigger.create({
     trigger: root, start: 'top bottom', end: 'bottom bottom', scrub: 0.5,
-    onUpdate: (self) => {
-      const p = self.progress;
-      s = lerp(0.3, 1, EASE.inOut(clamp(p / 0.42)));
-      exit = EASE.in(clamp((p - 0.86) / 0.14));
-      render();
-    },
-    onRefresh: () => { measure(); render(); },
+    onUpdate: (self) => { const p = self.progress; s = lerp(0.3, 1, EASE.inOut(clamp(p / 0.42))); exit = EASE.in(clamp((p - 0.86) / 0.14)); },
+    onRefresh: () => measure(),
   });
   gsap.fromTo(clouds, { y: (i) => (i ? 180 : 120) }, { y: (i) => (i ? -260 : -180), ease: 'none', scrollTrigger: { trigger: root, start: 'top bottom', end: 'bottom bottom', scrub: 0.5 } });
   ScrollTrigger.create({ trigger: root, start: 'top bottom', end: 'bottom top', onLeave: release, onLeaveBack: release });
   ScrollTrigger.create({ trigger: root, start: 'top top', onEnter: () => { root.dataset.ground = ''; }, onLeaveBack: () => { delete root.dataset.ground; } });
-  addEventListener('resize', () => { measure(); render(); });
+  addEventListener('resize', measure);
   measure();
-  render();
 }

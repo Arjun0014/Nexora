@@ -44,9 +44,9 @@ p { text-wrap: pretty; }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--mark, var(--amber)); outline-offset: 3px; border-radius: 1px; }
 
-@view-transition { navigation: auto; }
+/* Page changes are designed (src/scripts/transition.ts); the browser's cross-document transition would hold the
+   old page on screen, frozen, until the next one could paint. */
 @media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 

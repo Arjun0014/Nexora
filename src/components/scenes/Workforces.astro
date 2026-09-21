@@ -5,9 +5,11 @@
  *
  *   gate    WORKFORCES is knocked out of the sky; a photograph of people at work shows through it. Scrolling flies
  *           into the O until the photograph is the whole stage, arriving at its natural scale (never over-zoomed).
- *   morph   the photograph's box shrinks from the viewport to the front card's box while the ground takes the
- *           Hospitality colour and the copy arrives beside it.
- *   deck    the throwable stack (src/scripts/deck.ts). Each throw changes the WHOLE scene's ground.
+ *   morph   the photograph's box shrinks from the stage to the front card's box, leaving its own light behind.
+ *   deck    the throwable stack (src/scripts/deck.ts), centred over the world's name set as a monument across
+ *           the whole width (ERA's image-over-type). The ground is the active photograph itself, blurred deep and
+ *           darkened, so the colour always belongs to the picture and changes with every throw. Description and
+ *           roles sit small in the lower corners.
  * Driven by src/scripts/scenes/workforces.ts.
  */
 import { worlds } from '../../data/worlds';
@@ -15,27 +17,27 @@ import { stock } from '../../data/stock';
 import Arrow from '../ui/Arrow.astro';
 const first = stock.workforces[worlds[0].id];
 ---
-<section class="wfx" id="workforces" data-wfx data-deck data-bg="light" data-sector={worlds[0].id} data-cursor-zone="deck" aria-labelledby="wfx-h">
+<section class="wfx" id="workforces" data-wfx data-deck data-bg="dark" data-sector={worlds[0].id} data-cursor-zone="deck" aria-labelledby="wfx-h">
   <div class="wfx__stage" data-wfx-stage>
     <!-- DECK (under everything until the morph lands) -->
     <div class="wfx__deck" data-wfx-deck>
-      <div class="wfx__copy">
-        <p class="label wfx__label"><span>Five workforces</span><span class="wfx__count"><span data-deck-count>01</span> / 0{worlds.length}</span></p>
-        <h2 id="wfx-h" class="sr-only">The five workforces Nexora supplies</h2>
-        <div class="wfx__panels">
-          {worlds.map((w, i) => (
-            <article class="wfx__panel" data-deck-panel={w.id} data-sector={w.id} data-on={i === 0 ? 'true' : 'false'}>
-              <h3 class="display wfx__title">{w.titleLines.map((l) => <span class="wfx__tl"><span>{l}</span></span>)}</h3>
-              <p class="wfx__line">{w.line}</p>
-              <ul class="wfx__roles">{w.roles.map((r) => <li>{r}</li>)}</ul>
-              <div class="wfx__ctas">
-                <a class="tlink label" href={`/request/?workforce=${w.id}`} data-cursor="Request">Request this workforce<Arrow /></a>
-                <a class="tlink label wfx__more" href={`/services/#${w.id}`} data-cursor="Explore">About {w.short.toLowerCase()}</a>
-              </div>
-            </article>
-          ))}
-        </div>
+      <div class="wfx__amb" aria-hidden="true">
+        {worlds.map((w, i) => (
+          <img class="wfx__ambimg" data-deck-panel={w.id} data-on={i === 0 ? 'true' : 'false'} src={stock.workforces[w.id].card.replace('-960', '-640')} alt="" width="640" height="800" loading="lazy" decoding="async" />
+        ))}
       </div>
+
+      <h2 id="wfx-h" class="sr-only">The five workforces Nexora supplies</h2>
+      <div class="wfx__monos" aria-hidden="true">
+        {worlds.map((w, i) => (
+          <p class="wfx__mono display" data-deck-panel={w.id} data-mono={w.id} data-on={i === 0 ? 'true' : 'false'}>{w.short}</p>
+        ))}
+      </div>
+
+      <header class="wfx__top">
+        <p class="label">Five workforces</p>
+        <p class="label wfx__count"><span data-deck-count>01</span> / 0{worlds.length}</p>
+      </header>
 
       <div class="wfx__deckcol">
         <ol class="wfx__stack" data-deck-stack data-cursor="Drag" tabindex="0" role="group" aria-label="Workforces. Drag or throw the top card, or use the arrow keys.">
@@ -51,10 +53,26 @@ const first = stock.workforces[worlds[0].id];
         </ol>
         <div class="wfx__controls">
           <button class="wfx__btn" type="button" data-deck-prev aria-label="Previous workforce"><Arrow class="wfx__back" /></button>
-          <p class="label wfx__hint">Drag or throw the card</p>
+          <p class="label wfx__hint">Drag or throw</p>
           <button class="wfx__btn" type="button" data-deck-next aria-label="Next workforce"><Arrow /></button>
         </div>
         <p class="sr-only" aria-live="polite" data-deck-live></p>
+      </div>
+
+      <div class="wfx__panels">
+        {worlds.map((w, i) => (
+          <article class="wfx__panel" data-deck-panel={w.id} data-sector={w.id} data-on={i === 0 ? 'true' : 'false'}>
+            <div class="wfx__about">
+              <h3 class="label wfx__title"><i class="wfx__dot" aria-hidden="true"></i>{w.n} — {w.title}</h3>
+              <p class="wfx__line">{w.line}</p>
+              <a class="tlink label" href={`/request/?workforce=${w.id}`} data-cursor="Request">Request this workforce<Arrow /></a>
+            </div>
+            <div class="wfx__rolesbox">
+              <p class="label wfx__rk">Typical roles</p>
+              <ul class="wfx__roles">{w.roles.map((r) => <li>{r}</li>)}</ul>
+            </div>
+          </article>
+        ))}
       </div>
     </div>
 
@@ -71,95 +89,91 @@ const first = stock.workforces[worlds[0].id];
 </section>
 
 <style>
-  .wfx {
-    --ground: var(--g-hospitality);
-    position: relative; color: var(--ink);
-  }
+  .wfx { position: relative; color: var(--bone); }
   :global(html.motion) .wfx { height: 430vh; height: 430svh; }
-  .wfx__stage { position: relative; min-height: 100svh; overflow: clip; background: var(--ground); transition: background-color 900ms var(--ease-out); }
+  .wfx__stage { position: relative; min-height: 100svh; overflow: clip; background: #16110f; }
   :global(html.motion) .wfx__stage { position: sticky; top: 0; height: 100vh; height: 100svh; }
 
   /* ── deck ── */
-  .wfx__deck {
-    position: absolute; inset: 0; z-index: 1; /* its own stacking context: the cards stay under the morphing photo */
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
-    column-gap: clamp(2rem, 4vw, 5rem);
-    padding: calc(var(--header-h) + 2vh) var(--margin) 5vh calc(var(--margin) + 2vw);
-    max-width: 112rem; margin-inline: auto;
-  }
-  .wfx__copy { align-self: stretch; display: grid; grid-template-rows: auto 1fr; max-width: 40rem; justify-self: end; width: 100%; }
-  .wfx__label { display: flex; justify-content: space-between; gap: 2rem; padding-block-end: 1rem; border-block-end: 1px solid var(--line); }
-  .wfx__count { font-variant-numeric: tabular-nums; }
-  .wfx__panels { position: relative; }
-  .wfx__panel { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 1.6rem; opacity: 0; visibility: hidden; transition: opacity 360ms linear, visibility 0s 360ms; }
-  .wfx__panel[data-on='true'] { opacity: 1; visibility: visible; transition: opacity 500ms linear 120ms, visibility 0s; }
-  .wfx__title { font-size: clamp(3.2rem, 6.2vw, 7.6rem); }
-  .wfx__tl { display: block; overflow: clip; padding-block-end: 0.04em; }
-  .wfx__tl > span { display: block; }
-  :global(html.motion) .wfx__panel[data-on='true'] .wfx__tl > span { animation: wfx-rise 1100ms var(--ease-out) backwards; }
-  :global(html.motion) .wfx__panel[data-on='true'] .wfx__tl:nth-child(2) > span { animation-delay: 80ms; }
-  @keyframes wfx-rise { from { transform: translateY(105%); } }
-  .wfx__line { font-size: var(--t-lead); line-height: 1.45; max-width: 30rem; }
-  .wfx__roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem 2rem; max-width: 34rem; font-size: var(--t-small); color: var(--ink-soft); }
-  .wfx__roles li { padding-block-start: 0.55rem; border-block-start: 1px solid var(--line); }
-  .wfx__ctas { display: flex; flex-wrap: wrap; gap: 0.5rem 2.5rem; margin-block-start: 0.4rem; }
-  .wfx__more { opacity: 0.75; }
+  .wfx__deck { position: absolute; inset: 0; z-index: 1; /* its own stacking context: the cards stay under the morphing photo */ }
 
-  .wfx__deckcol { display: grid; justify-items: center; gap: 1.6rem; }
-  .wfx__stack { --cardH: min(68vh, 44rem); position: relative; width: calc(var(--cardH) * 0.8); height: var(--cardH); touch-action: pan-y; }
+  /* The ground IS the photograph: blurred deep, darkened, a touch more saturated. Cross-fades with each throw. */
+  .wfx__amb { position: absolute; inset: 0; overflow: hidden; }
+  .wfx__amb::after { content: ''; position: absolute; inset: 0; background:
+    radial-gradient(80% 70% at 50% 45%, transparent 0%, rgba(10, 7, 6, 0.55) 100%), linear-gradient(180deg, rgba(10, 7, 6, 0.25), rgba(10, 7, 6, 0.55)); }
+  .wfx__ambimg { position: absolute; inset: -12%; width: 124%; height: 124%; max-width: none; object-fit: cover;
+    filter: blur(48px) brightness(0.62) saturate(1.25); transform: scale(1.1); opacity: 0; transition: opacity 1100ms var(--ease-out); }
+  .wfx__ambimg[data-on='true'] { opacity: 1; }
+
+  /* The world's name, as a monument behind the stack. */
+  .wfx__monos { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+  .wfx__mono { grid-area: 1 / 1; font-size: clamp(5rem, 19vw, 24rem); line-height: 0.8; color: var(--bone); opacity: 0; translate: 0 -2vh; white-space: nowrap; perspective: 1200px; }
+  .wfx__mono[data-on='true'] { opacity: 0.94; }
+  .wfx__mono :global(.char) { display: inline-block; transform-origin: 50% 85%; }
+
+  .wfx__top { position: absolute; top: calc(var(--header-h) + 1.5vh); inset-inline: var(--margin); display: flex; justify-content: space-between; }
+  .wfx__count { font-variant-numeric: tabular-nums; }
+
+  .wfx__deckcol { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: grid; justify-items: center; gap: 1.4rem; }
+  .wfx__stack { --cardH: min(60vh, 40rem); position: relative; width: calc(var(--cardH) * 0.8); height: var(--cardH); touch-action: pan-y; }
   .wfx__stack:focus-visible { outline-offset: 12px; }
   .wfx__card {
-    position: absolute; inset: 0; border-radius: 6px; overflow: hidden;
-    background: #d9cfc0;
-    box-shadow: 0 30px 60px -30px rgba(28, 27, 46, 0.45), 0 2px 6px rgba(28, 27, 46, 0.08);
-    transform-origin: 50% 140%;
-    -webkit-user-select: none; user-select: none;
+    position: absolute; inset: 0; border-radius: 6px; overflow: hidden; background: #2a211c;
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(244, 239, 230, 0.08);
+    transform-origin: 50% 140%; -webkit-user-select: none; user-select: none;
   }
   .wfx__card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-  .wfx__cardfoot {
-    position: absolute; inset-inline: 0; bottom: 0; display: flex; justify-content: space-between;
-    padding: 3.2rem 1.2rem 1.1rem; color: var(--bone);
-    background: linear-gradient(0deg, rgba(20, 16, 14, 0.55), transparent);
-  }
+  .wfx__cardfoot { position: absolute; inset-inline: 0; bottom: 0; display: flex; justify-content: space-between; padding: 3.2rem 1.2rem 1.1rem; color: var(--bone); background: linear-gradient(0deg, rgba(14, 10, 8, 0.6), transparent); }
   [data-deck][data-live] .wfx__card[data-depth='0'] { cursor: grab; }
   [data-deck][data-live][data-dragging] .wfx__card[data-depth='0'] { cursor: grabbing; }
 
-  .wfx__controls { display: flex; align-items: center; gap: 1.4rem; }
-  .wfx__btn { width: 3.25rem; height: 3.25rem; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center; transition: background-color var(--d-state) ease, color var(--d-state) ease; }
-  .wfx__btn:hover, .wfx__btn:focus-visible { background: var(--ink); color: var(--ground); }
+  .wfx__controls { display: flex; align-items: center; gap: 1.2rem; }
+  .wfx__btn { width: 3rem; height: 3rem; border-radius: 50%; border: 1px solid rgba(244, 239, 230, 0.4); display: grid; place-items: center; transition: background-color var(--d-state) ease, color var(--d-state) ease; }
+  .wfx__btn:hover, .wfx__btn:focus-visible { background: var(--bone); color: var(--ink); }
   .wfx__back { rotate: 180deg; }
-  .wfx__hint { opacity: 0.7; min-width: 12em; text-align: center; }
+  .wfx__hint { opacity: 0.7; min-width: 8em; text-align: center; }
+
+  .wfx__panels { position: absolute; inset: auto var(--margin) 5vh; pointer-events: none; }
+  .wfx__panel { position: absolute; inset-inline: 0; bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; opacity: 0; visibility: hidden; transition: opacity 360ms linear, visibility 0s 360ms; }
+  .wfx__panel[data-on='true'] { opacity: 1; visibility: visible; transition: opacity 600ms linear 200ms, visibility 0s; }
+  .wfx__panel[data-on='true'] a { pointer-events: auto; }
+  .wfx__about, .wfx__rolesbox { width: min(22rem, calc((100vw - min(60vh, 40rem) * 0.8) / 2 - var(--margin) - 3rem)); display: grid; gap: 0.9rem; }
+  .wfx__title { display: flex; align-items: center; gap: 0.7em; color: var(--bone); }
+  .wfx__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); flex: none; }
+  .wfx__line { font-size: var(--t-small); line-height: 1.55; color: var(--bone-soft); }
+  .wfx__rk { opacity: 0.7; }
+  .wfx__roles { display: grid; gap: 0.2rem; font-size: 0.8125rem; color: var(--bone-soft); }
+  .wfx__rolesbox { text-align: right; justify-items: end; }
 
   /* ── gate ── */
   .wfx__photo { position: absolute; z-index: 2; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; will-change: left, top, width, height; }
   .wfx__photo img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
   .wfx__mask { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
-  .wfx__gateui { position: absolute; inset: auto var(--margin) 6vh; z-index: 4; display: flex; justify-content: space-between; pointer-events: none; transition: opacity 300ms linear; }
+  .wfx__gateui { position: absolute; inset: auto var(--margin) 6vh; z-index: 4; display: flex; justify-content: space-between; pointer-events: none; transition: opacity 300ms linear; color: var(--ink); }
 
   /* While the gate runs, the deck's own cards and copy wait underneath. */
   :global(html.motion) .wfx:not([data-landed]) .wfx__card[data-depth='0'] { visibility: hidden; }
   :global(html.motion) .wfx:not([data-landed]) .wfx__card:not([data-depth='0']) { translate: 0 calc((1 - var(--under, 0)) * 70px); filter: opacity(var(--under, 0)); }
-  :global(html.motion) .wfx .wfx__copy, :global(html.motion) .wfx .wfx__controls { opacity: var(--copy, 0); }
+  :global(html.motion) .wfx .wfx__panels, :global(html.motion) .wfx .wfx__controls, :global(html.motion) .wfx .wfx__top, :global(html.motion) .wfx .wfx__monos { opacity: var(--copy, 0); }
   :global(html.motion) .wfx[data-landed] .wfx__photo { visibility: hidden; }
 
-  /* No motion: the gate is a still word over the photograph, then the deck as a plain list. */
-  :global(html:not(.motion)) .wfx__photo, :global(html:not(.motion)) .wfx__mask, :global(html:not(.motion)) .wfx__gateui { display: none; }
-  :global(html:not(.motion)) .wfx__deck { position: static; display: block; }
+  /* No motion: the gate is skipped, the deck is a plain list. */
+  :global(html:not(.motion)) .wfx__photo, :global(html:not(.motion)) .wfx__mask, :global(html:not(.motion)) .wfx__gateui, :global(html:not(.motion)) .wfx__monos { display: none; }
+  :global(html:not(.motion)) .wfx__deck { position: relative; display: grid; gap: 3rem; padding: calc(var(--header-h) + 2rem) var(--margin) 4rem; overflow: hidden; }
+  :global(html:not(.motion)) .wfx__top, :global(html:not(.motion)) .wfx__deckcol, :global(html:not(.motion)) .wfx__panels, :global(html:not(.motion)) .wfx__panel { position: relative; inset: auto; translate: none; opacity: 1; visibility: visible; }
+  :global(html:not(.motion)) .wfx__panels { display: grid; gap: 2.5rem; }
   [data-deck]:not([data-live]) .wfx__stack { width: auto; height: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--gutter); }
   [data-deck]:not([data-live]) .wfx__card { position: relative; aspect-ratio: 4 / 5; }
   [data-deck]:not([data-live]) .wfx__controls { display: none; }
   [data-deck]:not([data-live]) .wfx__deckcol { justify-items: stretch; }
-  [data-deck]:not([data-live]) .wfx__panel { position: static; opacity: 1; visibility: visible; margin-block: 3rem; }
 
   @media (max-width: 899px) {
-    .wfx__deck { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; row-gap: 1rem; padding: calc(var(--header-h) + 1vh) var(--margin) 3vh; }
-    .wfx__copy { justify-self: stretch; max-width: none; grid-template-rows: auto; }
-    .wfx__panels { min-height: 13rem; }
-    .wfx__panel { justify-content: start; padding-block-start: 1rem; gap: 0.8rem; }
-    .wfx__title { font-size: clamp(2.4rem, 11vw, 4rem); }
-    .wfx__line { font-size: 1rem; }
-    .wfx__roles, .wfx__more { display: none; }
-    .wfx__stack { --cardH: min(46vh, 118vw); }
-    .wfx__deckcol { align-self: end; }
+    .wfx__mono { font-size: clamp(3rem, 17vw, 7rem); translate: 0 -31vh; }
+    .wfx__stack { --cardH: min(46vh, 112vw); }
+    .wfx__deckcol { top: 52%; }
+    .wfx__panels { bottom: 3vh; }
+    .wfx__rolesbox { display: none; }
+    .wfx__about { width: 100%; }
+    .wfx__line { display: none; }
   }
 </style>

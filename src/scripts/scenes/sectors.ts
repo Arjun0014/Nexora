@@ -13,7 +13,7 @@
  *                         picture wipes in on a slanted edge from the right while settling from 1.4x.
  */
 import words from '../../data/words.json';
-import { $, $$, clamp, lerp } from '../core/env';
+import { $, $$, clamp, lerp, whenNear } from '../core/env';
 import { gsap, ScrollTrigger, SplitText, EASE, DUR } from '../core/motion';
 import { scrollToTarget } from '../core/scroll';
 
@@ -37,19 +37,22 @@ export function initSectors() {
   const puffs = $$('[data-sgx-puff]', root);
   const slides = $$('[data-sgx-slide]', root);
   const names = $$('[data-sgx-name]', root);
+  const namesOver = $$('[data-sgx-name-over]', root);
+  const overList = $('[data-sgx-over-names]', root)!;
+  const windowEl = $('[data-sgx-window]', root)!;
   const details = $$('[data-sgx-detail]', root);
   const jumps = $$<HTMLButtonElement>('[data-sgx-jump]', root);
   const nEl = $('[data-sgx-n]', root)!;
   const bar = $('[data-sgx-bar]', root)!;
   const N = names.length;
-  cityImg.loading = 'eager';
+  whenNear(root, () => { cityImg.loading = 'eager'; });
 
   // ── the cloud bank ──────────────────────────────────────────────────────────────────────
   gsap.timeline({ scrollTrigger: { trigger: root, start: 'top bottom', end: 'top top', scrub: 0.4 } })
     // It starts BELOW the section's edge, so the deck is clear while it can still be thrown; rising faster than
     // the page, it overtakes the deck only as the deck leaves.
-    .fromTo(bank, { y: '50vh' }, { y: '-26vh', ease: 'none' }, 0)
-    .fromTo(puffs, { y: '60vh' }, { y: (i) => `${-(i ? 60 : 40)}vh`, ease: 'none' }, 0);
+    .fromTo(bank, { y: '56vh' }, { y: '-26vh', ease: 'none' }, 0)
+    .fromTo(puffs, { y: '95vh' }, { y: (i) => `${-(i ? 60 : 40)}vh`, ease: 'none' }, 0);
 
   // ── the gate ────────────────────────────────────────────────────────────────────────────
   let W = 1, H = 1, lastT = -1;
@@ -91,7 +94,13 @@ export function initSectors() {
   };
 
   // ── the index ───────────────────────────────────────────────────────────────────────────
-  const splits = names.map((n) => new SplitText(n, { type: 'words,chars', wordsClass: 'word', charsClass: 'char' }));
+  const split = (n: HTMLElement) => new SplitText(n, { type: 'words,chars', wordsClass: 'word', charsClass: 'char' }).chars as HTMLElement[];
+  const splits = names.map((n, i) => ({ chars: [...split(n), ...split(namesOver[i])] }));
+  // clip the bone copy to the picture window (both are fixed in the stage, so this only changes on resize)
+  const clipOver = () => {
+    const w = windowEl.getBoundingClientRect(), o = overList.getBoundingClientRect();
+    overList.style.clipPath = `inset(${(w.top - o.top).toFixed(1)}px ${(o.right - w.right).toFixed(1)}px ${(o.bottom - w.bottom).toFixed(1)}px ${(w.left - o.left).toFixed(1)}px)`;
+  };
   let step = 0;
   const goTo = (next: number) => {
     if (next === step) return;
@@ -100,8 +109,9 @@ export function initSectors() {
     step = next;
     // Name: out upwards, in from below (or the reverse going back).
     gsap.to(splits[prev].chars, { rotateX: 90 * dir, yPercent: -40 * dir, opacity: 0, duration: DUR.s, ease: EASE.in, stagger: 0.012, overwrite: true,
-      onComplete: () => { if (step !== prev) names[prev].removeAttribute('data-on'); } });
+      onComplete: () => { if (step !== prev) { names[prev].removeAttribute('data-on'); namesOver[prev].removeAttribute('data-on'); } } });
     names[next].setAttribute('data-on', '');
+    namesOver[next].setAttribute('data-on', '');
     gsap.fromTo(splits[next].chars, { rotateX: -90 * dir, yPercent: 40 * dir, opacity: 0 },
       { rotateX: 0, yPercent: 0, opacity: 1, duration: DUR.l, ease: EASE.out, stagger: 0.02, delay: 0.12, overwrite: true });
     // Picture: slanted wipe from the leading side, settling from 1.4x.
@@ -138,7 +148,7 @@ export function initSectors() {
   trig = ScrollTrigger.create({
     trigger: root, start: 'top top', end: 'bottom bottom', scrub: true,
     onUpdate: (self) => render(self.progress),
-    onRefresh: (self) => { measure(); render(self.progress); },
+    onRefresh: (self) => { measure(); clipOver(); render(self.progress); },
   });
   measure();
   render(0);
