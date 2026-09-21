@@ -170,6 +170,7 @@ const city = stock.doha.skyline;
   :global(html:not(.motion)) .sgx__index { padding: calc(var(--header-h) + 2rem) var(--margin) 4rem; display: grid; gap: 2rem; }
   :global(html:not(.motion)) .sgx__details { display: grid; gap: 3rem; }
 
+  @media (max-width: 1199px) { .sgx__list { gap: 0.6rem; } .sgx__jump { font-size: 0.55rem; letter-spacing: 0.06em; } }
   @media (max-width: 899px) {
     .sgx__window { width: 86vw; top: 36%; }
     .sgx__names { top: calc(36% + 86vw / 3 - 0.3em); font-size: clamp(2.4rem, 11vw, 4.5rem); }

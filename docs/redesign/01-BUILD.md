@@ -1,3 +1,5 @@
+> **Superseded** for everything after the hero by `02-DIRECTION-V3.md` / `03-BUILD-V3.md` (session 3). The hero sections still apply.
+
 # What was built — session 2
 
 Companion to `00-DIRECTION.md` (the decisions) and `research/` (the evidence). This file is the engineering

@@ -1,3 +1,5 @@
+> **Superseded** for everything after the hero by `02-DIRECTION-V3.md` / `03-BUILD-V3.md` (session 3). The hero sections still apply.
+
 # Nexora — post-hero design direction
 
 Written after studying the sites in `research/awwwards-study.md` and the interaction references in

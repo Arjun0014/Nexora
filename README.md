@@ -1,11 +1,12 @@
 # Nexora — website
 
 Website for **Nexora Hospitality and Services W.L.L.** (Doha, Qatar · CR 250993).
-A cinematic, gesture-stepped hero — *One world, many workforces* — followed by a sequence of art-directed
-chapters with two conversion paths: employers request workforce, candidates register a CV.
+A cinematic, gesture-stepped hero — *One world, many workforces* — and then one continuous scroll film,
+from night into a Doha day and back to dusk, with two conversion paths: employers request workforce,
+candidates register a CV.
 
-Static site · Astro 7 · TypeScript · no UI framework · no animation or scroll libraries
-(~21 KB of JS, ~18 KB of CSS, gzipped).
+Static site · Astro 7 · TypeScript · no UI framework · GSAP (ScrollTrigger, SplitText, CustomEase) + Lenis
+(~79 KB of JS, ~19 KB of CSS, gzipped).
 
 ```
 npm install
@@ -56,21 +57,24 @@ promises, payroll/EOR/visa/healthcare claims, or construction — see
 ## Project map
 
 ```
-media/                       approved originals — never modified
+media/                       approved originals — never modified (hero/, clouds/, stock/ + stock/SOURCES.md)
 nexora_website_context/      the brief
-docs/redesign/               CURRENT: 00-DIRECTION (decisions), 01-BUILD (engineering), research/
-docs/implementation/         session 1. 04 and 06-10 still apply; 00, 02, 03 and 05 describe the rejected design
-scripts/build-media.mjs      originals → public/media + src/data/media-manifest.json
+docs/redesign/               CURRENT: 02-DIRECTION-V3 (decisions), 03-BUILD-V3 (engineering). 00/01 = session 2, superseded
+docs/implementation/         session 1. 04 (the hero) still applies
+scripts/build-media.mjs      hero originals → public/media + src/data/media-manifest.json
+scripts/build-stock.mjs      stock originals → public/media/stock, graded to one look (manifest: src/data/stock.json)
+scripts/build-clouds.mjs     cloud originals → public/media/clouds (+ copies tinted to the grounds)
 scripts/build-wordmark.mjs   font outline → src/data/wordmark.json, public/wordmark.svg, favicon
-scripts/build-words.mjs      outlines the chapter-gate words → src/data/words.json
-public/media/                generated derivatives (commit these; CI then needs no ffmpeg)
-src/data/                    ALL copy and configuration
+scripts/build-words.mjs      outlines the gate words → src/data/words.json
+src/data/                    ALL copy and configuration (content.ts, worlds.ts, site.ts, stock.json)
 src/components/hero/         the film's markup and CSS
-src/components/chapters/     the seven post-hero chapters + the zoom gate
-src/scripts/hero/            timeline · input · loader · renderer · mask · ui · index (state machine)
-src/scripts/                 intro, zoom, deck, turning, cursor, sound, header, menu, reveal, forms, motion
+src/components/scenes/       the homepage scenes: Portal, Held, Workforces, Sectors, Engagement, Expect,
+                             Employers, Candidates, Closing (subpages)
+src/scripts/core/            motion (the eases), scroll (Lenis), ticker, env
+src/scripts/scenes/          one driver per scene + footer
+src/scripts/                 intro, deck, cursor, header, menu, pagehead, reveal, forms, motion toggle
 src/pages/                   index, services, industries, about, request, careers, contact, privacy, 404
-.qa/                         QA harness: probes, contact-sheet scripts, and a static server for dist
+.qa/                         QA harness: frames.sh (scroll contact sheets), probes, a static server for dist
 ```
 
 ## The hero in one paragraph
@@ -80,16 +84,17 @@ arrow key — plays one whole transition** at the footage's own 24 fps to the ne
 it backwards. Gestures that arrive mid-transition are queued (up to two), speed the playback up and chain
 without a pause. The playhead only ever rests on a stop, so the film can never be left between states, and it is
 clamped to the frames that have actually arrived, so a slow network makes it lag rather than flash. The entry
-clip is joined 44 frames in, inside the motion-blurred spin, so any loop frame can hand off to it. It ends on a
+clip is joined 20 frames in (0.8 s), just as the spin starts, through a 340 ms cross-fade from the loop. It ends on a
 title card: NEXORA knocked out of black, scaled down from inside the X; from there the page scrolls natively,
-and scrolling back to the top re-enters the film at that title card. Full detail:
+and scrolling back to the top re-enters the film at that title card. A reload always starts at the top, and the
+intro runs on every load. Full detail:
 `docs/redesign/01-BUILD.md` §1 and `docs/implementation/04-HERO-IMPLEMENTATION.md`.
 
 Three rendering modes are chosen **before first paint** (inline script in `src/layouts/Base.astro`):
 
 | Mode | When | Hero |
 |---|---|---|
-| `cinema` | JS on, motion allowed, network OK | the stepped film, after a 6.5 s intro that really preloads it |
+| `cinema` | JS on, motion allowed, network OK | the stepped film, after a 5–7.5 s intro that really preloads it and ends through a circular aperture |
 | static | reduced motion · Save-Data / 2g–3g · footer “Reduce motion” toggle | six ordinary sections with the high-res stills; loop video never requested; no intro |
 | no-JS | scripting off | same as static; header scrolls away; the stack is a list; gates set their word as type |
 
@@ -98,21 +103,26 @@ QA switches: `?nointro` skips the intro · `?stop=N` boots the hero onto stop N 
 
 ## The site after the hero
 
-Seven chapters on an evolving, dark-anchored grade — never alternating flat black and flat white. Full
-reasoning and the references behind each decision: `docs/redesign/00-DIRECTION.md`.
+One continuous film: every scene is born inside the previous one (ERA Residence's principle). Decisions and the
+reference behind each: `docs/redesign/02-DIRECTION-V3.md`. Engineering: `docs/redesign/03-BUILD-V3.md`.
 
 ```
-0  title card      studio   end of the film
-I  manifesto       ember    what Nexora is + a hairline registry of checkable facts
-   ── zoom gate: WORKFORCES, flown through the O ──
-II  workforces     deck     five throwable plates; the ground tints to the active world
-III the floor      deep     the loop as a live ground, speeding up with scroll velocity
-   ── zoom gate: SECTORS, into the light ──
-IV  sectors        stone    ten hairline rows; hovering raises the still into the pointer
-IV  engagement     linen    five stations; one picture resolving from blueprint to render
-V   how we work    ink      five commitments, shouted
-VI  two doors      bronze   employer / candidate
-VII footer         studio   live Doha time, CR number, policy, toggles, the cropped mark
+0  hero          black       the film, unchanged; ends on the NEXORA title card
+1  portal        → sky       a sky dome with a lit rim rises out of the title card and becomes the ground
+2  the world     sky         "Five worlds, one partner." — press and HOLD the disc: it accelerates, dusk
+                             falls, a line per world arrives, then the answer
+3  workforces    sky → gold  WORKFORCES knocked out of the sky; fly through the O into a photograph, which
+                             shrinks into the top card of the deck
+4  the deck      5 colours   throwable cards; the whole scene changes colour with each throw
+5  sectors       → sand      a cloud bank rolls over; SECTORS with the Doha skyline in it; fly into the city
+6  the index     sand        ten sectors, one at a time: monument name over a picture window
+7  engagement    maroon      an arch rises; a colonnade of five lit arches passes sideways; the last is a
+                             doorway that opens onto…
+8  what to       sand        the five commitments as one centred poem with footnotes
+   expect
+9  employers     → sky       a photo window grows, then becomes the column of a Love & Money playbook
+10 candidates    maroon      a dome rises; the no-fee promise as the headline
+11 footer        maroon      the Doha photograph draws in to an arch while the footer assembles
 ```
 
 ## Regenerating media
@@ -121,7 +131,9 @@ VII footer         studio   live Doha time, CR number, policy, toggles, the crop
 npm run media         # build what is missing
 npm run media:force   # rebuild everything (~2 min)
 npm run wordmark      # NEXORA outline → wordmark.json, wordmark.svg, favicon
-npm run words         # chapter-gate word outlines → words.json
+npm run words         # gate word outlines → words.json
+npm run stock         # stock derivatives (add a photo: put it in media/stock, list it in src/data/stock.json)
+npm run clouds        # cloud derivatives
 ```
 
 Key facts baked into the pipeline (measured, see `docs/implementation/04`): the `*-final.png` stills are **not**
@@ -137,17 +149,19 @@ with clearance `r` that lies solidly *inside* a letter; the title-card zoom scal
 
 ## Tested
 
-Chromium at 1920×1080, 1440×900, 1024×768 and 390×844: one notch / one flick / one swipe / one key = one world,
-in both directions; four notches in a single finger-roll = one step; a free-spinning wheel coasting to a stop =
-one step; two flicks 500 ms apart = two worlds with no copy in between; a change of mind mid-transition;
-Home; the release to native scroll at the title card and the re-entry from the page. Card stack: throw,
-spring-back, velocity flick, buttons, arrow keys, touch drag. Pointer follower: all five states. Zoom gates,
-turning floor (1.0 → 5.9 → 1.0 ×), chapter label, sound toggle, motion toggle. Production build served from
-`.qa/serve.mjs` with scripts stripped and with hero media throttled to 400 ms per frame.
+Chromium (headless) at 1920×1080, 1440×900, 1024×768 and 390×844, every scene captured as scroll contact
+sheets with `.qa/frames.sh`. The hero: one wheel gesture = one world through all six stops, the next gesture
+after the title card scrolls the page (Lenis), scrolling back returns to the title card without re-entering the
+film. The intro on a fresh load, including its aperture ending (timed in-page: opens at ~6.6 s, gone at ~8.5 s).
+The hold interaction (dusk, five lines, answer, release back to day). The deck morph and throw. The pointer:
+lands exactly on the pointer, and resolves dot / ring / label / hold / drag. Production build served by
+`.qa/serve.mjs` with scripts stripped (no-JS) and with reduced motion forced: both render every scene's
+content as a styled static document.
 
-**Not tested: Safari / iOS** — it cannot be run on this machine, so it has not been checked at all. Only
-long-supported APIs are used, and `requestVideoFrameCallback`, `playbackRate` ramping, `color-mix`, View
-Transitions and `lvh/svh` are feature-guarded or have fallbacks, but check on a real iPhone and Mac before
-launch.
+**Not tested: Safari / iOS, and real touch hardware.** They cannot be run on this machine. GSAP and Lenis are
+well supported there, but check the hold (touch long-press), the pinned scenes and the hero on a real iPhone
+and Mac before launch.
 
-Fonts: Instrument Serif, Instrument Sans and JetBrains Mono (all SIL OFL), self-hosted via Fontsource.
+Fonts: Noto Serif Display and Archivo (display and text), Instrument Sans (outlined into the wordmark and gate
+words only). All SIL OFL, self-hosted via Fontsource.
+Photography: Unsplash License, credits in `media/stock/SOURCES.md`. Clouds: client-supplied.

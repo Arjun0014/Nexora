@@ -58,8 +58,8 @@ const parts = (title: string, word: string) => {
   .exp__label { opacity: 0.75; }
   .exp__intro { font-size: var(--t-small); color: var(--ink-soft); max-width: 22rem; }
 
-  .exp__poem { display: grid; gap: 0.12em; font-size: clamp(2.2rem, 4.6vw, 6rem); position: relative; z-index: 1; }
-  .exp__line { position: relative; width: max-content; white-space: nowrap; margin-inline: auto; line-height: 0.9; cursor: default; outline-offset: 0.12em; transition: color var(--d-state) ease; }
+  .exp__poem { display: grid; gap: 0.12em; font-size: clamp(2.2rem, 4.3vw, 6rem); position: relative; z-index: 1; }
+  .exp__line { position: relative; width: max-content; max-width: min(84vw, 20em); text-wrap: balance; margin-inline: auto; line-height: 0.9; cursor: default; outline-offset: 0.12em; transition: color var(--d-state) ease; }
   .exp__line:nth-child(odd) { translate: -3vw 0; }
   .exp__line:nth-child(even) { translate: 3vw 0; }
   .exp__sup { position: absolute; top: 0.35em; right: -2.4em; font-size: 0.7rem; color: var(--amber-deep); letter-spacing: 0.1em; }
