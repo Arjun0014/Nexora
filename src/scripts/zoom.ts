@@ -17,7 +17,6 @@
 import words from '../data/words.json';
 import { $, clamp, env } from './core/env';
 import { onTick, damp } from './core/ticker';
-import { sound } from './sound';
 
 const EXP = 3.4;       // measured: ln(scale) eases as p^3.4
 const IMG_MAX = 0.9;   // the picture behind reaches 1 + 0.9 = 1.9x
@@ -113,7 +112,7 @@ function setup(root: HTMLElement) {
     draw(t);
     const state = t <= 0.001 ? 'rest' : t >= 0.999 ? 'done' : 'run';
     // Once, as the camera commits to the move — not on every frame of it.
-    if (state === 'run' && root.dataset.state === 'rest') sound.play('gate');
+
     root.dataset.state = state;
   }
 

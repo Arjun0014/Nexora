@@ -46,8 +46,7 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
   .hd[data-ink='dark'] { color: var(--ink); }
   :global(html:not(.js)[data-theme='paper']) .hd { color: var(--ink); }
   /* Past the hero the header becomes a slim bar that matches the surface under it. */
-  .hd[data-solid='true'] { background: var(--studio); border-block-end-color: rgba(243, 237, 227, 0.12); }
-  .hd[data-solid='true'][data-ink='dark'] { background: var(--paper); border-block-end-color: rgba(21, 18, 15, 0.12); }
+  /* The bar never turns solid: it floats over every ground and only its ink changes (ERA). */
   .hd[data-hidden='true'] { transform: translateY(-101%); }
   .hd:focus-within { transform: none; }
 

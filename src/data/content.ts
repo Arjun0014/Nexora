@@ -123,3 +123,20 @@ export const noFee = {
   heading: 'Nexora never charges candidates.',
   body: 'Not to register, not to be considered, not to be placed. If anyone asks you for payment in our name, please tell us.',
 };
+
+/** Scene 2: the world, held. Hold the arch and the disc runs faster; one line per world, then the answer. */
+export const held = {
+  label: 'The company',
+  heading: { a: 'Five worlds,', em: 'one', b: 'partner.' },
+  body: 'Nexora is a Qatar-based workforce company. We supply and coordinate people for hospitality, events, facilities and technical operations, and we recruit for businesses that hire directly.',
+  hint: 'Press and hold the world',
+  hintAgain: 'Hold it again',
+  lines: [
+    { world: 'hospitality' as WorldId, text: 'A table is served.' },
+    { world: 'events' as WorldId, text: 'The doors open on time.' },
+    { world: 'facilities' as WorldId, text: 'The lobby is ready by morning.' },
+    { world: 'technical' as WorldId, text: 'The plant keeps running.' },
+    { world: 'recruitment' as WorldId, text: 'The right person says yes.' },
+  ],
+  answer: { a: 'Behind all five,', b: 'people. We supply them.' },
+};

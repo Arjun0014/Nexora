@@ -1,0 +1,177 @@
+---
+/**
+ * Scenes 5 + 6 — Sectors. One pinned stage (src/scripts/scenes/sectors.ts):
+ *
+ *   curtain  a cloud bank, tinted to the limestone ground, rolls up over the deck; its solid body IS the stage.
+ *   gate     SECTORS is knocked out of the limestone, the Doha skyline inside it; we fly into the E... the O.
+ *   city     the skyline full-bleed at its natural scale; "Where our people work." over it.
+ *   out      the photograph scales up and dissolves (ERA's scale-out) while the index arrives beneath.
+ *   index    one sector at a time (ERA's apartment-type slider): its name in monument capitals over an image
+ *            window, roles to the left, what we do to the right, all ten names along the foot. The name turns
+ *            out and the next turns in; the picture wipes on a slanted edge.
+ */
+import { sectors, sectorNote } from '../../data/content';
+import { stock } from '../../data/stock';
+import Arrow from '../ui/Arrow.astro';
+const city = stock.doha.skyline;
+---
+<section class="sgx" id="sectors" data-sgx data-bg="light" aria-labelledby="sgx-h">
+  <div class="sgx__curtain" aria-hidden="true">
+    <div class="sgx__bankwrap" data-sgx-bank>
+      <img class="sgx__bank" src="/media/clouds/curtain-bottom-sand.webp" alt="" width="2400" height="560" loading="lazy" decoding="async" />
+      <span class="sgx__body"></span>
+    </div>
+    <img class="sgx__puff sgx__puff--a" data-sgx-puff="1.4" src="/media/clouds/px-cloud-03.webp" alt="" loading="lazy" decoding="async" />
+    <img class="sgx__puff sgx__puff--b" data-sgx-puff="1.9" src="/media/clouds/px-cloud-05.webp" alt="" loading="lazy" decoding="async" />
+  </div>
+
+  <div class="sgx__stage" data-sgx-stage>
+    <!-- INDEX -->
+    <div class="sgx__index" data-sgx-index>
+      <header class="sgx__top">
+        <p class="label">Where our people work</p>
+        <p class="label sgx__count"><span data-sgx-n>01</span> — {String(sectors.length).padStart(2, '0')}</p>
+      </header>
+      <h2 class="sr-only" id="sgx-h">Ten sectors we staff</h2>
+
+      <div class="sgx__window" data-sgx-window>
+        {sectors.map((s, i) => {
+          const p = stock.sectors[s.id as keyof typeof stock.sectors];
+          return (
+            <figure class="sgx__slide" data-sgx-slide={i} data-on={i === 0 ? '' : undefined}>
+              <img src={p.src} srcset={p.srcset} sizes="(max-width: 767px) 86vw, 40vw" alt={p.alt} width="1400" height="933" loading="lazy" decoding="async" style={`object-position:${p.focus}`} />
+            </figure>
+          );
+        })}
+      </div>
+
+      <ol class="sgx__names" data-sgx-names>
+        {sectors.map((s, i) => (
+          <li class="sgx__name display" data-sgx-name={i} data-long={s.name.length > 24 ? '' : undefined} data-on={i === 0 ? '' : undefined}>{s.name}</li>
+        ))}
+      </ol>
+
+      <div class="sgx__details">
+        {sectors.map((s, i) => (
+          <div class="sgx__detail" data-sgx-detail={i} data-on={i === 0 ? '' : undefined}>
+            <div class="sgx__roles">
+              <p class="label sgx__k">Roles we supply</p>
+              <ul>{s.roles.split(' · ').map((r) => <li>{r}</li>)}</ul>
+            </div>
+            <div class="sgx__about">
+              <p class="label sgx__k">The work</p>
+              <p>{s.body}</p>
+              <a class="tlink label" href={`/request/?sector=${s.id}`} data-cursor="Staff it">Staff this sector<Arrow /></a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <nav class="sgx__foot" aria-label="Sectors">
+        <ol class="sgx__list">
+          {sectors.map((s, i) => (
+            <li><button class="label sgx__jump" type="button" data-sgx-jump={i} aria-current={i === 0 ? 'true' : undefined}>{s.name}</button></li>
+          ))}
+        </ol>
+        <span class="sgx__bar" aria-hidden="true"><span data-sgx-bar></span></span>
+        <p class="sgx__note label">{sectorNote}</p>
+      </nav>
+    </div>
+
+    <!-- CITY: the skyline, then a line over it -->
+    <div class="sgx__city" data-sgx-city aria-hidden="true">
+      <img src={city.src} srcset={city.srcset} sizes="100vw" alt="" width="2400" height="1600" loading="lazy" decoding="async" style={`object-position:${city.focus}`} data-sgx-cityimg />
+      <p class="sgx__over display" data-sgx-over><span><span>Where our</span></span><span><span>people <em>work.</em></span></span></p>
+    </div>
+
+    <canvas class="sgx__mask" data-sgx-mask aria-hidden="true"></canvas>
+    <div class="sgx__gateui" data-sgx-gateui aria-hidden="true">
+      <p class="label">Chapter three</p>
+      <p class="label">Ten sectors we staff</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sgx { --bg: var(--sand); position: relative; color: var(--ink); background: var(--bg); }
+  :global(html.motion) .sgx { height: 820vh; height: 820svh; }
+  .sgx__stage { position: relative; min-height: 100svh; overflow: clip; background: var(--bg); }
+  :global(html.motion) .sgx__stage { position: sticky; top: 0; height: 100vh; height: 100svh; }
+
+  /* The cloud bank sits on the section's top edge and overlaps the deck above it. Its solid lower part is
+     tinted to exactly --sand, so where the clouds end the stage has already begun. */
+  .sgx__curtain { position: absolute; left: 0; right: 0; top: 0; height: 0; z-index: 8; pointer-events: none; }
+  /* The bank travels with a solid limestone body below it, so rising never reveals the deck under its edge. */
+  .sgx__bankwrap { position: absolute; left: 0; right: 0; bottom: 0; will-change: transform; }
+  .sgx__bank { position: absolute; left: 50%; bottom: -2px; width: max(230vw, 2400px); max-width: none; translate: -50% 0; }
+  .sgx__body { position: absolute; left: 0; right: 0; top: -1px; height: 40vh; background: var(--sand); }
+  .sgx__puff { position: absolute; will-change: transform; opacity: 0.95; }
+  .sgx__puff--a { width: min(50vw, 820px); left: -8vw; bottom: 8vh; }
+  .sgx__puff--b { width: min(40vw, 660px); right: -6vw; bottom: 16vh; }
+  :global(html:not(.motion)) .sgx__curtain { display: none; }
+
+  /* ── index ── */
+  .sgx__index { position: absolute; inset: 0; z-index: 1; }
+  .sgx__top { position: absolute; top: calc(var(--header-h) + 1.5vh); inset-inline: var(--margin); display: flex; justify-content: space-between; }
+  .sgx__count { font-variant-numeric: tabular-nums; }
+
+  .sgx__window {
+    position: absolute; left: 50%; top: 44%; translate: -50% -50%;
+    width: min(38vw, 64vh); aspect-ratio: 3 / 2; overflow: hidden; border-radius: 3px;
+    background: var(--sand-2);
+  }
+  .sgx__slide { position: absolute; inset: 0; margin: 0; visibility: hidden; }
+  .sgx__slide[data-on] { visibility: visible; }
+  .sgx__slide img { width: 100%; height: 100%; object-fit: cover; }
+
+  .sgx__names { position: absolute; left: 50%; top: calc(44% + min(38vw, 64vh) / 3 - 0.4em); translate: -50% 0; width: 92vw; font-size: clamp(3rem, 7.4vw, 9.5rem); text-align: center; z-index: 2; pointer-events: none; }
+  .sgx__name { position: absolute; inset-inline: 0; top: 0; line-height: 0.86; visibility: hidden; perspective: 900px; }
+  .sgx__name[data-on] { visibility: visible; }
+  .sgx__name[data-long] { font-size: 0.72em; }
+  .sgx__name :global(.word) { display: inline-block; white-space: nowrap; }
+  .sgx__name :global(.char) { display: inline-block; transform-origin: 50% 70%; backface-visibility: hidden; }
+
+  .sgx__details { position: absolute; inset-inline: var(--margin); top: 44%; translate: 0 -50%; pointer-events: none; }
+  .sgx__detail { position: absolute; inset-inline: 0; top: 0; display: flex; justify-content: space-between; align-items: flex-start; translate: 0 -50%; opacity: 0; transition: opacity 420ms linear; }
+  .sgx__detail[data-on] { opacity: 1; pointer-events: auto; transition-delay: 180ms; }
+  .sgx__roles, .sgx__about { width: min(19rem, calc((100vw - min(38vw, 64vh)) / 2 - var(--margin) - 3rem)); display: grid; gap: 0.9rem; font-size: var(--t-small); line-height: 1.55; }
+  .sgx__roles li { padding-block: 0.5rem; border-block-start: 1px solid var(--line); }
+  .sgx__about p:not(.label) { color: var(--ink-soft); }
+  .sgx__k { opacity: 0.7; }
+
+  .sgx__foot { position: absolute; inset-inline: var(--margin); bottom: 4vh; display: grid; gap: 0.9rem; }
+  .sgx__list { display: flex; justify-content: space-between; gap: 1rem; }
+  .sgx__jump { opacity: 0.45; font-size: 0.625rem; letter-spacing: 0.12em; text-align: left; transition: opacity var(--d-state) ease; max-width: 9rem; }
+  .sgx__jump[aria-current='true'], .sgx__jump:hover, .sgx__jump:focus-visible { opacity: 1; }
+  .sgx__bar { display: block; height: 1px; background: var(--line); }
+  .sgx__bar span { display: block; height: 100%; background: var(--ink); transform-origin: left; transform: scaleX(var(--prog, 0.1)); }
+  .sgx__note { opacity: 0.55; font-size: 0.625rem; }
+
+  /* ── city ── */
+  .sgx__city { position: absolute; inset: 0; z-index: 3; overflow: hidden; will-change: transform, opacity; }
+  .sgx__city img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+  .sgx__city::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 14, 12, 0.25), rgba(20, 14, 12, 0) 40%, rgba(20, 14, 12, 0.35)); pointer-events: none; }
+  .sgx__over { position: absolute; left: 50%; bottom: 12vh; translate: -50% 0; z-index: 1; width: max-content; text-align: center; color: var(--bone); font-size: clamp(3.4rem, 9vw, 12rem); text-shadow: 0 4px 60px rgba(20, 12, 8, 0.35); }
+  .sgx__over > span { display: block; overflow: clip; padding-block-end: 0.05em; }
+  .sgx__over > span > span { display: block; }
+
+  .sgx__mask { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; pointer-events: none; }
+  .sgx__gateui { position: absolute; inset: auto var(--margin) 6vh; z-index: 5; display: flex; justify-content: space-between; pointer-events: none; }
+
+  /* No motion: the index is a plain list of sectors with their pictures. */
+  :global(html:not(.motion)) .sgx__city, :global(html:not(.motion)) .sgx__mask, :global(html:not(.motion)) .sgx__gateui,
+  :global(html:not(.motion)) .sgx__window, :global(html:not(.motion)) .sgx__names, :global(html:not(.motion)) .sgx__list, :global(html:not(.motion)) .sgx__bar { display: none; }
+  :global(html:not(.motion)) .sgx__index, :global(html:not(.motion)) .sgx__top, :global(html:not(.motion)) .sgx__details, :global(html:not(.motion)) .sgx__detail, :global(html:not(.motion)) .sgx__foot { position: static; translate: none; opacity: 1; }
+  :global(html:not(.motion)) .sgx__index { padding: calc(var(--header-h) + 2rem) var(--margin) 4rem; display: grid; gap: 2rem; }
+  :global(html:not(.motion)) .sgx__details { display: grid; gap: 3rem; }
+
+  @media (max-width: 899px) {
+    .sgx__window { width: 86vw; top: 36%; }
+    .sgx__names { top: calc(36% + 86vw / 3 - 0.3em); font-size: clamp(2.4rem, 11vw, 4.5rem); }
+    .sgx__details { top: auto; bottom: 16vh; translate: none; }
+    .sgx__detail { translate: 0 -100%; flex-direction: column; gap: 1rem; }
+    .sgx__roles { display: none; }
+    .sgx__about { width: 100%; }
+    .sgx__list { display: none; }
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+/**
+ * Scene 10 — for candidates. A maroon dome rises over the end of the employers' playbook, exactly as the portal's
+ * dome rose out of the film (ERA's dome, used twice: once into the day, once into the dusk). Its rim turns with
+ * the promise that matters most to a candidate. Once it covers the screen: the arch portrait, the no-fee promise
+ * as the headline, and one action. (src/scripts/scenes/candidates.ts)
+ */
+import { doors, noFee } from '../../data/content';
+import { stock } from '../../data/stock';
+import Arrow from '../ui/Arrow.astro';
+const p = stock.doors.candidate;
+const ring = 'Never a fee · Register once · We contact you when a role fits · ';
+---
+<section class="cnd" id="candidates" data-cnd data-bg="dark" aria-labelledby="cnd-h">
+  <div class="cnd__pin" data-cnd-pin>
+    <div class="cnd__dome" data-cnd-dome aria-hidden="true">
+      <svg class="cnd__ring" viewBox="0 0 1000 1000" focusable="false">
+        <defs><path id="cnd-arc" d="M500,500 m-452,0 a452,452 0 1,1 904,0 a452,452 0 1,1 -904,0" /></defs>
+        <text><textPath href="#cnd-arc" textLength="2830" lengthAdjust="spacing">{ring}{ring}{ring}</textPath></text>
+      </svg>
+    </div>
+
+    <div class="cnd__body" data-cnd-body>
+      <figure class="cnd__arch">
+        <img src={p.card} srcset={p.cardSrcset} sizes="30vw" alt={p.alt} width="960" height="1200" loading="lazy" decoding="async" />
+      </figure>
+      <div class="cnd__copy">
+        <p class="label cnd__label">{doors.candidate.label}</p>
+        <h2 class="display cnd__h" id="cnd-h">Looking <em>for</em> work?</h2>
+        <p class="cnd__lead">{doors.candidate.body}</p>
+        <div class="cnd__promise">
+          <p class="acc cnd__fee">{noFee.heading}</p>
+          <p class="cnd__small">{noFee.body}</p>
+        </div>
+        <a class="cnd__cta" href={doors.candidate.href} data-cursor="Apply"><span>{doors.candidate.cta}</span><Arrow /></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cnd { --bg: var(--maroon); position: relative; color: var(--bone); z-index: 10; }
+  :global(html.motion) .cnd { height: 230vh; height: 230svh; margin-top: -100vh; margin-top: -100svh; }
+  .cnd__pin { position: relative; min-height: 100svh; overflow: clip; background: var(--bg); }
+  :global(html.motion) .cnd__pin { position: sticky; top: 0; height: 100vh; height: 100svh; background: none; pointer-events: none; }
+  :global(html.motion) .cnd[data-live] .cnd__pin { pointer-events: auto; }
+
+  .cnd__dome {
+    position: absolute; left: 50%; width: var(--d, 70vw); aspect-ratio: 1; top: var(--y, 110vh); translate: -50% 0;
+    border-radius: 50%; background: var(--bg);
+    background-image: radial-gradient(60% 50% at 50% 30%, rgba(208, 149, 96, 0.16), transparent 70%);
+    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.8), 0 -8px 44px 2px rgba(208, 149, 96, 0.45);
+  }
+  :global(html:not(.motion)) .cnd__dome { display: none; }
+  .cnd__ring { position: absolute; inset: 0; width: 100%; height: 100%; rotate: var(--spin, 0deg); overflow: visible; }
+  .cnd__ring text { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; font-size: 30px; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--bone); }
+
+  .cnd__body {
+    position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center;
+    gap: clamp(2rem, 6vw, 7rem); padding: calc(var(--header-h) + 3vh) calc(var(--margin) + 4vw) 6vh;
+    opacity: var(--show, 0);
+  }
+  :global(html:not(.motion)) .cnd__body { position: static; opacity: 1; }
+  .cnd__arch { margin: 0; justify-self: end; width: min(28vw, 52vh); aspect-ratio: 4 / 5; overflow: hidden; border-radius: 999px 999px 0 0 / min(14vw, 26vh) min(14vw, 26vh) 0 0; box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.7); }
+  .cnd__arch img { width: 100%; height: 100%; object-fit: cover; }
+  .cnd__copy { display: grid; gap: 1.4rem; max-width: 36rem; }
+  .cnd__label { color: var(--amber); }
+  .cnd__h { font-size: clamp(3.2rem, 7vw, 8.4rem); }
+  .cnd__lead { font-size: var(--t-lead); color: var(--bone-soft); max-width: 28rem; }
+  .cnd__promise { display: grid; gap: 0.6rem; padding-block: 1.2rem; border-block: 1px solid var(--line); }
+  .cnd__fee { font-size: clamp(1.6rem, 2.4vw, 2.8rem); line-height: 1.05; color: #f1c28f; }
+  .cnd__small { font-size: var(--t-small); color: var(--bone-soft); max-width: 30rem; }
+  .cnd__cta {
+    justify-self: start; display: inline-flex; align-items: center; gap: 1rem;
+    font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase;
+    font-size: clamp(1.8rem, 2.6vw, 3.2rem); line-height: 1; padding-block-end: 0.3rem; border-block-end: 1px solid currentColor;
+  }
+
+  @media (max-width: 899px) {
+    .cnd__body { grid-template-columns: 1fr; align-content: center; gap: 1.5rem; padding-inline: var(--margin); }
+    .cnd__arch { justify-self: center; width: 42vw; }
+    .cnd__h { font-size: clamp(2.6rem, 12vw, 4.5rem); }
+    .cnd__small { display: none; }
+  }
+</style>

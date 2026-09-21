@@ -1,30 +1,33 @@
-/* Design tokens — see docs/redesign/00-DIRECTION.md. Colours are sampled from the footage. */
+/* Design tokens — see docs/redesign/02-DIRECTION-V3.md. Night film, then a Doha day. */
 :root {
-  /* ── grounds, in page order ─────────────────────────────────────────────────────────────
-     The page is dark-anchored and evolves; it never alternates flat black with flat white. */
-  --studio: #0b0a09;        /* 0 + VII  the anchor */
-  --ember: #17110c;         /* I        warm dark, bronze light from the left */
-  --deck: #12100e;          /* II       tinted by the active world */
-  --deep: #0d1219;          /* III      cool dark: the loop's own right-hand backdrop */
-  --stone: #ded5c8;         /* IV       the one light chapter */
-  --linen: #e7e0d4;         /* IV       its lighter half */
-  --ink-ground: #12110f;    /* V        ink with a bronze floor-glow */
-  --bronze-ground: #1a1209; /* VI       bronze-lit doors */
-  --wall: #1d1510;          /* the divider-wall bronze, used by the hero's safety dip */
-  --studio-2: #14120f;
-  --paper: var(--stone);
-  --paper-2: var(--linen);
+  /* ── grounds ─────────────────────────────────────────────────────────────────────────────
+     Three recurring grounds (ERA's discipline), plus the film's black. */
+  --studio: #0b0a09;   /* the film and its title card */
+  --sky: #c4d4db;      /* Gulf haze: portal, held world, employers */
+  --sky-2: #b3c7d0;
+  --sand: #eee7db;     /* limestone: sectors, what to expect */
+  --sand-2: #e4dacb;
+  --maroon: #4b1426;   /* deep Qatari maroon: the dark anchor */
+  --maroon-2: #5c1b2f;
+  --maroon-3: #36101c;
+  --wall: #1d1510;     /* the film's divider wall, used by the hero's safety dip */
+
+  /* the five workforce grounds (the deck changes the whole section to these) */
+  --g-hospitality: #e4cba2;
+  --g-events: #cfbde4;
+  --g-facilities: #b4d6ce;
+  --g-technical: #b2c5df;
+  --g-recruitment: #b5dce7;
 
   /* ink */
-  --ink: #15120f;
-  --ink-soft: #5f564d; /* 4.86:1 on --stone; #6b6259 measured 4.16:1 and failed small text */
-  --bone: #f3ede3;
-  --bone-soft: rgba(243, 237, 227, 0.64);
+  --ink: #1c1b2e;
+  --ink-soft: #4a4858;
+  --bone: #f4efe6;
+  --bone-soft: rgba(244, 239, 230, 0.68);
 
-  /* accents */
-  --bronze: #c48a55;
-  --bronze-deep: #7a4e2a;
-  --warm-light: #c28456;
+  /* accents: the hero's light */
+  --amber: #d09560;
+  --amber-deep: #8e5a30;
   --c-hospitality: #d9a45b;
   --c-events: #b07ce0;
   --c-facilities: #5fb8ae;
@@ -32,92 +35,108 @@
   --c-technical-2: #e0793a;
   --c-recruitment: #4fc3e8;
 
-  /* type families */
-  --f-display: 'Instrument Serif', 'Instrument Serif Fallback', 'Iowan Old Style', 'Times New Roman', serif;
-  --f-sans: 'Instrument Sans Variable', 'Instrument Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --f-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+  /* legacy names, kept so older markup resolves onto the new palette */
+  --bronze: var(--amber);
+  --bronze-deep: var(--amber-deep);
+  --stone: var(--sand);
+  --linen: var(--sand);
+  --paper: var(--sand);
+  --paper-2: var(--sand-2);
+  --ember: var(--maroon);
+  --deck: var(--g-hospitality);
+  --deep: var(--maroon-3);
+  --ink-ground: var(--maroon);
+  --bronze-ground: var(--maroon);
 
-  /* type scale — deliberately GAPPED: you read a caption or you read a monument, nothing between */
-  --t-monument: clamp(3.75rem, 14vw, 17rem);
-  --t-mega: clamp(3.25rem, 9vw, 10rem);
-  --t-display: clamp(2.5rem, 7.5vw, 8rem);
-  --t-h1: clamp(2.25rem, 4.6vw, 4.75rem);
-  --t-h2: clamp(1.75rem, 3.4vw, 3.25rem);
-  --t-h3: clamp(1.375rem, 2vw, 1.875rem);
-  --t-lead: clamp(1.125rem, 1.35vw, 1.375rem);
-  --t-body: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
+  /* type families */
+  --f-display: 'Noto Serif Display Variable', 'Nexora Display Fallback', 'Times New Roman', serif;
+  --f-sans: 'Archivo Variable', 'Nexora Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-label: var(--f-sans);
+  --f-mono: var(--f-sans); /* retired: labels are Archivo expanded now */
+
+  /* type scale — gapped: a caption or a monument, little between */
+  --t-monument: clamp(4.5rem, 15vw, 19rem);
+  --t-mega: clamp(3.5rem, 10vw, 12rem);
+  --t-display: clamp(3rem, 7.2vw, 8.75rem);
+  --t-h1: clamp(2.5rem, 5vw, 5.5rem);
+  --t-h2: clamp(2rem, 3.6vw, 3.75rem);
+  --t-h3: clamp(1.625rem, 2.4vw, 2.5rem);
+  --t-lead: clamp(1.125rem, 1.3vw, 1.3125rem);
+  --t-body: clamp(0.9375rem, 0.9rem + 0.16vw, 1.0625rem);
   --t-small: 0.875rem;
   --t-label: 0.6875rem;
 
   /* space */
-  --margin: clamp(1.25rem, 4vw, 4.5rem);
+  --margin: clamp(1.25rem, 3.6vw, 4rem);
   --gutter: clamp(1rem, 2vw, 2rem);
   --space: clamp(5rem, 11vw, 11rem);
   --space-s: clamp(2rem, 4vw, 4rem);
-  --max: 110rem;
+  --max: 120rem;
   --measure: 34rem;
-  --header-h: 4.5rem;
-  --cols: 12;
+  --header-h: 4.75rem;
 
-  /* motion */
-  --ease-freeze: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  /* motion: the same curves as src/scripts/core/motion.ts */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-io: cubic-bezier(0.75, 0, 0.25, 1);
+  --ease-dive: cubic-bezier(0.6, 0, 0, 1);
+  --ease-freeze: var(--ease-out);
   --ease-throw: cubic-bezier(0.22, 1, 0.36, 1);
-  --d-state: 180ms;
-  --d-reveal: 520ms;
-  --d-type: 760ms;
+  --d-state: 240ms;
+  --d-reveal: 800ms;
+  --d-type: 1200ms;
 
-  --accent: var(--bronze);
+  --accent: var(--amber);
 
-  /* Film grain, generated by the renderer rather than shipped as a file. */
+  /* Film grain, generated rather than shipped as a file. */
   --grain-url: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.42'/></svg>");
 }
 
-/* A sector colour is only ever applied by setting --accent on a container. */
-[data-sector='hospitality'] { --accent: var(--c-hospitality); }
-[data-sector='events'] { --accent: var(--c-events); }
-[data-sector='facilities'] { --accent: var(--c-facilities); }
-[data-sector='technical'] { --accent: var(--c-technical); }
-[data-sector='recruitment'] { --accent: var(--c-recruitment); }
+/* A world colour is only ever applied by setting --accent / --ground on a container. */
+[data-sector='hospitality'] { --accent: var(--c-hospitality); --ground: var(--g-hospitality); }
+[data-sector='events'] { --accent: var(--c-events); --ground: var(--g-events); }
+[data-sector='facilities'] { --accent: var(--c-facilities); --ground: var(--g-facilities); }
+[data-sector='technical'] { --accent: var(--c-technical); --ground: var(--g-technical); }
+[data-sector='recruitment'] { --accent: var(--c-recruitment); --ground: var(--g-recruitment); }
 
-/* ── surfaces ───────────────────────────────────────────────────────────────────────────
-   Every chapter sets data-theme; the ground itself is set per chapter with --bg. */
+/* ── surfaces ────────────────────────────────────────────────────────────────────────────
+   data-theme sets the ink; each scene sets its own ground with --bg. */
 [data-theme='dark'] {
   --bg: var(--studio);
   --fg: var(--bone);
   --fg-soft: var(--bone-soft);
-  --line: rgba(243, 237, 227, 0.16);
-  --line-soft: rgba(243, 237, 227, 0.09);
-  --line-strong: rgba(243, 237, 227, 0.42);
-  --mark: var(--accent);
+  --line: rgba(244, 239, 230, 0.2);
+  --line-soft: rgba(244, 239, 230, 0.1);
+  --line-strong: rgba(244, 239, 230, 0.5);
+  --mark: var(--amber);
   color-scheme: dark;
 }
-[data-theme='paper'] {
-  --bg: var(--stone);
+[data-theme='paper'], [data-theme='light'] {
+  --bg: var(--sand);
   --fg: var(--ink);
   --fg-soft: var(--ink-soft);
-  --line: rgba(21, 18, 15, 0.18);
-  --line-soft: rgba(21, 18, 15, 0.1);
-  --line-strong: rgba(21, 18, 15, 0.5);
-  --accent: var(--bronze-deep);
-  --mark: var(--bronze-deep);
+  --line: rgba(28, 27, 46, 0.2);
+  --line-soft: rgba(28, 27, 46, 0.1);
+  --line-strong: rgba(28, 27, 46, 0.55);
+  --accent: var(--amber-deep);
+  --mark: var(--amber-deep);
   color-scheme: light;
 }
 
-/* Metric-matched fallbacks so the swap to the web fonts does not move the layout. */
+/* Metric-approximate fallbacks so the swap to the web fonts barely moves the layout. */
 @font-face {
-  font-family: 'Instrument Serif Fallback';
+  font-family: 'Nexora Display Fallback';
   src: local('Times New Roman'), local('Georgia');
-  size-adjust: 89%;
-  ascent-override: 104%;
-  descent-override: 32%;
+  size-adjust: 92%;
+  ascent-override: 106%;
+  descent-override: 29%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: 'Instrument Sans Fallback';
-  src: local('Segoe UI'), local('Helvetica Neue'), local('Arial');
-  size-adjust: 101%;
-  ascent-override: 96%;
-  descent-override: 25%;
+  font-family: 'Nexora Sans Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Segoe UI');
+  size-adjust: 100%;
+  ascent-override: 90%;
+  descent-override: 22%;
   line-gap-override: 0%;
 }

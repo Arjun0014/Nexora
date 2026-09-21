@@ -1,5 +1,6 @@
 /**
- * The intro sequence.
+ * The intro sequence. Runs on EVERY load of the homepage (brief #16), except under reduced motion, lite
+ * connections, no-JS or a deep link into the film.
  *
  * Progress is REAL: `heroLoad.progress` counts the poster, the loop video's own bytes (streamed with a
  * content-length) and the entry frames. What is SHOWN is bounded on both sides so the sequence always reads the
@@ -7,27 +8,24 @@
  *
  *   shown = max( monotonic, min(real, elapsed / MIN_MS), force )   force = (elapsed - MIN_MS) / (MAX_MS - MIN_MS)
  *
- * A warm cache therefore still takes MIN_MS and still shows all five worlds; a cold network is paced by the
- * bytes and then eased to 1 between MIN_MS and MAX_MS rather than hanging.
- *
- * Which version runs is decided pre-paint in Base.astro: `html[data-intro="on"]` (first visit this session) or
- * `"short"` (a repeat). Reduced motion, no-JS and lite connections never set the attribute at all.
+ * The ending (brief #2): the hairline draws in to a point of light; the point opens as a circular aperture with
+ * a lit rim and dives out past the corners (ERA Residence's arch dive, drawn with our disc), while the film
+ * behind settles from 1.14x to rest, so the reveal reads as a camera arriving rather than a curtain lifting.
  */
+import { gsap } from 'gsap';
 import { $, $$, clamp } from './core/env';
 import { onTick } from './core/ticker';
 import { heroLoad } from './hero/index';
+import { EASE } from './core/motion';
 
 const MIN_MS = 5000;
 const MAX_MS = 7500;
-const SHORT_MS = 640;
 const TRACK = { from: 0.06, to: 0.46 }; // em of letter-spacing on NEXORA: closed to open
-const KEY = 'nx-intro';
 
 export function initIntro() {
   const root = $('[data-intro-root]'); // NOT [data-intro]: that flag lives on <html>
   const html = document.documentElement;
-  const mode = html.dataset.intro;
-  if (!root || !mode) { root?.remove(); return; }
+  if (!root || !html.dataset.intro) { root?.remove(); return; }
 
   // The hero decided it is not running the film (deep link, ?stop=, static mode): there is nothing to reveal.
   if (!heroLoad.active) { delete html.dataset.intro; root.remove(); return; }
@@ -36,29 +34,40 @@ export function initIntro() {
   const pct = $('[data-intro-pct]', root)!;
   const word = $('[data-intro-word]', root)!;
   const words = $$('[data-intro-worlds] > *', root);
+  const media = $('[data-hero] [data-media]');
 
   // Nothing behind the intro may scroll or take focus while it is up.
   html.style.overflow = 'hidden';
+  if (media) gsap.set(media, { scale: 1.14, transformOrigin: '50% 50%' });
 
   const finish = () => {
     delete html.dataset.intro;
     html.style.overflow = '';
-    try { sessionStorage.setItem(KEY, '1'); } catch { /* private mode: nothing to persist */ }
     root.dataset.done = 'true';
-    setTimeout(() => root.remove(), 400);
+    if (media) gsap.set(media, { clearProps: 'transform,scale' });
+    setTimeout(() => root.remove(), 100);
     dispatchEvent(new CustomEvent('nx:intro-done'));
   };
-  // Close the wall, drop the black field behind it while it cannot be seen, then open onto the film.
-  const wipe = (hold: number) => {
-    root.dataset.wipe = 'in';
-    setTimeout(() => { root.dataset.clear = 'true'; }, 470);
-    setTimeout(() => { root.dataset.wipe = 'out'; setTimeout(finish, 700); }, Math.max(500, hold));
+
+  const reveal = () => {
+    root.dataset.close = '';
+    const far = Math.hypot(innerWidth, innerHeight) / 2 + 60;
+    const state = { r: 1.5, open: 0 };
+    const paint = () => {
+      root.style.setProperty('--r', `${state.r.toFixed(2)}px`);
+      root.style.setProperty('--open', state.open.toFixed(3));
+      root.style.setProperty('--ring', String(1 - clamp((state.r / far - 0.72) / 0.28)));
+    };
+    gsap.timeline({ delay: 0.72, onComplete: finish })
+      .add(() => { root.dataset.aperture = ''; })
+      // A breath: the point swells into a small lit circle, the disc just visible inside it.
+      .to(state, { r: Math.min(innerWidth, innerHeight) * 0.09, open: 1, duration: 0.7, ease: EASE.out, onUpdate: paint })
+      // The dive: slow to leave, then out past the corners.
+      .to(state, { r: far, duration: 1.25, ease: EASE.dive, onUpdate: paint }, '>-0.08')
+      .to(media, { scale: 1, duration: 1.6, ease: EASE.inOut }, '<-0.2');
   };
 
-  // ── repeat visit: the wall closes and opens once, no counting ───────────────────────────
-  if (mode === 'short') { requestAnimationFrame(() => wipe(SHORT_MS)); return; }
-
-  // ── first visit ─────────────────────────────────────────────────────────────────────────
+  // ── counting ────────────────────────────────────────────────────────────────────────────
   const t0 = performance.now();
   let shown = 0; // what is on screen: monotonic
   let closing = false;
@@ -89,7 +98,8 @@ export function initIntro() {
     if (shown < 0.999) return;
     closing = true;
     off();
+    pct.textContent = '100';
     setWord(5); // the tagline, in bone, on a full bar
-    setTimeout(() => wipe(500), 420);
+    setTimeout(reveal, 650);
   });
 }

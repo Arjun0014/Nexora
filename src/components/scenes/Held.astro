@@ -1,0 +1,175 @@
+---
+/**
+ * Scene 2 — the world, held.
+ *
+ * Sky ground (the portal's dome has become it). "Five worlds, one partner." A circular night window — a moon in
+ * the day sky — holds the turning disc, the film's loop, whole, and grows as you arrive. Press and hold the arch (or the hold button, or Space on
+ * it): the disc accelerates the longer you hold, dusk falls over the page, and a line for each world arrives,
+ * then the answer. Let go and time runs back to day. (Cerebrium's click-and-hold; ERA's window growth.)
+ * Driven by src/scripts/scenes/held.ts. Without motion it is a still composition with the lines as a list.
+ */
+import { held } from '../../data/content';
+import { worldById } from '../../data/worlds';
+---
+<section class="held" id="company" data-held data-bg="light" aria-labelledby="held-h">
+  <div class="held__pin">
+    <div class="held__ground" aria-hidden="true"></div>
+    <img class="held__cloud held__cloud--l" data-held-cloud src="/media/clouds/px-cloud-01.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+    <img class="held__cloud held__cloud--r" data-held-cloud src="/media/clouds/px-cloud-05.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+
+    <div class="held__stage" data-held-stage>
+      <header class="held__head">
+        <p class="label held__label" data-split="a">{held.label}</p>
+        <h2 class="display held__h" id="held-h" data-split="h">{held.heading.a} <em>{held.heading.em}</em> {held.heading.b}</h2>
+      </header>
+
+      <div class="held__arch" data-held-arch>
+        <div class="held__window">
+          <video class="held__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1" aria-hidden="true"
+            poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
+          <div class="held__night" aria-hidden="true"></div>
+        </div>
+        <p class="held__answer display" data-held-answer aria-live="polite">
+          <span class="held__answer-a">{held.answer.a}</span>
+          <span class="held__answer-b"><em>{held.answer.b}</em></span>
+        </p>
+      </div>
+
+      <ol class="held__lines" data-held-lines>
+        {held.lines.map((l, i) => (
+          <li class={`held__line held__line--${i}`} data-sector={l.world} data-i={i}>
+            <span class="label held__line-k"><i class="held__dot" aria-hidden="true"></i>{worldById[l.world].short}</span>
+            <span class="held__line-t acc">{l.text}</span>
+          </li>
+        ))}
+      </ol>
+
+      <p class="held__body" data-split="p">{held.body}</p>
+
+      <button class="held__hold" type="button" data-held-button data-cursor="hold">
+        <svg class="held__ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <circle cx="32" cy="32" r="30" class="held__ring-track" />
+          <circle cx="32" cy="32" r="30" class="held__ring-fill" pathLength="1" data-held-ring />
+          <circle cx="32" cy="32" r="4" class="held__ring-dot" />
+        </svg>
+        <span class="label" data-held-hint data-again={held.hintAgain}>{held.hint}</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .held {
+    --bg: var(--sky);
+    --fg: var(--ink);
+    position: relative; color: var(--fg);
+    transition: color 360ms linear;
+  }
+  .held[data-night] { --fg: var(--bone); }
+  :global(html.motion) .held { height: 300vh; height: 300svh; }
+  .held__pin { position: relative; min-height: 100svh; overflow: clip; }
+  :global(html.motion) .held__pin { position: sticky; top: 0; height: 100vh; height: 100svh; }
+
+  .held__stage { position: absolute; inset: 0; will-change: transform, opacity; }
+  .held__ground { position: absolute; inset: 0; background: var(--bg); }
+  /* In the cinema the ground stays off until the portal's dome covers the screen (held.ts). */
+  :global(html.cinema) .held:not([data-ground]) .held__ground { opacity: 0; }
+
+  .held__head { position: absolute; inset-inline: var(--margin); top: calc(var(--header-h) + 3vh); text-align: center; }
+  .held__label { margin-block-end: 1.1rem; opacity: 0.75; }
+  .held__h { font-size: clamp(3rem, 6.4vw, 8rem); }
+
+  /* The window: a circle, like the portal's dome and the disc itself. Its final size is fixed; arrival is a
+     uniform scale, so the disc is always whole. A lit amber rim, the same light as the disc's edge. */
+  .held__arch {
+    --D: min(62vh, 44vw);
+    position: absolute; left: 50%; top: 59%;
+    width: var(--D); height: var(--D);
+    translate: -50% -50%;
+    will-change: transform;
+  }
+  .held__window {
+    position: absolute; inset: 0; overflow: hidden; border-radius: 50%;
+    background: radial-gradient(circle at 50% 42%, #1c1612 0%, #0f0c0b 70%);
+    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.75), 0 0 46px rgba(208, 149, 96, 0.32), inset 0 0 60px rgba(0, 0, 0, 0.6);
+    touch-action: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  }
+  /* Framed so the disc (73% of the loop's width, centred at 49% / 40%) spans 86% of the circle. The frame's own
+     backdrop fades into the window's dark so no rectangle edge shows. */
+  .held__video {
+    position: absolute; max-width: none;
+    width: calc(var(--D) * 1.18); height: calc(var(--D) * 0.664);
+    left: calc(var(--D) * -0.078); top: calc(var(--D) * 0.234);
+    -webkit-mask-image: radial-gradient(58% 62% at 49% 41%, #000 62%, transparent 100%);
+    mask-image: radial-gradient(58% 62% at 49% 41%, #000 62%, transparent 100%);
+  }
+  /* Speed shows up as a warm vignette tightening around the disc. */
+  .held__night { position: absolute; inset: 0; pointer-events: none; opacity: var(--charge, 0);
+    background: radial-gradient(70% 60% at 50% 60%, transparent 40%, rgba(12, 8, 6, 0.55) 100%); }
+
+  .held__answer {
+    position: absolute; left: 50%; bottom: 7%; translate: -50% 0; width: max-content; max-width: 92vw;
+    text-align: center; color: var(--bone); font-size: clamp(2.2rem, 4.2vw, 5rem); line-height: 0.92;
+    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+  .held__answer > span { display: block; }
+  .held__answer em { color: #f1c28f; }
+
+  .held__lines { position: absolute; inset: 0; pointer-events: none; }
+  .held__line { position: absolute; display: grid; gap: 0.6rem; max-width: 20rem; }
+  .held__line-k { display: inline-flex; align-items: center; gap: 0.6em; color: var(--fg); opacity: 0.8; }
+  .held__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .held__line-t { font-size: clamp(1.6rem, 2.5vw, 3rem); line-height: 1.02; }
+  .held__line--0 { left: var(--margin); top: 36vh; }
+  .held__line--1 { right: var(--margin); top: 40vh; text-align: right; justify-items: end; }
+  .held__line--2 { left: calc(var(--margin) + 3vw); top: 56vh; }
+  .held__line--3 { right: calc(var(--margin) + 3vw); top: 60vh; text-align: right; justify-items: end; }
+  .held__line--4 { left: var(--margin); top: 76vh; }
+
+  .held__body { position: absolute; left: var(--margin); bottom: 7vh; max-width: 21rem; font-size: var(--t-small); line-height: 1.6; transition: opacity 400ms linear; }
+  .held[data-holding] .held__body { opacity: 0; }
+
+  .held__hold {
+    position: absolute; right: var(--margin); bottom: 7vh;
+    display: inline-flex; align-items: center; gap: 1rem; color: var(--fg);
+    -webkit-user-select: none; user-select: none; touch-action: none; -webkit-touch-callout: none;
+  }
+  .held__ring { width: 64px; height: 64px; rotate: -90deg; overflow: visible; }
+  .held__ring-track { fill: none; stroke: currentColor; stroke-opacity: 0.28; stroke-width: 1; }
+  .held__ring-fill { fill: none; stroke: var(--amber); stroke-width: 1.6; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--charge, 0)); stroke-linecap: round; }
+  .held__ring-dot { fill: currentColor; transform-origin: 32px 32px; scale: calc(1 + var(--charge, 0) * 1.6); }
+  .held__hold:focus-visible { outline-offset: 8px; }
+
+  .held__cloud { position: absolute; pointer-events: none; will-change: transform; transition: opacity 500ms linear; }
+  .held__cloud--l { width: min(46vw, 760px); left: -14vw; top: 18vh; opacity: 0.9; }
+  .held__cloud--r { width: min(40vw, 640px); right: -12vw; top: 46vh; opacity: 0.85; }
+  .held[data-night] .held__cloud { opacity: 0 !important; }
+
+  /* Lines and the answer only exist while holding (motion). Without motion they read as a list. */
+  :global(html.motion) .held__line { opacity: 0; translate: 0 18px; transition: opacity 500ms linear, translate 900ms var(--ease-out); }
+  :global(html.motion) .held__line[data-on] { opacity: 1; translate: 0 0; }
+  :global(html.motion) .held__answer > span { opacity: 0; translate: 0 0.35em; transition: opacity 600ms linear, translate 1000ms var(--ease-out); }
+  :global(html.motion) .held__answer[data-on] > span { opacity: 1; translate: 0 0; }
+  :global(html.motion) .held__answer[data-on] > span + span { transition-delay: 160ms; }
+
+  :global(html:not(.motion)) .held__pin { padding-block: calc(var(--header-h) + 3rem) 4rem; display: grid; }
+  :global(html:not(.motion)) .held__stage { position: static; display: grid; gap: 2.5rem; padding-inline: var(--margin); }
+  :global(html:not(.motion)) .held__head, :global(html:not(.motion)) .held__arch, :global(html:not(.motion)) .held__lines,
+  :global(html:not(.motion)) .held__line, :global(html:not(.motion)) .held__body, :global(html:not(.motion)) .held__answer { position: static; translate: none; }
+  :global(html:not(.motion)) .held__arch { --D: min(84vw, 36rem); margin-inline: auto; position: relative; }
+  :global(html:not(.motion)) .held__answer { display: none; }
+  :global(html:not(.motion)) .held__lines { display: grid; gap: 1.5rem; }
+  :global(html:not(.motion)) .held__hold, :global(html:not(.motion)) .held__cloud { display: none; }
+
+  @media (max-width: 767px) {
+    .held__arch { --D: min(84vw, 52vh); top: 62%; }
+    .held__line { max-width: 14rem; }
+    .held__line--0, .held__line--2, .held__line--4 { left: var(--margin); }
+    .held__line--1, .held__line--3 { right: var(--margin); }
+    .held__line--0 { top: 24vh; } .held__line--1 { top: 31vh; } .held__line--2 { top: 38vh; } .held__line--3 { top: 45vh; } .held__line--4 { top: 52vh; }
+    .held__body { display: none; }
+    .held__hold { right: 50%; translate: 50% 0; bottom: 3vh; }
+  }
+</style>

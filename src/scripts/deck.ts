@@ -14,7 +14,6 @@
  */
 import { $, $$, clamp, env } from './core/env';
 import { onTick, damp } from './core/ticker';
-import { sound } from './sound';
 
 const ROT_PER_PX = 0.055; // degrees
 const ROT_MAX = 14;
@@ -116,7 +115,6 @@ export function initDeck() {
       const b = cards[last];
       b.x = -innerWidth * 0.5; b.y = 40; b.rot = -18;
     }
-    sound.play(dir > 0 ? 'throw' : 'back');
     reseat();
     wake();
   }
@@ -185,6 +183,13 @@ export function initDeck() {
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); advance(-1); }
   });
   $$('[data-deck-next]', root).forEach((b) => b.addEventListener('click', () => advance(1)));
+  // The workforces gate asks for the original order whenever the photograph is about to become card 1 again.
+  root.addEventListener('nx:deck-reset', () => {
+    if (order[0] === 0 && seen === 0) return;
+    order = els.map((_, i) => i); seen = 0;
+    for (const c of cards) c.flying = 0;
+    reseat(true);
+  });
   $$('[data-deck-prev]', root).forEach((b) => b.addEventListener('click', () => advance(-1)));
 
   // ── frame loop ──────────────────────────────────────────────────────────────────────────

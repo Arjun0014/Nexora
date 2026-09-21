@@ -3,11 +3,11 @@
  * The intro.
  *
  * Studio black. NEXORA sits at the centre and tracks open as the film's real bytes arrive; a hairline grows
- * beneath it; the five world names cycle in their own colours. It ends by opening that hairline into a
- * full-height band — the divider wall of the film, reused — onto the disc already turning.
+ * beneath it; the five world names cycle in their own colours. It ends by drawing the hairline in to a point,
+ * which opens as a circular aperture with a lit rim (the disc's own edge) and dives out past the corners while
+ * the film behind it settles from a slight zoom onto the disc already turning.
  *
- * Visibility is decided BEFORE first paint by the inline script in Base.astro (`html[data-intro]` — the flag
- * lives on the root element, so this component is found by `[data-intro-root]`), so the hero
+ * Visibility is decided BEFORE first paint by the inline script in Base.astro (`html[data-intro]`), so the hero
  * is never visible for a frame first. Without JS the attribute is never set and this markup never displays.
  * `src/scripts/intro.ts` drives it from there.
  */
@@ -40,9 +40,8 @@ import { site } from '../data/site';
     </div>
   </div>
 
-  <!-- The wipe: two bands of divider-wall bronze that open vertically off the hairline. -->
-  <span class="intro__band intro__band--t"></span>
-  <span class="intro__band intro__band--b"></span>
+  <!-- The aperture's lit rim. The field itself is cut by a radial mask driven from --r. -->
+  <span class="intro__ring" data-intro-ring aria-hidden="true"></span>
 </div>
 
 <style>
@@ -51,9 +50,8 @@ import { site } from '../data/site';
     display: grid; place-items: center;
     position: fixed; inset: 0; z-index: 300;
     background: var(--studio); color: var(--bone);
-    transition: opacity 240ms linear;
   }
-  .intro[data-done='true'] { opacity: 0; pointer-events: none; }
+  .intro[data-done='true'] { visibility: hidden; pointer-events: none; }
   .intro__grain { position: absolute; inset: 0; background-image: var(--grain-url); background-size: 180px 180px; opacity: 0.4; mix-blend-mode: overlay; }
 
   .intro__corner { position: absolute; color: var(--bone-soft); opacity: 0; transition: opacity 800ms ease-out 240ms; }
@@ -66,8 +64,8 @@ import { site } from '../data/site';
 
   /* The wordmark IS the progress bar: it tracks open as the film arrives (Lambert | Lambert). */
   .intro__word {
-    font-family: var(--f-mono); font-weight: 500;
-    font-size: clamp(1.05rem, 2.1vw, 1.85rem);
+    font-family: var(--f-label); font-stretch: 125%; font-weight: 500;
+    font-size: clamp(1.05rem, 2vw, 1.75rem);
     line-height: 1;
     text-align: center;
     letter-spacing: var(--track, 0.06em);
@@ -81,13 +79,13 @@ import { site } from '../data/site';
   .intro__bar { position: relative; height: 1px; }
   .intro__track { position: absolute; inset: 0; background: rgba(243, 237, 227, 0.14); transform: scaleX(0); transition: transform 1000ms var(--ease-freeze) 160ms; }
   .intro[data-on='true'] .intro__track { transform: none; }
-  .intro__fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 100%; background: var(--bronze); transform: scaleX(0); transform-origin: left; }
+  .intro__fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 100%; background: var(--amber); transform: scaleX(0); transform-origin: left; }
 
   .intro__foot { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-block-start: 0.85rem; }
 
   /* World names are stacked in one box and cross-faded, so nothing reflows as they change. */
   .intro__worlds { position: relative; display: block; height: 1.3em; flex: 1; min-width: 0; }
-  .intro__world { position: absolute; inset-block-start: 0; inset-inline-start: 0; white-space: nowrap; color: var(--accent, var(--bronze)); opacity: 0; transition: opacity 260ms linear; }
+  .intro__world { position: absolute; inset-block-start: 0; inset-inline-start: 0; white-space: nowrap; color: var(--accent, var(--amber)); opacity: 0; transition: opacity 260ms linear; }
   .intro__world > span { display: block; transform: translateY(0.45em); transition: transform 460ms var(--ease-freeze); }
   .intro__world[data-on='true'] { opacity: 1; }
   .intro__world[data-on='true'] > span { transform: none; }
@@ -96,26 +94,30 @@ import { site } from '../data/site';
   .intro__pct { color: var(--bone-soft); font-variant-numeric: tabular-nums; }
   .intro__pct::after { content: '%'; opacity: 0.4; margin-inline-start: 0.15em; }
 
-  /* The wipe. Both bands sit on the hairline and grow away from it. They are the film's divider wall, so
-     they carry its light: a warm gradient, and a bright bronze edge where the light catches the leading face. */
-  .intro__band {
-    position: absolute; inset-inline: 0; height: 0;
-    background: linear-gradient(var(--band-dir, 180deg), #2a1d13 0%, var(--wall) 42%, #120d09 100%);
-    transition: height 460ms var(--ease-io);
+  /* The close: the hairline draws in to its centre, everything else fades, and a point of light remains. */
+  .intro[data-close] .intro__track,
+  .intro[data-close] .intro__fill { transform-origin: 50% 50%; transform: scaleX(0) !important; transition: transform 620ms var(--ease-io); }
+  .intro[data-close] .intro__word,
+  .intro[data-close] .intro__foot,
+  .intro[data-close] .intro__corner { opacity: 0; transition: opacity 380ms linear; }
+
+  /* The aperture. --r is animated from JS; the mask keeps the field everywhere outside the circle. */
+  .intro[data-aperture] {
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--r, 0px), #000 calc(var(--r, 0px) + 1px));
+    mask-image: radial-gradient(circle at 50% 50%, transparent var(--r, 0px), #000 calc(var(--r, 0px) + 1px));
   }
-  .intro__band::after { content: ''; position: absolute; inset-inline: 0; height: 1px; background: var(--bronze); opacity: 0.7; }
-  .intro__band--t { inset-block-end: 50%; --band-dir: 0deg; }
-  .intro__band--t::after { inset-block-end: 0; }
-  .intro__band--b { inset-block-start: 50%; }
-  .intro__band--b::after { inset-block-start: 0; }
-  .intro[data-wipe='in'] .intro__band { height: 50.5%; }
-  /* Once the wall has closed, the field behind it is dropped, so the bands open onto the film itself
-     rather than onto black. The swap happens while nothing of it can be seen. */
-  .intro[data-clear='true'] { background: transparent; }
-  .intro[data-clear='true'] .intro__grain { opacity: 0; }
-  .intro[data-wipe='out'] .intro__band { height: 0; transition-duration: 680ms; transition-timing-function: var(--ease-freeze); }
-  /* While the wall is closed the centre column is gone, so it reads as one solid surface. */
-  .intro[data-wipe] .intro__centre, .intro[data-wipe] .intro__corner { opacity: 0; transition: opacity 180ms linear; }
+  .intro__ring {
+    position: fixed; inset-block-start: 50%; inset-inline-start: 50%;
+    width: calc(var(--r, 1.5px) * 2 + 2px); height: calc(var(--r, 1.5px) * 2 + 2px);
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: 1px solid #f0bd86;
+    background: radial-gradient(circle, rgba(240, 189, 134, calc(0.9 - var(--open, 0) * 0.9)) 0 40%, transparent 72%);
+    box-shadow: 0 0 22px 1px rgba(224, 164, 107, 0.55), inset 0 0 26px rgba(224, 164, 107, 0.26);
+    opacity: 0; pointer-events: none;
+  }
+  .intro[data-close] .intro__ring { opacity: var(--ring, 1); transition: opacity 260ms linear 420ms; }
+  .intro[data-aperture] .intro__ring { transition: none; }
 
   @media (max-width: 699px) {
     .intro__corner--br { display: none; }

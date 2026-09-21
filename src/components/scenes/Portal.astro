@@ -1,0 +1,74 @@
+---
+/**
+ * Scene 1 — the portal. Lives inside `.opening` together with the hero, as an overlay above it.
+ *
+ * The title card holds still (the hero is sticky) while a sky-coloured dome rises out of the black with an amber
+ * rim: the disc of the film, coming up like a sun. Curved type turns on its rim. The title card lifts away faster
+ * than the stage behind it, the stage pushes in, clouds rise through the seam, and the dome grows until it IS
+ * the next scene's ground. (ERA Residence: hero → "three reasons" dome.) Driven by src/scripts/scenes/portal.ts.
+ */
+import { site } from '../../data/site';
+const ring = `${site.tagline} · ${site.city} · ${site.country} · Est. ${site.established} · `;
+---
+<div class="portal" data-portal aria-hidden="true">
+  <div class="portal__pin">
+    <div class="portal__dome" data-dome>
+      <svg class="portal__ring" data-ring viewBox="0 0 1000 1000" focusable="false">
+        <defs><path id="portal-arc" d="M500,500 m-452,0 a452,452 0 1,1 904,0 a452,452 0 1,1 -904,0" /></defs>
+        <text><textPath href="#portal-arc" textLength="2830" lengthAdjust="spacing">{ring}{ring}</textPath></text>
+      </svg>
+      <p class="portal__mark label" data-dome-mark><span>{site.city}</span><span class="portal__star">✦</span><span>{site.country}</span></p>
+    </div>
+    <div class="portal__sky" data-portal-sky>
+    <img class="portal__cloud portal__cloud--a" data-cloud="1.35" src="/media/clouds/px-cloud-04.webp" alt="" decoding="async" loading="lazy" />
+    <img class="portal__cloud portal__cloud--b" data-cloud="1.8" src="/media/clouds/px-cloud-02.webp" alt="" decoding="async" loading="lazy" />
+    <img class="portal__cloud portal__cloud--c" data-cloud="1.1" src="/media/clouds/px-cloud-06.webp" alt="" decoding="async" loading="lazy" />
+    </div>
+  </div>
+</div>
+
+<style>
+  .portal { display: none; }
+  :global(html.cinema) .portal {
+    display: block; position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  }
+  .portal__pin { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: clip; }
+
+  /* The dome. Its size and position are written from JS as --d (diameter) and --y (top edge). */
+  .portal__dome {
+    position: absolute; left: 50%;
+    width: var(--d, 70vw); aspect-ratio: 1;
+    top: var(--y, 110vh);
+    translate: -50% 0;
+    border-radius: 50%;
+    background: var(--sky);
+    box-shadow:
+      0 0 0 1px rgba(240, 189, 134, 0.85),
+      0 -8px 44px 2px rgba(208, 149, 96, 0.5),
+      0 -2px 140px 30px rgba(208, 149, 96, 0.16);
+    color: var(--ink);
+    will-change: top, width;
+  }
+  .portal__ring {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    rotate: var(--spin, 0deg);
+    overflow: visible;
+  }
+  .portal__ring text {
+    font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300;
+    font-size: 30px; letter-spacing: 0.06em; text-transform: uppercase;
+    fill: var(--ink);
+  }
+  .portal__mark {
+    position: absolute; left: 50%; top: 13%; translate: -50% 0;
+    display: flex; gap: 1.1em; align-items: center; white-space: nowrap;
+  }
+  .portal__star { color: var(--amber-deep); font-size: 0.9em; letter-spacing: 0; }
+
+  /* Clouds are seen THROUGH the dome: clipped to the same circle, so they are sky, never ash on the night. */
+  .portal__sky { position: absolute; inset: 0; clip-path: circle(calc(var(--d, 0px) / 2) at 50% calc(var(--y, 110vh) + var(--d, 0px) / 2)); }
+  .portal__cloud { position: absolute; will-change: transform; user-select: none; }
+  .portal__cloud--a { width: min(58vw, 940px); left: 4vw; top: 70%; }
+  .portal__cloud--b { width: min(40vw, 660px); right: 2vw; top: 88%; }
+  .portal__cloud--c { width: min(34vw, 560px); left: 40vw; top: 110%; opacity: 0.85; }
+</style>

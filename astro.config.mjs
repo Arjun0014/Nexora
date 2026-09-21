@@ -11,6 +11,7 @@ export default defineConfig({
   site,
   trailingSlash: 'always',
   integrations: [sitemap()],
+  devToolbar: { enabled: false },
   build: {
     // Small CSS is inlined to avoid a render-blocking request before the hero paints.
     inlineStylesheets: 'auto',

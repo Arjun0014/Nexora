@@ -1,0 +1,121 @@
+---
+/**
+ * Scene 9 — for employers. A Love & Money playbook, reached through ERA's window (src/scripts/scenes/employers.ts).
+ *
+ *   window   a small photograph at the foot of the limestone grows to fill the screen
+ *   column   it then narrows into the left column while the ground turns sky and the playbook arrives
+ *   play     four ways to engage, one at a time: a big numeral and title in the centre, the photograph changing
+ *            behind the column's blinds, a filmstrip of our people rising on the right
+ *   ask      "Request workforce", always in reach at the foot of the centre column
+ */
+import { engagements, doors } from '../../data/content';
+import { stock } from '../../data/stock';
+import Arrow from '../ui/Arrow.astro';
+const pics = [stock.engage['short-term'], stock.engage.contract, stock.engage.project, stock.engage.permanent];
+const lead = stock.doors.employer;
+const strip = [
+  ...Object.values(stock.workforces), ...Object.values(stock.sectors).slice(0, 6), ...Object.values(stock.steps).slice(0, 3),
+];
+---
+<section class="emp" id="employers" data-emp data-bg="light" aria-labelledby="emp-h">
+  <div class="emp__stage" data-emp-stage>
+    <div class="emp__sky" data-emp-sky aria-hidden="true"></div>
+
+    <div class="emp__play" data-emp-play>
+      <div class="emp__centre">
+        <header class="emp__top">
+          <p class="label">{doors.employer.label}</p>
+          <p class="label emp__count"><span data-emp-n>01</span> / 0{engagements.length}</p>
+        </header>
+        <h2 class="display emp__h" id="emp-h">Ways to <em>work</em> with us</h2>
+        <ol class="emp__steps">
+          {engagements.map((e, i) => (
+            <li class="emp__step" data-emp-step={i} data-on={i === 0 ? '' : undefined}>
+              <span class="emp__num" aria-hidden="true">0{i + 1}</span>
+              <h3 class="h1 emp__t">{e.title}</h3>
+              <p class="emp__body">{e.body}</p>
+            </li>
+          ))}
+        </ol>
+        <div class="emp__ask">
+          <p class="emp__askline">{doors.employer.body}</p>
+          <a class="emp__cta" href={doors.employer.href} data-cursor="Request"><span>{doors.employer.cta}</span><Arrow /></a>
+        </div>
+      </div>
+
+      <div class="emp__strip" aria-hidden="true">
+        <div class="emp__reel" data-emp-reel>
+          {[...strip, ...strip].map((p) => <img src={p.card.replace('-960', '-640')} alt="" width="640" height="800" loading="lazy" decoding="async" />)}
+        </div>
+      </div>
+    </div>
+
+    <!-- The photograph: first the growing window, then the left column. Its pictures change behind blinds. -->
+    <div class="emp__photo" data-emp-photo>
+      <img class="emp__lead" src={lead.src} srcset={lead.srcset} sizes="100vw" alt={lead.alt} width="2400" height="1600" loading="lazy" decoding="async" style={`object-position:${lead.focus}`} data-emp-lead />
+      {pics.map((p, i) => (
+        <div class="emp__pic" data-emp-pic={i} aria-hidden="true">
+          {Array.from({ length: 6 }, (_, k) => (
+            <span class="emp__blind" style={`--k:${k}`}><img src={p.src} srcset={p.srcset} sizes="40vw" alt="" width="1400" height="933" loading="lazy" decoding="async" style={`object-position:${p.focus}`} /></span>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .emp { --bg: var(--sand); position: relative; color: var(--ink); background: var(--sand); }
+  :global(html.motion) .emp { height: 560vh; height: 560svh; }
+  .emp__stage { position: relative; min-height: 100svh; overflow: clip; }
+  :global(html.motion) .emp__stage { position: sticky; top: 0; height: 100vh; height: 100svh; }
+  .emp__sky { position: absolute; inset: 0; background: var(--sky); opacity: var(--sky-o, 0); }
+
+  .emp__play { position: absolute; inset: 0; display: grid; grid-template-columns: 38vw minmax(0, 1fr) 10vw; opacity: var(--play, 0); }
+  .emp__centre { grid-column: 2; display: grid; grid-template-rows: auto auto 1fr auto; padding: calc(var(--header-h) + 2vh) clamp(2rem, 4.5vw, 5rem) 5vh; min-width: 0; }
+  .emp__top { display: flex; justify-content: space-between; padding-block-end: 1rem; border-block-end: 1px solid var(--line); }
+  .emp__count { font-variant-numeric: tabular-nums; }
+  .emp__h { font-size: clamp(1.6rem, 2.2vw, 2.6rem); margin-block: 1.4rem 0; opacity: 0.8; }
+  .emp__steps { position: relative; }
+  .emp__step { position: absolute; inset: 0; display: grid; align-content: center; gap: 1.2rem; visibility: hidden; }
+  .emp__step[data-on] { visibility: visible; }
+  .emp__num { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; font-size: clamp(5rem, 11vw, 13rem); line-height: 0.8; color: var(--amber-deep); }
+  .emp__t { font-size: clamp(2.6rem, 4.8vw, 6rem); }
+  .emp__body { max-width: 28rem; font-size: var(--t-lead); line-height: 1.45; color: var(--ink-soft); }
+  .emp__step :global(.line) { overflow: clip; }
+
+  .emp__ask { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; padding-block-start: 1.4rem; border-block-start: 1px solid var(--line); }
+  .emp__askline { max-width: 20rem; font-size: var(--t-small); color: var(--ink-soft); }
+  .emp__cta {
+    display: inline-flex; align-items: center; gap: 1rem;
+    font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase;
+    font-size: clamp(1.8rem, 2.6vw, 3.2rem); line-height: 1;
+    padding-block-end: 0.3rem; border-block-end: 1px solid currentColor;
+  }
+  .emp__cta :global(.arrow) { width: 0.9em; }
+
+  .emp__strip { grid-column: 3; overflow: hidden; border-inline-start: 1px solid var(--line); }
+  .emp__reel { display: grid; gap: 0.6rem; padding: 0.6rem; will-change: transform; }
+  .emp__reel img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 2px; filter: saturate(0.85); }
+
+  .emp__photo { position: absolute; z-index: 2; overflow: hidden; left: 0; top: 0; width: 38vw; height: 100%; background: var(--sand-2); }
+  .emp__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .emp__pic { position: absolute; inset: 0; visibility: hidden; }
+  .emp__pic[data-on] { visibility: visible; }
+  /* Blinds: six horizontal slices, each showing its band of the same picture. */
+  .emp__blind { position: absolute; inset: 0; clip-path: inset(calc(var(--k) * 100% / 6) 0 calc((5 - var(--k)) * 100% / 6) 0); }
+  .emp__blind img { transform-origin: 50% 50%; }
+
+  :global(html:not(.motion)) .emp__sky { opacity: 1; }
+  :global(html:not(.motion)) .emp__play { position: static; opacity: 1; display: block; }
+  :global(html:not(.motion)) .emp__photo { position: relative; width: 100%; height: 60vh; }
+  :global(html:not(.motion)) .emp__step { position: static; visibility: visible; margin-block: 2rem; }
+  :global(html:not(.motion)) .emp__strip { display: none; }
+
+  @media (max-width: 899px) {
+    .emp__play { grid-template-columns: 1fr; grid-template-rows: 34vh 1fr; }
+    .emp__centre { grid-column: 1; grid-row: 2; padding: 1.2rem var(--margin) 3vh; }
+    .emp__strip, .emp__h, .emp__askline { display: none; }
+    .emp__num { font-size: 4.5rem; }
+  }
+</style>

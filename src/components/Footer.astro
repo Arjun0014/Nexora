@@ -1,177 +1,151 @@
 ---
 /**
- * Chapter VII — the footer as a grid of useful cells.
+ * The footer (scene 11). Maroon, the dusk ground.
  *
- * Aspen Search builds its footer out of edged cells that each hold one real thing (a live clock, an address,
- * an email, a giant mark) rather than four columns of links. White Desert's lesson applies here too: a new
- * company earns trust with checkable specifics — the registration number, the establishment date, the city —
- * so those are given the same weight a statistic would have had.
- *
- * Contact cells only exist once the client supplies the values; nothing renders a placeholder.
+ * It begins as a full-bleed photograph of Doha at golden hour and, as you arrive, the photograph draws inward
+ * into an ARCH at the centre while the footer assembles around it (ERA Residence's footer: an image clipping to
+ * `inset(8% 22%)` as the content scales in from 0.75 — here the frame is our arch). Everything in it is real and
+ * checkable: the registered name, the CR number, the establishment year, Doha's time. Contact rows appear only
+ * once the client supplies them. (src/scripts/scenes/footer.ts)
  */
 import Wordmark from './Wordmark.astro';
+import Arrow from './ui/Arrow.astro';
 import { site, nav, cta } from '../data/site';
 import { worlds } from '../data/worlds';
+import { stock } from '../data/stock';
 
 const year = new Date().getFullYear();
-const hasContact = Boolean(site.email || site.phone || site.whatsapp || site.address.length);
+const img = stock.doha.dhows;
 ---
-<footer class="ft surface ch-studio grain" data-theme="dark">
-  <div class="ft__wrap wrap">
-    <div class="ft__grid">
-      <!-- Doha time, live. A real, checkable fact about where this company is. -->
-      <div class="ft__cell ft__cell--clock">
-        <p class="label label--soft">Doha</p>
-        <p class="ft__clock mono" data-clock><time datetime="" data-clock-time>—</time></p>
-        <p class="label label--soft ft__gmt">GMT+3</p>
-      </div>
+<footer class="ft" data-ft data-bg="dark" style="--c: 0">
+  <div class="ft__pin">
+    <div class="ft__photo" data-ft-photo aria-hidden="true">
+      <img src={img.src} srcset={img.srcset} sizes="100vw" alt="" width="2400" height="1600" loading="lazy" decoding="async" style={`object-position:${img.focus}`} />
+      <span class="label ft__place">{site.city}, {site.country}</span>
+    </div>
 
-      <div class="ft__cell ft__cell--id">
-        <p class="label label--soft">Registered</p>
-        <p class="ft__idv mono">{site.legalName}</p>
-        <p class="ft__idv mono">CR {site.cr} · Est. {site.established} · {site.city}, {site.country}</p>
-      </div>
-
-      <nav class="ft__cell ft__cell--nav" aria-label="Workforces">
-        <p class="label label--soft">Workforces</p>
-        <ul>
-          {worlds.map((w) => <li><a class="ft__link" href={`/services/#${w.id}`}>{w.title}</a></li>)}
+    <div class="ft__content" data-ft-content>
+      <div class="ft__ask">
+        <p class="display ft__h">Start <em>with</em> a brief.</p>
+        <ul class="ft__doors">
+          <li><a href={cta.employer.href} data-cursor="Request"><span>{cta.employer.label}</span><Arrow /></a></li>
+          <li><a href={cta.candidate.href} data-cursor="Apply"><span>{cta.candidate.label}</span><Arrow /></a></li>
         </ul>
-      </nav>
-
-      <nav class="ft__cell ft__cell--nav" aria-label="Company">
-        <p class="label label--soft">Company</p>
-        <ul>
-          {nav.map((n) => <li><a class="ft__link" href={n.href}>{n.label}</a></li>)}
-          <li><a class="ft__link" href="/contact/">Contact</a></li>
-          <li><a class="ft__link" href="/privacy/">Privacy</a></li>
-        </ul>
-      </nav>
-
-      <a class="ft__cell ft__cell--door" href={cta.employer.href} data-cursor="label" data-cursor-label="Request">
-        <span class="label label--soft">For employers</span>
-        <span class="ft__doorh">{cta.employer.label}</span>
-      </a>
-
-      <a class="ft__cell ft__cell--door" href={cta.candidate.href} data-cursor="label" data-cursor-label="Apply">
-        <span class="label label--soft">For candidates</span>
-        <span class="ft__doorh">{cta.candidate.label}</span>
-      </a>
-
-      {hasContact && (
-        <address class="ft__cell ft__cell--contact">
-          <p class="label label--soft">Contact</p>
-          {site.email && <a class="ft__link" href={`mailto:${site.email}`}>{site.email}</a>}
-          {site.phone && <a class="ft__link" href={`tel:${site.phone.replace(/\s+/g, '')}`}>{site.phone}</a>}
-          {site.whatsapp && <a class="ft__link" href={`https://wa.me/${site.whatsapp}`} rel="noopener">WhatsApp</a>}
-          {site.address.map((line) => <span class="ft__addr mono">{line}</span>)}
-        </address>
-      )}
-
-      <div class="ft__cell ft__cell--policy">
-        <p class="label label--soft">Policy</p>
-        <p class="ft__policy mono">Candidates are never charged a fee, at any stage. Qatar Labour Law 14/2004, art. 33.</p>
+        {(site.email || site.phone) && (
+          <address class="ft__contact">
+            {site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
+            {site.phone && <a href={`tel:${site.phone.replace(/\s+/g, '')}`}>{site.phone}</a>}
+          </address>
+        )}
       </div>
 
-      <div class="ft__cell ft__cell--prefs">
-        <p class="label label--soft">Preferences</p>
-        <button class="ft__toggle label" type="button" data-motion-toggle aria-pressed="false" hidden>
-          <span class="ft__dot" aria-hidden="true"></span><span data-motion-label>Reduce motion</span>
-        </button>
-        <button class="ft__toggle label" type="button" data-sound-toggle aria-pressed="false" hidden>
-          <span class="ft__dot" aria-hidden="true"></span><span data-sound-label>Sound off</span>
-        </button>
+      <div class="ft__info">
+        <div class="ft__clock">
+          <p class="label ft__k">Doha</p>
+          <p class="ft__time"><time data-clock-time>—</time></p>
+        </div>
+        <div>
+          <p class="label ft__k">Registered</p>
+          <p>{site.legalName}</p>
+          <p>CR {site.cr} · Est. {site.established}</p>
+        </div>
+        <nav aria-label="Workforces">
+          <p class="label ft__k">Workforces</p>
+          <ul>{worlds.map((w) => <li><a href={`/services/#${w.id}`}>{w.title}</a></li>)}</ul>
+        </nav>
+        <nav aria-label="Company">
+          <p class="label ft__k">Company</p>
+          <ul>
+            {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+            <li><a href="/contact/">Contact</a></li>
+          </ul>
+        </nav>
       </div>
     </div>
 
-    <!-- The mark, bleeding off the bottom edge (Kononenko). -->
-    <div class="ft__mark" aria-hidden="true"><Wordmark class="ft__word" /></div>
-
-    <p class="ft__legal label label--soft">
-      <span>© {year} {site.legalName}</span>
-      <span>Doha, Qatar</span>
-    </p>
+    <div class="ft__base" data-ft-base>
+      <div class="ft__legal">
+        <p class="label">© {year} {site.legalName}</p>
+        <p class="label ft__policy">Candidates are never charged a fee. Qatar Labour Law 14/2004, art. 33.</p>
+        <p class="ft__prefs">
+          <a class="label" href="/privacy/">Privacy</a>
+          <button class="label ft__toggle" type="button" data-motion-toggle aria-pressed="false" hidden><span data-motion-label>Reduce motion</span></button>
+        </p>
+      </div>
+      <div class="ft__mark" aria-hidden="true"><Wordmark class="ft__word" /></div>
+    </div>
   </div>
 </footer>
 
 <script>
-  // Doha never changes offset, so the clock is arithmetic on UTC rather than a timezone database.
-  const time = document.querySelector<HTMLTimeElement>('[data-clock-time]');
-  if (time) {
-    const tick = () => {
-      const now = new Date();
-      const doha = new Date(now.getTime() + (3 * 60 + now.getTimezoneOffset()) * 60000);
-      const hh = String(doha.getHours()).padStart(2, '0');
-      const mm = String(doha.getMinutes()).padStart(2, '0');
-      const ss = String(doha.getSeconds()).padStart(2, '0');
-      time.textContent = `${hh}:${mm}:${ss}`;
-      time.dateTime = `${hh}:${mm}:${ss}`;
-    };
-    tick();
-    setInterval(tick, 1000);
+  // Doha's time, live: a small, checkable fact about where this company is.
+  const el = document.querySelector<HTMLTimeElement>('[data-clock-time]');
+  if (el) {
+    const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Qatar', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const tick = () => { const d = new Date(); el.textContent = fmt.format(d); el.dateTime = d.toISOString(); };
+    tick(); setInterval(tick, 1000);
   }
 </script>
 
 <style>
-  .ft { position: relative; padding-block: clamp(3rem, 8vh, 5rem) 0; overflow: clip; }
-  .ft__wrap { position: relative; z-index: 1; }
+  .ft { --bg: var(--maroon); position: relative; background: var(--bg); color: var(--bone); z-index: 11; }
+  :global(html.motion) .ft { height: 190vh; height: 190svh; }
+  .ft__pin { position: relative; min-height: 100svh; overflow: clip; display: grid; grid-template-rows: 1fr auto; }
+  :global(html.motion) .ft__pin { position: sticky; top: 0; height: 100vh; height: 100svh; }
 
-  /* A grid of cells, each holding one real thing. Empty cells are allowed. */
-  .ft__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); border-block-start: 1px solid var(--line); }
-  .ft__cell {
-    padding: clamp(1.1rem, 1.8vw, 1.75rem);
-    border-block-end: 1px solid var(--line);
-    border-inline-end: 1px solid var(--line);
-    min-width: 0;
+  /* The frame: from the whole screen (--c 0) to an arch at the centre (--c 1). */
+  .ft__photo {
+    --c: 1;
+    position: absolute; inset: 0; z-index: 1; overflow: hidden;
+    clip-path: inset(calc(13vh * var(--c)) calc(37.5vw * var(--c)) calc(33vh * var(--c)) calc(37.5vw * var(--c)) round calc(12.5vw * var(--c)) calc(12.5vw * var(--c)) 0 0);
   }
-  .ft__cell > .label:first-child { display: block; margin-block-end: 1rem; }
+  /* It arrives out of the dusk above: a maroon fade over its top edge, gone once it has become the arch. */
+  .ft__photo::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: calc(1 - var(--c)); background: linear-gradient(180deg, var(--maroon) 0%, rgba(75, 20, 38, 0) 38%); }
+  .ft__photo img { width: 100%; height: 100%; object-fit: cover; transform: scale(calc(1.18 - 0.18 * var(--c))); }
+  .ft__place { position: absolute; left: 50%; bottom: calc(33vh + 1.2rem); translate: -50% 0; color: var(--bone); opacity: var(--c); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5); }
 
-  .ft__cell--clock { grid-column: span 2; }
-  .ft__cell--id { grid-column: span 4; }
-  .ft__cell--nav { grid-column: span 2; }
-  .ft__cell--door { grid-column: span 2; display: flex; flex-direction: column; justify-content: space-between; gap: 2.5rem; transition: background-color var(--d-state) ease, color var(--d-state) ease; }
-  .ft__cell--contact { grid-column: span 3; font-style: normal; display: grid; gap: 0.25rem; align-content: start; }
-  .ft__cell--policy { grid-column: span 5; }
-  .ft__cell--prefs { grid-column: span 4; display: grid; gap: 0.5rem; align-content: start; }
-  .ft__cell:last-child { border-inline-end: 0; }
-
-  .ft__clock { font-size: clamp(1.5rem, 2.6vw, 2.25rem); line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .ft__gmt { margin-block-start: 0.5rem; }
-  .ft__idv { font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
-  .ft__addr, .ft__policy { font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
-
-  .ft__link { display: inline-block; padding-block: 0.3rem; font-size: var(--t-small); color: var(--fg-soft); transition: color var(--d-state) ease; }
-  .ft__link:hover, .ft__link:focus-visible { color: var(--fg); }
-
-  .ft__doorh { font-family: var(--f-display); font-size: clamp(1.125rem, 1.8vw, 1.625rem); line-height: 1.05; letter-spacing: -0.02em; }
-  .ft__cell--door:hover, .ft__cell--door:focus-visible { background: var(--bronze); color: var(--studio); }
-  .ft__cell--door:hover .label, .ft__cell--door:focus-visible .label { color: rgba(11, 10, 9, 0.7); }
-
-  .ft__toggle { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 2.25rem; color: var(--fg-soft); transition: color var(--d-state) ease; }
-  .ft__toggle:hover, .ft__toggle:focus-visible { color: var(--fg); }
-  .ft__dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; }
-  .ft__toggle[aria-pressed='true'] .ft__dot { background: var(--bronze); border-color: var(--bronze); }
-
-  /* The mark is cropped by the page edge: it continues past the end of the site. */
-  .ft__mark { margin-block-start: clamp(2.5rem, 7vh, 5rem); margin-block-end: -3%; }
-  .ft__word { width: 100%; height: auto; color: var(--bone); opacity: 0.14; }
-
-  .ft__legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; padding-block: 1.5rem; border-block-start: 1px solid var(--line); }
-
-  @media (max-width: 1023px) {
-    .ft__grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-    .ft__cell--clock { grid-column: span 3; }
-    .ft__cell--id { grid-column: span 5; }
-    .ft__cell--nav { grid-column: span 4; }
-    .ft__cell--door { grid-column: span 4; }
-    .ft__cell--contact { grid-column: span 4; }
-    .ft__cell--policy { grid-column: span 8; }
-    .ft__cell--prefs { grid-column: span 8; }
+  .ft__content {
+    grid-row: 1; position: relative; z-index: 2;
+    display: grid; grid-template-columns: 1fr 25vw 1fr; align-items: center;
+    padding: calc(var(--header-h) + 2vh) var(--margin) 2vh;
   }
-  @media (max-width: 699px) {
-    .ft__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .ft__cell--clock, .ft__cell--nav, .ft__cell--door { grid-column: span 1; }
-    .ft__cell--id, .ft__cell--contact, .ft__cell--policy, .ft__cell--prefs { grid-column: span 2; }
-    .ft__cell--door { gap: 1.5rem; }
+  .ft__ask { grid-column: 1; display: grid; gap: 1.8rem; align-content: center; padding-inline-end: 2rem; }
+  .ft__h { font-size: clamp(2.6rem, 4.6vw, 5.8rem); }
+  .ft__doors { display: grid; gap: 0.9rem; }
+  .ft__doors a {
+    display: inline-flex; align-items: center; gap: 0.9rem;
+    font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase;
+    font-size: clamp(1.4rem, 1.9vw, 2.3rem); line-height: 1; padding-block-end: 0.25rem; border-block-end: 1px solid var(--line-strong);
+    transition: border-color var(--d-state) ease, color var(--d-state) ease;
+  }
+  .ft__doors a:hover, .ft__doors a:focus-visible { color: #f1c28f; border-color: #f1c28f; }
+  .ft__contact { display: grid; gap: 0.3rem; font-style: normal; }
+
+  .ft__info { grid-column: 3; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.2rem 2rem; font-size: var(--t-small); padding-inline-start: 2rem; }
+  .ft__k { color: var(--amber); margin-block-end: 0.6rem; }
+  .ft__time { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; font-size: 2.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ft__info ul { display: grid; gap: 0.25rem; }
+  .ft__info a { color: var(--bone-soft); transition: color var(--d-state) ease; }
+  .ft__info a:hover, .ft__info a:focus-visible { color: var(--bone); }
+
+  .ft__base { grid-row: 2; position: relative; z-index: 2; }
+  .ft__legal { display: flex; justify-content: space-between; gap: 1rem 2rem; flex-wrap: wrap; padding: 1rem var(--margin); border-block-start: 1px solid var(--line); color: var(--bone-soft); }
+  .ft__prefs { display: flex; gap: 1.5rem; }
+  .ft__toggle { color: inherit; }
+  .ft__mark { overflow: hidden; height: calc((100vw - var(--margin) * 2) * 740 / 4290 * 0.62); padding-inline: var(--margin); }
+  .ft__word { width: 100%; height: auto; color: var(--bone); opacity: 0.12; }
+
+  :global(html.motion) .ft__content, :global(html.motion) .ft__base { opacity: var(--show, 0); transform: scale(calc(0.92 + 0.08 * var(--show, 0))); }
+
+  @media (max-width: 899px) {
+    .ft__photo { clip-path: inset(calc(9vh * var(--c)) calc(28vw * var(--c)) calc(58vh * var(--c)) calc(28vw * var(--c)) round calc(22vw * var(--c)) calc(22vw * var(--c)) 0 0); }
+    .ft__place { display: none; }
+    .ft__content { grid-template-columns: 1fr; align-content: end; gap: 2rem; padding-block-start: 44vh; }
+    .ft__ask, .ft__info { grid-column: 1; padding: 0; }
+    .ft__info { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+    .ft__info nav:last-child { display: none; }
+    :global(html.motion) .ft { height: auto; }
+    :global(html.motion) .ft__pin { position: relative; height: auto; min-height: 100svh; }
+    :global(html.motion) .ft__content, :global(html.motion) .ft__base { opacity: 1; transform: none; }
   }
 </style>

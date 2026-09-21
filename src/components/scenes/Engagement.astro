@@ -1,0 +1,126 @@
+---
+/**
+ * Scene 7 — how an engagement runs. The colonnade. (src/scripts/scenes/engagement.ts)
+ *
+ *   rise     the section overlaps the last screen of Sectors; its ground is a maroon ARCH, so as it scrolls in
+ *            an arch rises out of the limestone carrying the title (ERA's arch). Once pinned, the arch opens
+ *            until it is the whole ground.
+ *   walk     five lit arches pass sideways, one step of the engagement in each, the photograph inside drifting
+ *            against the arch (depth). An amber line runs along the floor; a point of light travels it.
+ *   through  the last arch is a doorway filled with limestone. It opens to fill the screen, and that limestone
+ *            is the ground of What to expect.
+ */
+import { process } from '../../data/content';
+import { stock } from '../../data/stock';
+const photos = [stock.steps.brief, stock.steps.source, stock.steps.screen, stock.steps.deploy, stock.steps.support];
+---
+<section class="egx" id="engagement" data-egx data-bg="dark" aria-labelledby="egx-h">
+  <div class="egx__pin" data-egx-pin>
+    <div class="egx__under" aria-hidden="true"></div>
+    <div class="egx__ground" data-egx-ground aria-hidden="true"></div>
+
+    <div class="egx__track" data-egx-track>
+      <header class="egx__intro" data-egx-intro>
+        <p class="label egx__label">{process.label}</p>
+        <h2 class="display egx__h" id="egx-h">From a brief <em>to</em> people on site.</h2>
+        <p class="egx__lead">{process.intro}</p>
+      </header>
+
+      <ol class="egx__steps">
+        {process.steps.map((s, i) => (
+          <li class="egx__step" data-egx-step>
+            <div class="egx__arch">
+              <img src={photos[i].src} srcset={photos[i].srcset} sizes="30vw" alt={photos[i].alt} width="1400" height="933" loading="lazy" decoding="async" style={`object-position:${photos[i].focus}`} data-egx-img />
+            </div>
+            <div class="egx__cap">
+              <p class="label egx__n">{s.n}</p>
+              <h3 class="h2 egx__t">{s.title}.</h3>
+              <p class="egx__body">{s.body}</p>
+              <p class="label egx__ok"><span>You approve</span>{s.approve}</p>
+            </div>
+          </li>
+        ))}
+        <li class="egx__step egx__step--door" aria-hidden="true">
+          <div class="egx__arch egx__arch--door" data-egx-door><span class="label">What to expect</span></div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="egx__floor" aria-hidden="true"><span class="egx__fill" data-egx-fill></span><span class="egx__spark" data-egx-spark></span></div>
+    <div class="egx__open" data-egx-open aria-hidden="true"></div>
+  </div>
+</section>
+
+<style>
+  .egx { --bg: var(--maroon); position: relative; color: var(--bone); z-index: 9; }
+  :global(html.motion) .egx { height: 620vh; height: 620svh; margin-top: -100vh; margin-top: -100svh; }
+  .egx__pin { position: relative; min-height: 100svh; overflow: clip; }
+  :global(html.motion) .egx__pin { position: sticky; top: 0; height: 100vh; height: 100svh; pointer-events: none; }
+  :global(html.motion) .egx[data-live] .egx__pin { pointer-events: auto; }
+
+  /* Once pinned, Sectors has gone: limestone stands in behind the opening arch so its corners never show the page. */
+  .egx__under { position: absolute; inset: 0; background: var(--sand); visibility: hidden; }
+  .egx[data-live] .egx__under { visibility: visible; }
+  /* The ground is an arch until it opens. --a: 0 (arch) → 1 (the whole screen). */
+  .egx__ground {
+    position: absolute; inset: 0; background: var(--bg);
+    background-image: radial-gradient(90% 60% at 50% 110%, rgba(208, 149, 96, 0.22), transparent 70%);
+  }
+  :global(html.motion) .egx__ground {
+    --w: calc(36vw + (100vw - 36vw) * var(--a, 0));
+    clip-path: inset(calc(14vh * (1 - var(--a, 0))) calc((100vw - var(--w)) / 2) 0 round calc(var(--w) / 2 * (1 - var(--a, 0))) calc(var(--w) / 2 * (1 - var(--a, 0))) 0 0);
+    box-shadow: inset 0 0 0 1px rgba(240, 189, 134, 0.6);
+  }
+
+  .egx__track { position: absolute; inset: 0; display: flex; align-items: stretch; will-change: transform; }
+  :global(html:not(.motion)) .egx__track { position: static; display: block; padding: calc(var(--header-h) + 3rem) var(--margin) 5rem; }
+
+  .egx__intro {
+    flex: none; width: 100vw; display: grid; place-content: center; justify-items: center; text-align: center; gap: 1.6rem;
+    padding: 0 max(var(--margin), 32vw) 6vh;
+  }
+  .egx__label { color: var(--amber); }
+  .egx__h { font-size: clamp(2.8rem, 4.4vw, 5.6rem); }
+  .egx__lead { max-width: 24rem; color: var(--bone-soft); font-size: var(--t-small); }
+
+  .egx__steps { display: flex; gap: 4vw; padding-inline-end: 18vw; align-items: flex-end; padding-block-end: 11vh; }
+  .egx__step { flex: none; width: 27vw; display: grid; gap: 1.6rem; }
+  .egx__arch {
+    position: relative; width: 100%; height: 50vh; overflow: hidden;
+    border-radius: 13.5vw 13.5vw 0 0;
+    box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.7), 0 -10px 60px -10px rgba(208, 149, 96, 0.35);
+    background: var(--maroon-3);
+  }
+  .egx__arch img { position: absolute; top: 0; left: -12%; width: 124%; max-width: none; height: 100%; object-fit: cover; will-change: transform; }
+  .egx__arch--door { background: var(--sand); display: grid; place-items: center; color: var(--ink); }
+  .egx__step--door { align-self: flex-end; margin-block-end: calc(1.6rem + 12.5rem); }
+
+  .egx__cap { display: grid; gap: 0.7rem; height: 12.5rem; align-content: start; }
+  .egx__n { color: var(--amber); }
+  .egx__t { font-size: clamp(2rem, 3vw, 3.6rem); }
+  .egx__body { font-size: var(--t-small); color: var(--bone-soft); max-width: 23rem; }
+  .egx__ok { display: flex; gap: 0.9em; opacity: 0.9; }
+  .egx__ok span { color: var(--amber); }
+
+  .egx__floor { position: absolute; left: var(--margin); right: var(--margin); bottom: 6vh; height: 1px; background: rgba(240, 189, 134, 0.22); opacity: var(--walk, 0); }
+  .egx__fill { position: absolute; inset: 0; background: var(--amber); transform-origin: left; transform: scaleX(var(--p, 0)); }
+  .egx__spark { position: absolute; top: 50%; left: calc(var(--p, 0) * 100%); width: 9px; height: 9px; border-radius: 50%; translate: -50% -50%; background: #ffd9ad; box-shadow: 0 0 14px 4px rgba(240, 189, 134, 0.7); }
+
+  /* The doorway, opened: drawn from JS as a box + radius, filled with the next ground. */
+  .egx__open { position: absolute; left: 0; top: 0; width: 0; height: 0; background: var(--sand); visibility: hidden; z-index: 3; }
+
+  :global(html:not(.motion)) .egx { background: var(--bg); }
+  :global(html:not(.motion)) .egx__intro { width: auto; padding: 0 0 3rem; }
+  :global(html:not(.motion)) .egx__steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 3rem; padding: 0; }
+  :global(html:not(.motion)) .egx__step { width: auto; }
+  :global(html:not(.motion)) .egx__arch { height: 22rem; border-radius: 999px 999px 0 0; }
+  :global(html:not(.motion)) .egx__step--door, :global(html:not(.motion)) .egx__floor, :global(html:not(.motion)) .egx__open { display: none; }
+
+  @media (max-width: 899px) {
+    .egx__intro { padding-inline: var(--margin); }
+    .egx__step { width: 72vw; }
+    .egx__arch { height: 44vh; border-radius: 36vw 36vw 0 0; }
+    .egx__steps { gap: 8vw; }
+    :global(html.motion) .egx__ground { --w: calc(80vw + 20vw * var(--a, 0)); }
+  }
+</style>

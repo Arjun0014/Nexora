@@ -1,13 +1,12 @@
 ---
-import '@fontsource/instrument-serif/latin-400.css';
-import '@fontsource/instrument-serif/latin-400-italic.css';
-import '@fontsource-variable/instrument-sans/wght.css';
-import '@fontsource-variable/jetbrains-mono/wght.css';
+import '@fontsource-variable/noto-serif-display/wdth.css';
+import '@fontsource-variable/noto-serif-display/wdth-italic.css';
+import '@fontsource-variable/archivo/wdth.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
 
-import serifUrl from '@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url';
-import sansUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+import serifUrl from '@fontsource-variable/noto-serif-display/files/noto-serif-display-latin-wdth-normal.woff2?url';
+import sansUrl from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
 
 import Header from '../components/Header.astro';
 import MenuSheet from '../components/MenuSheet.astro';
@@ -87,6 +86,9 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
     -->
     <script is:inline>
       (function () {
+        // A reload always starts at the top, with the film at its first frame (brief #16).
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        if (!location.hash) window.scrollTo(0, 0);
         var c = document.documentElement.classList;
         c.add('js');
         // The visitor's own choice (footer toggle) overrides the OS setting in either direction.
@@ -99,10 +101,8 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
         if (lite) c.add('lite');
         // The intro decides itself BEFORE first paint, so the film is never visible for a frame first.
         // Only on the homepage, only when the film will actually run, and never under reduced motion.
-        if (document.documentElement.hasAttribute('data-home') && c.contains('cinema') && !/[?&]nointro/.test(location.search) && !/[?&]stop=/.test(location.search)) {
-          var seen = false;
-          try { seen = sessionStorage.getItem('nx-intro') === '1'; } catch (e) {}
-          document.documentElement.dataset.intro = seen ? 'short' : 'on';
+        if (document.documentElement.hasAttribute('data-home') && c.contains('cinema') && !/[?&]nointro\b/.test(location.search) && !/[?&]stop=/.test(location.search)) {
+          document.documentElement.dataset.intro = 'on'; // every load, not once per session (brief #16)
         }
       })();
     </script>

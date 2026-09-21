@@ -13,7 +13,10 @@ export function initHeader() {
   if (!el) return;
   const header: HTMLElement = el;
 
-  const themed = () => $$('[data-theme]').filter((el) => el !== document.documentElement && !el.closest('[data-menu]') && !el.closest('[data-header]'));
+  // Any element that declares its ground: data-bg="light|dark" (scenes) or data-theme="paper|dark" (older markup).
+  // When several overlap under the bar, the LAST in document order wins (scenes that overlay earlier ones).
+  const themed = () => $$('[data-theme], [data-bg]').filter((el) => el !== document.documentElement && !el.closest('[data-menu]') && !el.closest('[data-header]'));
+  const isLight = (el: HTMLElement) => (el.dataset.bg ? el.dataset.bg === 'light' : el.dataset.theme === 'paper' || el.dataset.theme === 'light');
   const clearZone = $('[data-header-clear]');
   const probeY = () => header.offsetHeight / 2;
 
@@ -57,8 +60,9 @@ export function initHeader() {
     // Which surface is under the middle of the bar?
     let ink: 'light' | 'dark' = document.documentElement.dataset.theme === 'paper' ? 'dark' : 'light';
     for (const el of themed()) {
+      if (el.dataset.bg === '' ) continue;
       const r = el.getBoundingClientRect();
-      if (r.top <= py && r.bottom > py) ink = el.dataset.theme === 'paper' ? 'dark' : 'light';
+      if (r.top <= py && r.bottom > py) ink = isLight(el) ? 'dark' : 'light';
     }
     header.dataset.ink = ink;
 
@@ -76,6 +80,7 @@ export function initHeader() {
 
   const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
   addEventListener('scroll', request, { passive: true });
+  addEventListener('nx:ground', request);
   addEventListener('resize', request, { passive: true });
   // The swap is time-based, so it needs a frame after the scroll that triggered it.
   setInterval(() => { if (swapAt) request(); }, 80);

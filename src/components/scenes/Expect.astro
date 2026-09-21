@@ -1,0 +1,100 @@
+---
+/**
+ * Scene 8 — what to expect. Limestone: the ground the colonnade's doorway opened onto.
+ *
+ * The five commitments are set as ONE centred poem in display capitals, each line carrying a footnote numeral
+ * (ERA's "Developer* / Sales & marketing* / Licence obtained*" stack). Each line turns in as it arrives; its
+ * footnote rises in the row beneath. The three lines we will not cross run as a quiet ribbon at the foot.
+ * Hovering or focusing a line lights its footnote. (src/scripts/scenes/expect.ts)
+ */
+import { commitments } from '../../data/content';
+const ACCENT = ['of', 'for', 'before', 'after', 'Straight'];
+const parts = (title: string, word: string) => {
+  const i = title.search(new RegExp(`\\b${word}\\b`));
+  return i < 0 ? [title, '', ''] : [title.slice(0, i), word, title.slice(i + word.length)];
+};
+---
+<section class="exp" id="expect" data-exp data-bg="light" aria-labelledby="exp-h">
+  <img class="exp__cloud exp__cloud--l" data-exp-cloud="-18" src="/media/clouds/px-cloud-02.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+  <img class="exp__cloud exp__cloud--r" data-exp-cloud="-30" src="/media/clouds/px-cloud-06.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+
+  <header class="exp__head">
+    <p class="label exp__label">{commitments.label}</p>
+    <h2 class="sr-only" id="exp-h">Five things you can hold us to</h2>
+    <p class="exp__intro">{commitments.intro}</p>
+  </header>
+
+  <ol class="exp__poem">
+    {commitments.items.map((c, i) => {
+      const [a, em, b] = parts(c.title, ACCENT[i]);
+      return (
+        <li class="exp__line display" data-exp-line={i} tabindex="0" aria-describedby={`exp-n${i}`} data-cursor={`0${i + 1}`}>
+          <span class="exp__text" data-exp-text>{a}{em && <em>{em}</em>}{b}</span><sup class="label exp__sup">0{i + 1}</sup>
+        </li>
+      );
+    })}
+  </ol>
+
+  <ol class="exp__notes">
+    {commitments.items.map((c, i) => (
+      <li class="exp__note" id={`exp-n${i}`} data-exp-note={i}><span class="label">0{i + 1}</span><p>{c.body}</p></li>
+    ))}
+  </ol>
+
+  <div class="exp__line-ribbon">
+    <p class="label exp__rk">{commitments.dontLabel}</p>
+    <ul class="exp__donts">{commitments.donts.map((d) => <li>{d}</li>)}</ul>
+  </div>
+</section>
+
+<style>
+  .exp {
+    --bg: var(--sand);
+    position: relative; overflow: clip; background: var(--bg); color: var(--ink);
+    padding: calc(var(--header-h) + 8vh) var(--margin) 0;
+    display: grid; justify-items: center; text-align: center;
+  }
+  .exp__head { display: grid; gap: 1rem; justify-items: center; margin-block-end: 7vh; }
+  .exp__label { opacity: 0.75; }
+  .exp__intro { font-size: var(--t-small); color: var(--ink-soft); max-width: 22rem; }
+
+  .exp__poem { display: grid; gap: 0.12em; font-size: clamp(2.2rem, 5.3vw, 6.6rem); position: relative; z-index: 1; }
+  .exp__line { position: relative; width: max-content; white-space: nowrap; margin-inline: auto; line-height: 0.9; cursor: default; outline-offset: 0.12em; transition: color var(--d-state) ease; }
+  .exp__line:nth-child(odd) { translate: -3vw 0; }
+  .exp__line:nth-child(even) { translate: 3vw 0; }
+  .exp__sup { position: absolute; top: 0.35em; right: -2.4em; font-size: 0.7rem; color: var(--amber-deep); letter-spacing: 0.1em; }
+  .exp__text :global(.char) { display: inline-block; transform-origin: 50% 80%; }
+  .exp__text :global(.word) { display: inline-block; white-space: nowrap; }
+  .exp[data-hover] .exp__line:not([data-on]) { color: color-mix(in oklab, var(--ink) 35%, var(--sand)); }
+
+  .exp__notes {
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2rem;
+    width: min(100%, 90rem); margin-block: 11vh 8vh; text-align: left;
+  }
+  .exp__note { display: grid; gap: 0.8rem; align-content: start; padding-block-start: 1rem; border-block-start: 1px solid var(--line); font-size: var(--t-small); color: var(--ink-soft); transition: border-color var(--d-state) ease, color var(--d-state) ease; }
+  .exp__note .label { color: var(--amber-deep); }
+  .exp__note[data-on] { border-color: var(--ink); color: var(--ink); }
+
+  .exp__line-ribbon {
+    width: 100vw; display: flex; align-items: center; justify-content: center; gap: 2.5rem; flex-wrap: wrap;
+    padding: 1.5rem var(--margin); border-block-start: 1px solid var(--line);
+    font-size: var(--t-small);
+  }
+  .exp__rk { opacity: 0.6; }
+  .exp__donts { display: flex; flex-wrap: wrap; gap: 0.6rem 2.5rem; justify-content: center; }
+  .exp__donts li { display: inline-flex; align-items: center; gap: 0.9rem; }
+  .exp__donts li::before { content: '✦'; color: var(--amber-deep); font-size: 0.7em; }
+
+  .exp__cloud { position: absolute; pointer-events: none; will-change: transform; opacity: 0.9; }
+  .exp__cloud--l { width: min(42vw, 700px); left: -16vw; top: 22vh; }
+  .exp__cloud--r { width: min(36vw, 600px); right: -12vw; top: 56vh; }
+
+  /* Before it arrives, a line waits turned away (motion only). */
+  :global(html.motion) .exp__line[data-wait] .exp__text { opacity: 0; }
+
+  @media (max-width: 899px) {
+    .exp__notes { grid-template-columns: 1fr; gap: 1.25rem; }
+    .exp__line:nth-child(n) { translate: none; white-space: normal; width: auto; }
+    .exp__sup { right: -1.8em; }
+  }
+</style>

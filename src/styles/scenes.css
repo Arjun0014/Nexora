@@ -1,0 +1,9 @@
+/* Shared scaffolding for the homepage scenes (docs/redesign/02-DIRECTION-V3.md §6). */
+
+/* The opening: the hero holds still (sticky) while the portal's dome rises over it. */
+html.cinema .opening { position: relative; height: calc(100vh + 150vh); height: calc(100svh + 150svh); }
+html.cinema .opening > .hero { position: sticky; top: 0; }
+
+/* The held scene overlaps the portal's last screen, so its headline rises while the dome is still opening. Its
+   own ground switches on only once the dome covers everything (held.ts), so there is never a hard edge. */
+html.cinema .held { margin-top: -100vh; margin-top: -100svh; z-index: 7; }

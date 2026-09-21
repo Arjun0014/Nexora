@@ -1,34 +1,30 @@
 ---
 /**
- * The homepage, as a sequence of chapters. See docs/redesign/00-DIRECTION.md §3 for the colour script and
- * §10 for the blueprint. The grounds run studio → ember → deck → deep → stone → linen → ink → bronze → studio:
- * dark-anchored, with the single light chapter arrived at through a zoom-type transition, never a band.
+ * The homepage: one continuous film after the hero. Every scene is born inside the previous one.
+ * See docs/redesign/02-DIRECTION-V3.md §6 for the scene list and the reference behind each.
  */
 import Base from '../layouts/Base.astro';
 import Hero from '../components/hero/Hero.astro';
-import Manifesto from '../components/chapters/Manifesto.astro';
-import ZoomGate from '../components/chapters/ZoomGate.astro';
-import Workforces from '../components/chapters/Workforces.astro';
-import Turning from '../components/chapters/Turning.astro';
-import Sectors from '../components/chapters/Sectors.astro';
-import Engagement from '../components/chapters/Engagement.astro';
-import Seam from '../components/chapters/Seam.astro';
-import HowWeWork from '../components/chapters/HowWeWork.astro';
-import Doors from '../components/chapters/Doors.astro';
+import Portal from '../components/scenes/Portal.astro';
+import Held from '../components/scenes/Held.astro';
+import Workforces from '../components/scenes/Workforces.astro';
+import Sectors from '../components/scenes/Sectors.astro';
+import Engagement from '../components/scenes/Engagement.astro';
+import Expect from '../components/scenes/Expect.astro';
+import Employers from '../components/scenes/Employers.astro';
+import Candidates from '../components/scenes/Candidates.astro';
+import '../styles/scenes.css';
 ---
-<Base home skipTo="#statement">
-  <Hero />
-  <Manifesto />
-  <ZoomGate word="WORKFORCES" ground="#17110c" image="hospitality" focus="68% 50%" next="var(--deck)"
-    label="Chapter II" caption="Five workforces, one partner" />
+<Base home skipTo="#company">
+  <div class="opening" data-opening>
+    <Hero />
+    <Portal />
+  </div>
+  <Held />
   <Workforces />
-  <Turning />
-  <ZoomGate word="SECTORS" ground="#0d1219" image="facilities" focus="62% 50%" next="var(--stone)"
-    label="Chapter IV" caption="Where our people work" />
   <Sectors />
   <Engagement />
-  <!-- The one place two flat grounds would meet on a straight line: the ink rises out of the linen. -->
-  <Seam from="var(--linen)" to="var(--ink-ground)" />
-  <HowWeWork />
-  <Doors />
+  <Expect />
+  <Employers />
+  <Candidates />
 </Base>

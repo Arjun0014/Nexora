@@ -14,12 +14,12 @@ export const LEG_COUNT = TITLE_STOP;
 export const FPS = 24;
 
 /**
- * The entry clip is joined ~1.8 s in. Its first frames turn at idle speed from ONE pose, which forced the old
+ * The entry clip is joined ~0.8 s in, just as the spin starts (frame 24 is the first blurred one). Its first frames turn at idle speed from ONE pose, which forced the old
  * build to race the loop to its seam before anything moved. From here on the disc is a motion-blurred spin:
  * the rotation angle is unreadable, so any loop frame can hand off to it through a short cross-fade.
  * Must be even (the portrait set keeps every 2nd frame).
  */
-export const ENTRY_START_FRAME = 44;
+export const ENTRY_START_FRAME = 20;
 
 /** Seconds the NEXORA knock-out takes to pull back from inside the X. */
 const EXIT_SECONDS = 2.6;
