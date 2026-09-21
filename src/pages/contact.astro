@@ -10,7 +10,7 @@ const hasDetails = Boolean(site.email || site.phone || site.whatsapp || site.add
 <Base title="Contact" description="Contact Nexora Hospitality and Services in Doha, Qatar. Employers can request workforce; candidates can register a CV." theme="dark">
   <PageHead
     label="Contact"
-    title={['Start with', 'the right door.']}
+    title={['Start *with*', 'the right door.']}
     lead="Two of these get you to the right person faster than a general message."
     meta={[
       { k: 'Registered', v: site.legalName },
@@ -71,7 +71,7 @@ const hasDetails = Boolean(site.email || site.phone || site.whatsapp || site.add
   .ct__doors li + li .ct__door { border-inline-start: 1px solid var(--line); }
   .ct__door:hover, .ct__door:focus-visible { background: var(--ink); color: var(--stone); }
   .ct__door:hover .label--soft, .ct__door:focus-visible .label--soft, .ct__door:hover .ct__ds, .ct__door:focus-visible .ct__ds { color: rgba(238, 232, 222, 0.66); }
-  .ct__dh { font-family: var(--f-display); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.02; letter-spacing: -0.025em; }
+  .ct__dh { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.02; letter-spacing: -0.005em; }
   .ct__ds { font-size: 0.75rem; line-height: 1.55; color: var(--fg-soft); }
   .ct__go { display: inline-flex; align-items: center; gap: 0.9em; margin-block-start: 1rem; }
   .ct__form { grid-column: 1 / 8; }

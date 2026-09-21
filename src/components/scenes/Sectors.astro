@@ -54,6 +54,7 @@ const city = stock.doha.skyline;
       <div class="sgx__details">
         {sectors.map((s, i) => (
           <div class="sgx__detail" data-sgx-detail={i} data-on={i === 0 ? '' : undefined}>
+            <h3 class="h2 sgx__dname">{s.name}</h3>
             <div class="sgx__roles">
               <p class="label sgx__k">Roles we supply</p>
               <ul>{s.roles.split(' · ').map((r) => <li>{r}</li>)}</ul>
@@ -138,6 +139,10 @@ const city = stock.doha.skyline;
   .sgx__roles li { padding-block: 0.5rem; border-block-start: 1px solid var(--line); }
   .sgx__about p:not(.label) { color: var(--ink-soft); }
   .sgx__k { opacity: 0.7; }
+  /* The animated index sets the names itself; this heading is for the static document (and assistive tech). */
+  :global(html.motion) .sgx__dname { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :global(html:not(.motion)) .sgx__detail { flex-wrap: wrap; gap: 1.5rem 3rem; padding-block-start: 2rem; border-block-start: 1px solid var(--line); }
+  :global(html:not(.motion)) .sgx__dname { flex-basis: 100%; }
 
   .sgx__foot { position: absolute; inset-inline: var(--margin); bottom: 4vh; display: grid; gap: 0.9rem; }
   .sgx__list { display: flex; justify-content: space-between; gap: 1rem; }
@@ -168,6 +173,7 @@ const city = stock.doha.skyline;
   @media (max-width: 899px) {
     .sgx__window { width: 86vw; top: 36%; }
     .sgx__names { top: calc(36% + 86vw / 3 - 0.3em); font-size: clamp(2.4rem, 11vw, 4.5rem); }
+    .sgx__name[data-long] { font-size: 0.6em; }
     .sgx__details { top: auto; bottom: 16vh; translate: none; }
     .sgx__detail { translate: 0 -100%; flex-direction: column; gap: 1rem; }
     .sgx__roles { display: none; }

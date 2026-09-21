@@ -8,15 +8,17 @@
  */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
+import { stock } from '../data/stock';
 import Arrow from '../components/ui/Arrow.astro';
-import Doors from '../components/chapters/Doors.astro';
+import Closing from '../components/scenes/Closing.astro';
 import { sectors, sectorNote } from '../data/content';
 import { worldById } from '../data/worlds';
 ---
 <Base title="Industries" description="The sectors Nexora staffs in Qatar: hospitality, events, facilities, retail, oil and gas operations, utilities, manufacturing, maintenance, IT and logistics." theme="dark">
   <PageHead
     label="Industries"
-    title={['Ten sectors.', 'One way of working.']}
+    title={['Ten sectors.', '*One* way of working.']}
+    photo={stock.doha.skyline}
     lead="Every sector has its own rhythm: a banquet, a shutdown, a product launch, a night shift. We staff for the rhythm, not just the headcount."
     meta={[
       { k: 'Sectors', v: `${sectors.length} listed` },
@@ -58,7 +60,7 @@ import { worldById } from '../data/worlds';
     </div>
   </section>
 
-  <Doors />
+  <Closing />
 </Base>
 
 <style>
@@ -75,7 +77,7 @@ import { worldById } from '../data/worlds';
     scroll-margin-top: calc(var(--header-h) + 1rem);
   }
   .ind__n { color: var(--bronze-deep); padding-block-start: 0.55em; }
-  .ind__name { grid-column: 2; font-family: var(--f-display); font-size: clamp(1.5rem, 3.2vw, 3rem); line-height: 1; letter-spacing: -0.025em; }
+  .ind__name { grid-column: 2; font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.5rem, 3.2vw, 3rem); line-height: 1; letter-spacing: -0.005em; }
   .ind__body { grid-column: 2; margin-block-start: 1rem; max-width: 30rem; color: var(--fg-soft); }
   .ind__side { grid-column: 3; grid-row: 1 / 4; }
   .ind__sh { color: var(--fg-soft); padding-block-end: 0.75rem; border-block-end: 1px solid var(--line); }
@@ -88,7 +90,7 @@ import { worldById } from '../data/worlds';
 
   .ind__note { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 1rem; margin-block-start: clamp(2.5rem, 6vh, 4rem); padding-block: clamp(2rem, 5vh, 3rem); border-block: 1px solid var(--line-strong); }
   .ind__nh { grid-column: 1 / 4; color: var(--fg-soft); padding-block-start: 0.35em; }
-  .ind__nb { grid-column: 4 / 11; font-family: var(--f-display); font-size: clamp(1.125rem, 2vw, 1.75rem); line-height: 1.25; letter-spacing: -0.015em; }
+  .ind__nb { grid-column: 4 / 11; font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.125rem, 2vw, 1.75rem); line-height: 1.25; letter-spacing: -0.005em; }
 
   @media (max-width: 1023px) {
     .ind__row { grid-template-columns: 3rem minmax(0, 1fr); row-gap: 1.25rem; }

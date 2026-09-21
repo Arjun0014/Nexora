@@ -8,6 +8,7 @@
  */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
+import { stock } from '../data/stock';
 import CandidateForm from '../components/forms/CandidateForm.astro';
 import { noFee } from '../data/content';
 import { worlds } from '../data/worlds';
@@ -21,9 +22,9 @@ const steps = [
 <Base title="Careers" description="Register your CV with Nexora for hospitality, events, facilities and technical work in Qatar. Registration is free; Nexora never charges candidates." theme="dark">
   <PageHead
     label="For candidates"
-    title={['Good work,', 'properly arranged.']}
+    title={['Good work,', '*properly* arranged.']}
     lead="There are no listed vacancies yet. Register once and we will contact you if a suitable role arises. Registration is not a job offer."
-    plate="recruitment"
+    photo={stock.doors.candidate}
     plateCaption="A document, mid-handover"
     meta={[
       { k: 'Cost', v: 'Free, at every stage' },
@@ -32,7 +33,7 @@ const steps = [
     ]}
   />
 
-  <section class="cr surface ch-ember lit grain" data-theme="dark" aria-labelledby="cr-h" data-reveal>
+  <section class="cr surface ch-sky" data-theme="paper" aria-labelledby="cr-h" data-reveal>
     <div class="wrap">
       <div class="cr__grid">
         <p class="label cr__label" data-rise>How it works</p>
@@ -50,7 +51,7 @@ const steps = [
     </div>
   </section>
 
-  <section class="nf surface ch-bronze" data-theme="dark" aria-labelledby="nf-h" data-reveal>
+  <section class="nf surface ch-maroon" data-theme="dark" aria-labelledby="nf-h" data-reveal>
     <div class="wrap">
       <div class="nf__grid">
         <p class="label nf__label" data-rise>Our policy</p>
@@ -86,13 +87,13 @@ const steps = [
   .cr__steps { grid-column: 3 / 13; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gutter); }
   .cr__step { padding-block-start: 1.4rem; border-block-start: 1px solid var(--line); }
   .cr__n { color: var(--bronze); }
-  .cr__t { font-family: var(--f-display); font-size: clamp(1.375rem, 2.4vw, 2rem); line-height: 1.05; letter-spacing: -0.02em; margin-block: 0.9rem 0.75rem; }
+  .cr__t { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.375rem, 2.4vw, 2rem); line-height: 1.05; letter-spacing: -0.005em; margin-block: 0.9rem 0.75rem; }
   .cr__b { max-inline-size: 22rem; color: var(--fg-soft); font-size: var(--t-small); line-height: 1.6; }
 
   .nf { padding-block: clamp(4rem, 11vh, 8rem); }
   .nf__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
   .nf__label { grid-column: 1 / 3; color: var(--bronze); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
-  .nf__h { grid-column: 3 / 11; font-family: var(--f-display); font-size: clamp(1.875rem, 4.6vw, 4.5rem); line-height: 0.98; letter-spacing: -0.03em; }
+  .nf__h { grid-column: 3 / 11; font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.875rem, 4.6vw, 4.5rem); line-height: 0.98; letter-spacing: -0.005em; }
   .nf__b { grid-column: 3 / 8; margin-block-start: 1.75rem; color: var(--fg-soft); }
   .nf__law { grid-column: 8 / 12; margin-block-start: 1.75rem; font-size: 0.75rem; line-height: 1.6; color: var(--fg-soft); }
 
@@ -100,7 +101,7 @@ const steps = [
   .rg__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
   .rg__intro { grid-column: 1 / 5; position: sticky; inset-block-start: calc(var(--header-h) + 2rem); display: grid; gap: 1.25rem; }
   .rg__label { color: var(--fg-soft); }
-  .rg__h { font-family: var(--f-display); font-size: clamp(1.75rem, 3.4vw, 3rem); line-height: 1; letter-spacing: -0.025em; }
+  .rg__h { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.75rem, 3.4vw, 3rem); line-height: 1; letter-spacing: -0.005em; }
   .rg__p { color: var(--fg-soft); font-size: var(--t-small); line-height: 1.6; }
   .rg__kh { color: var(--fg-soft); margin-block-end: 0.25rem; }
   .rg__kinds li { border-block-start: 1px solid var(--line); }

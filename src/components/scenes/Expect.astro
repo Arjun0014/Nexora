@@ -58,7 +58,7 @@ const parts = (title: string, word: string) => {
   .exp__label { opacity: 0.75; }
   .exp__intro { font-size: var(--t-small); color: var(--ink-soft); max-width: 22rem; }
 
-  .exp__poem { display: grid; gap: 0.12em; font-size: clamp(2.2rem, 5.3vw, 6.6rem); position: relative; z-index: 1; }
+  .exp__poem { display: grid; gap: 0.12em; font-size: clamp(2.2rem, 4.6vw, 6rem); position: relative; z-index: 1; }
   .exp__line { position: relative; width: max-content; white-space: nowrap; margin-inline: auto; line-height: 0.9; cursor: default; outline-offset: 0.12em; transition: color var(--d-state) ease; }
   .exp__line:nth-child(odd) { translate: -3vw 0; }
   .exp__line:nth-child(even) { translate: 3vw 0; }
@@ -94,7 +94,8 @@ const parts = (title: string, word: string) => {
 
   @media (max-width: 899px) {
     .exp__notes { grid-template-columns: 1fr; gap: 1.25rem; }
-    .exp__line:nth-child(n) { translate: none; white-space: normal; width: auto; }
+    .exp__poem { font-size: clamp(2rem, 9.4vw, 3.4rem); }
+    .exp__line:nth-child(n) { translate: none; white-space: normal; width: auto; max-width: 88vw; }
     .exp__sup { right: -1.8em; }
   }
 </style>

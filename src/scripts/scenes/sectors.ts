@@ -46,8 +46,10 @@ export function initSectors() {
 
   // ── the cloud bank ──────────────────────────────────────────────────────────────────────
   gsap.timeline({ scrollTrigger: { trigger: root, start: 'top bottom', end: 'top top', scrub: 0.4 } })
-    .fromTo(bank, { y: 0 }, { y: '-24vh', ease: 'none' }, 0)
-    .fromTo(puffs, { y: 0 }, { y: (i) => `${-(i ? 70 : 50)}vh`, ease: 'none' }, 0);
+    // It starts BELOW the section's edge, so the deck is clear while it can still be thrown; rising faster than
+    // the page, it overtakes the deck only as the deck leaves.
+    .fromTo(bank, { y: '50vh' }, { y: '-26vh', ease: 'none' }, 0)
+    .fromTo(puffs, { y: '60vh' }, { y: (i) => `${-(i ? 60 : 40)}vh`, ease: 'none' }, 0);
 
   // ── the gate ────────────────────────────────────────────────────────────────────────────
   let W = 1, H = 1, lastT = -1;

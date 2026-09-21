@@ -38,7 +38,7 @@ const first = stock.workforces[worlds[0].id];
       </div>
 
       <div class="wfx__deckcol">
-        <ol class="wfx__stack" data-deck-stack tabindex="0" role="group" aria-label="Workforces. Drag or throw the top card, or use the arrow keys.">
+        <ol class="wfx__stack" data-deck-stack data-cursor="Drag" tabindex="0" role="group" aria-label="Workforces. Drag or throw the top card, or use the arrow keys.">
           {worlds.map((w, i) => {
             const img = stock.workforces[w.id];
             return (
@@ -148,6 +148,7 @@ const first = stock.workforces[worlds[0].id];
   [data-deck]:not([data-live]) .wfx__stack { width: auto; height: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--gutter); }
   [data-deck]:not([data-live]) .wfx__card { position: relative; aspect-ratio: 4 / 5; }
   [data-deck]:not([data-live]) .wfx__controls { display: none; }
+  [data-deck]:not([data-live]) .wfx__deckcol { justify-items: stretch; }
   [data-deck]:not([data-live]) .wfx__panel { position: static; opacity: 1; visibility: visible; margin-block: 3rem; }
 
   @media (max-width: 899px) {

@@ -90,7 +90,7 @@ const pages = [...nav, { label: 'Contact', href: '/contact/' }];
   .ms__link:hover::before, .ms__link:focus-visible::before { transform: none; }
   .ms__link:hover, .ms__link:focus-visible { padding-inline-start: 1.6rem; }
   .ms__n { color: var(--bronze); }
-  .ms__label { font-family: var(--f-display); font-size: clamp(2rem, 6vw, 4.5rem); line-height: 1.05; letter-spacing: -0.03em; }
+  .ms__label { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(2rem, 6vw, 4.5rem); line-height: 1.05; letter-spacing: -0.005em; }
   .ms__arrow { align-self: center; opacity: 0; transition: opacity var(--d-state) ease; }
   .ms__link:hover .ms__arrow, .ms__link:focus-visible .ms__arrow { opacity: 0.7; }
 
@@ -105,7 +105,7 @@ const pages = [...nav, { label: 'Contact', href: '/contact/' }];
   .ms__door + .ms__door { border-inline-start: 1px solid var(--line); }
   .ms__door:hover, .ms__door:focus-visible { background: var(--bronze); color: var(--studio); }
   .ms__door:hover .label--soft, .ms__door:focus-visible .label--soft { color: rgba(11, 10, 9, 0.7); }
-  .ms__doorh { font-family: var(--f-display); font-size: clamp(1.125rem, 2vw, 1.5rem); line-height: 1.05; letter-spacing: -0.02em; }
+  .ms__doorh { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.125rem, 2vw, 1.5rem); line-height: 1.05; letter-spacing: -0.005em; }
 
   @media (max-width: 699px) {
     .ms__body { grid-template-columns: 1fr; row-gap: clamp(1.5rem, 4vh, 2.5rem); align-content: start; }

@@ -85,6 +85,7 @@ export function initHeld() {
     const c = t < 0.5 ? mix(DAY, DUSK, t * 2) : mix(DUSK, NIGHT, (t - 0.5) * 2);
     root.style.setProperty('--bg', `rgb(${c[0]} ${c[1]} ${c[2]})`);
     root.style.setProperty('--charge', charge.toFixed(3));
+    document.documentElement.style.setProperty('--hold', charge.toFixed(3)); // the pointer's ring
     const night = t > 0.55;
     if (night !== root.hasAttribute('data-night')) { root.toggleAttribute('data-night', night); root.dataset.bg = night ? 'dark' : 'light'; dispatchEvent(new Event('nx:ground')); }
 

@@ -119,18 +119,12 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer />
-    <!-- The pointer follower. Augments the native cursor, never replaces it. -->
+    <Footer from={home ? 'maroon' : 'sand'} />
+    <!-- The pointer follower (src/scripts/cursor.ts). Augments the native cursor, never replaces it. -->
     <div class="cursor" data-cursor-root data-state="dot" aria-hidden="true">
-      <span class="cursor__dot"></span>
-      <span class="cursor__arrow">
-        <svg viewBox="0 0 24 12" width="24" height="12" focusable="false"><path d="M0 6h21M15 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
-      </span>
-      <span class="cursor__hand">
-        <svg viewBox="0 0 24 24" width="20" height="20" focusable="false"><path d="M7 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1V4.5a1.5 1.5 0 0 1 3 0V11m0-.5V6a1.5 1.5 0 0 1 3 0v5m0-2.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-5.2-3L5 14.5a1.6 1.6 0 0 1 2.6-1.8L9 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      </span>
-      <span class="cursor__text label" data-cursor-text></span>
-      <img class="cursor__img" data-cursor-img alt="" width="160" height="200" hidden />
+      <span class="cursor__disc"></span>
+      <svg class="cursor__ring" viewBox="0 0 100 100" focusable="false"><circle cx="50" cy="50" r="48" pathLength="1" /></svg>
+      <span class="cursor__label label" data-cursor-text></span>
     </div>
 
     <script>
@@ -143,39 +137,41 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
   main:focus { outline: none; }
 
   /* ── pointer follower ────────────────────────────────────────────────────────
-     One element that morphs: dot, label, arrow, hand, media plate. It augments the
-     native cursor (which stays visible), so nothing is lost if it fails to load. */
+     noho.ink's model: a small disc that eases to the pointer and morphs by context. The disc is laid out at its
+     LARGEST size and scaled down, so it is sharp at every size and only transform/opacity animate. */
   .cursor {
-    position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: 180;
-    display: grid; place-items: center;
-    width: 0; height: 0;
-    pointer-events: none; opacity: 0;
-    color: var(--studio);
+    --fill: var(--ink); --ink-on: var(--bone);
+    position: fixed; top: 0; left: 0; z-index: 400; width: 0; height: 0;
+    pointer-events: none; opacity: 0; transition: opacity 240ms linear;
     will-change: transform;
   }
-  .cursor > * { grid-area: 1 / 1; transition: opacity 200ms ease, scale 320ms var(--ease-freeze); }
-  .cursor__dot, .cursor__arrow, .cursor__hand, .cursor__text, .cursor__img { rotate: var(--counter-rotate, 0deg); }
-
-  .cursor__dot { width: 15px; height: 15px; border-radius: 50%; background: var(--bone); }
-  .cursor__arrow, .cursor__hand { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--bone); opacity: 0; scale: 0.4; }
-  .cursor__text {
-    padding: 0.55em 0.9em; border-radius: 999px;
-    background: var(--bone); color: var(--studio);
-    white-space: nowrap; font-size: 0.625rem; letter-spacing: 0.16em;
-    opacity: 0; scale: 0.4;
+  .cursor[data-on] { opacity: 1; }
+  .cursor[data-ground='dark'] { --fill: var(--bone); --ink-on: var(--ink); }
+  .cursor__disc {
+    position: absolute; left: -48px; top: -48px; width: 96px; height: 96px; border-radius: 50%;
+    background: var(--fill); border: 2px solid transparent;
+    transition: transform 420ms cubic-bezier(0.25, 1, 0.5, 1), background-color 300ms ease, border-color 300ms ease;
   }
-  .cursor__img { width: 160px; height: 200px; object-fit: cover; opacity: 0; scale: 0.5; box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.85); }
+  .cursor__ring { position: absolute; left: -52px; top: -52px; width: 104px; height: 104px; rotate: -90deg; overflow: visible; opacity: 0; transition: opacity 200ms linear; }
+  .cursor__ring circle { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--hold, 0)); }
+  .cursor__label {
+    position: absolute; left: 0; top: 0; translate: -50% -50%; white-space: nowrap;
+    color: var(--ink-on); font-size: 0.625rem; letter-spacing: 0.14em;
+    opacity: 0; scale: 0.6; transition: opacity 200ms linear, scale 420ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
 
-  .cursor[data-state='dot'] .cursor__dot { opacity: 1; scale: 1; }
-  .cursor:not([data-state='dot']) .cursor__dot { opacity: 0; scale: 0.3; }
-  .cursor[data-state='arrow'] .cursor__arrow,
-  .cursor[data-state='drag'] .cursor__hand,
-  .cursor[data-state='label'] .cursor__text,
-  .cursor[data-state='media'] .cursor__img { opacity: 1; scale: 1; }
-  /* "Drag" is a hand with a word beside it, so the affordance is named as well as drawn. */
-  .cursor[data-state='drag'] .cursor__text { opacity: 1; scale: 1; translate: 0 44px; }
-  .cursor[data-press] .cursor__hand { scale: 0.86; }
-  .cursor[data-press] .cursor__dot { scale: 0.7; }
+  .cursor[data-state='dot'] .cursor__disc { transform: scale(0.125); }
+  .cursor[data-state='ring'] .cursor__disc { transform: scale(0.5); background: transparent; border-color: var(--fill); }
+  .cursor[data-state='label'] .cursor__disc, .cursor[data-state='hold'] .cursor__disc, .cursor[data-state='drag'] .cursor__disc { transform: scale(1); background: var(--amber); }
+  .cursor[data-state='label'] .cursor__label, .cursor[data-state='hold'] .cursor__label, .cursor[data-state='drag'] .cursor__label { opacity: 1; scale: 1; color: var(--ink); transition-delay: 60ms; }
+  .cursor[data-state='hold'] .cursor__ring { opacity: 1; }
+  .cursor[data-state='num'] .cursor__disc { transform: scale(0.62); background: var(--ink); }
+  .cursor[data-state='num'] .cursor__label { opacity: 1; scale: 1; color: var(--bone); }
+  .cursor[data-state='hide'] .cursor__disc { transform: scale(0); }
+  .cursor[data-press] .cursor__disc { transition-duration: 160ms; }
+  .cursor[data-press][data-state='dot'] .cursor__disc { transform: scale(0.09); }
+  .cursor[data-press][data-state='ring'] .cursor__disc { transform: scale(0.42); }
+  .cursor[data-press][data-state='label'] .cursor__disc, .cursor[data-press][data-state='hold'] .cursor__disc, .cursor[data-press][data-state='drag'] .cursor__disc { transform: scale(0.9); }
 
   @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
     .cursor { display: none; }

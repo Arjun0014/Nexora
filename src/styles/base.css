@@ -53,13 +53,9 @@ p { text-wrap: pretty; }
 /* ── surfaces ───────────────────────────────────────────────────────────────
    A chapter is a ground, not a band: it sets --bg itself and carries its own light. */
 .surface { background: var(--bg); color: var(--fg); position: relative; }
-.ch-ember { --bg: var(--ember); }
-.ch-deck { --bg: var(--deck); }
-.ch-deep { --bg: var(--deep); }
-.ch-stone { --bg: var(--stone); }
-.ch-linen { --bg: var(--linen); }
-.ch-ink { --bg: var(--ink-ground); }
-.ch-bronze { --bg: var(--bronze-ground); }
+.ch-sky { --bg: var(--sky); }
+.ch-sand, .ch-stone, .ch-linen { --bg: var(--sand); }
+.ch-maroon, .ch-ember, .ch-bronze, .ch-ink, .ch-deep { --bg: var(--maroon); }
 .ch-studio { --bg: var(--studio); }
 
 /* The light in a chapter: a wide, very soft pool, placed off-centre. Never a gradient blob —

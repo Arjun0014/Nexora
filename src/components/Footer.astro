@@ -14,14 +14,17 @@ import { site, nav, cta } from '../data/site';
 import { worlds } from '../data/worlds';
 import { stock } from '../data/stock';
 
+interface Props { /** the ground of the section above: the photograph arrives out of it */ from?: 'maroon' | 'sand' }
+const { from = 'sand' } = Astro.props;
 const year = new Date().getFullYear();
 const img = stock.doha.dhows;
 ---
-<footer class="ft" data-ft data-bg="dark" style="--c: 0">
+<footer class="ft" data-ft data-bg="dark" data-from={from}>
   <div class="ft__pin">
     <div class="ft__photo" data-ft-photo aria-hidden="true">
       <img src={img.src} srcset={img.srcset} sizes="100vw" alt="" width="2400" height="1600" loading="lazy" decoding="async" style={`object-position:${img.focus}`} />
       <span class="label ft__place">{site.city}, {site.country}</span>
+      {from === 'sand' && <img class="ft__bank" src="/media/clouds/curtain-up-sand.webp" alt="" width="2400" height="700" loading="lazy" decoding="async" />}
     </div>
 
     <div class="ft__content" data-ft-content>
@@ -100,8 +103,11 @@ const img = stock.doha.dhows;
     clip-path: inset(calc(13vh * var(--c)) calc(37.5vw * var(--c)) calc(33vh * var(--c)) calc(37.5vw * var(--c)) round calc(12.5vw * var(--c)) calc(12.5vw * var(--c)) 0 0);
   }
   /* It arrives out of the dusk above: a maroon fade over its top edge, gone once it has become the arch. */
+  .ft[data-from='sand'] .ft__photo::before { display: none; }
+  /* After a limestone section, a limestone cloud bank hangs over the photograph's top edge and lifts away. */
+  .ft__bank { position: absolute; left: 50%; top: -2px; width: max(160vw, 2000px); max-width: none; height: auto; translate: -50% calc(-100% * var(--c)); z-index: 2; pointer-events: none; }
   .ft__photo::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: calc(1 - var(--c)); background: linear-gradient(180deg, var(--maroon) 0%, rgba(75, 20, 38, 0) 38%); }
-  .ft__photo img { width: 100%; height: 100%; object-fit: cover; transform: scale(calc(1.18 - 0.18 * var(--c))); }
+  .ft__photo > img:not(.ft__bank) { width: 100%; height: 100%; object-fit: cover; transform: scale(calc(1.18 - 0.18 * var(--c))); }
   .ft__place { position: absolute; left: 50%; bottom: calc(33vh + 1.2rem); translate: -50% 0; color: var(--bone); opacity: var(--c); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5); }
 
   .ft__content {
@@ -140,6 +146,7 @@ const img = stock.doha.dhows;
   @media (max-width: 899px) {
     .ft__photo { clip-path: inset(calc(9vh * var(--c)) calc(28vw * var(--c)) calc(58vh * var(--c)) calc(28vw * var(--c)) round calc(22vw * var(--c)) calc(22vw * var(--c)) 0 0); }
     .ft__place { display: none; }
+    .ft__photo { bottom: auto; height: 100vh; height: 100svh; }
     .ft__content { grid-template-columns: 1fr; align-content: end; gap: 2rem; padding-block-start: 44vh; }
     .ft__ask, .ft__info { grid-column: 1; padding: 0; }
     .ft__info { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }

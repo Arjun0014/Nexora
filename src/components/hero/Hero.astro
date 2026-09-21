@@ -38,7 +38,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
         <div class="ch__copy">
           <p class="label ch__label">{overview.label}</p>
           <h1 id="hero-h1" class="ch__h1 lines">
-            {overview.headline.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
+            {overview.headline.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line.startsWith('Many ') ? <><em>many</em>{line.slice(4)}</> : line}</span></span>)}
           </h1>
           <p class="ch__support">{overview.support}</p>
         </div>
@@ -104,7 +104,8 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .ch__copy { max-width: min(38vw, 36rem); min-width: min(100%, 19rem); }
   .ch__label { margin-block-end: 1.5rem; }
   .ch__of { opacity: 0.6; }
-  .ch__h1 { font-family: var(--f-display); font-size: clamp(2.25rem, 4.1vw, 4.5rem); line-height: 0.98; letter-spacing: -0.02em; }
+  .ch__h1 { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(2.6rem, 4.8vw, 5.4rem); line-height: 0.9; letter-spacing: -0.005em; }
+  .ch__h1 em { font-style: italic; font-stretch: 75%; text-transform: none; color: #f1c28f; }
   .ch__support { margin-block-start: 1.25rem; max-width: 24rem; font-size: var(--t-small); line-height: 1.55; color: var(--bone-soft); }
   .ch__title { text-shadow: 0 1px 40px rgba(11, 10, 9, 0.45); }
   .ch__line { margin-block: 1.5rem 1.75rem; max-width: 25rem; font-size: var(--t-lead); line-height: 1.4; }

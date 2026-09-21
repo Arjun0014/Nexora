@@ -1,0 +1,36 @@
+---
+/**
+ * The two doors, for subpages: an employer and a candidate, each a photograph in an arch with one line and one
+ * action. Limestone, the same arches as the colonnade and the footer.
+ */
+import { doors } from '../../data/content';
+import { stock } from '../../data/stock';
+import Arrow from '../ui/Arrow.astro';
+const items = [
+  { d: doors.employer, p: stock.doors.employer, h: { a: 'I need', em: 'people.' } },
+  { d: doors.candidate, p: stock.doors.candidate, h: { a: 'Looking for', em: 'work?' } },
+];
+---
+<section class="cl" data-bg="light" aria-label="Get started">
+  {items.map(({ d, p, h }) => (
+    <a class="cl__door" href={d.href} data-cursor={d.cursor}>
+      <span class="cl__arch"><img src={p.card} srcset={p.cardSrcset} sizes="(max-width: 767px) 80vw, 30vw" alt={p.alt} width="960" height="1200" loading="lazy" decoding="async" /></span>
+      <span class="label cl__label">{d.label}</span>
+      <span class="display cl__h">{h.a} <em>{h.em}</em></span>
+      <span class="cl__body">{d.body}</span>
+      <span class="tlink label cl__cta">{d.cta}<Arrow /></span>
+    </a>
+  ))}
+</section>
+
+<style>
+  .cl { --bg: var(--sand); background: var(--bg); color: var(--ink); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(2rem, 6vw, 7rem); padding: clamp(5rem, 14vh, 9rem) calc(var(--margin) + 4vw); border-block-start: 1px solid var(--line); }
+  .cl__door { display: grid; justify-items: center; text-align: center; gap: 1.1rem; }
+  .cl__arch { width: min(24vw, 44vh); aspect-ratio: 4 / 5; overflow: hidden; border-radius: 50% 50% 0 0 / 40% 40% 0 0; /* a true semicircle on a 4:5 box */ box-shadow: 0 0 0 1px rgba(142, 90, 48, 0.45); margin-block-end: 0.8rem; }
+  .cl__arch img { width: 100%; height: 100%; object-fit: cover; transition: transform 1200ms var(--ease-out); }
+  .cl__door:hover .cl__arch img, .cl__door:focus-visible .cl__arch img { transform: scale(1.05); }
+  .cl__label { color: var(--amber-deep); }
+  .cl__h { font-size: clamp(2.6rem, 4.6vw, 5.6rem); }
+  .cl__body { max-width: 24rem; font-size: var(--t-small); color: var(--ink-soft); }
+  @media (max-width: 767px) { .cl { grid-template-columns: 1fr; } .cl__arch { width: 62vw; } }
+</style>

@@ -24,7 +24,7 @@ import { worldById } from '../../data/worlds';
       </header>
 
       <div class="held__arch" data-held-arch>
-        <div class="held__window">
+        <div class="held__window" data-cursor="hold">
           <video class="held__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1" aria-hidden="true"
             poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
           <div class="held__night" aria-hidden="true"></div>
@@ -158,7 +158,7 @@ import { worldById } from '../../data/worlds';
   :global(html:not(.motion)) .held__stage { position: static; display: grid; gap: 2.5rem; padding-inline: var(--margin); }
   :global(html:not(.motion)) .held__head, :global(html:not(.motion)) .held__arch, :global(html:not(.motion)) .held__lines,
   :global(html:not(.motion)) .held__line, :global(html:not(.motion)) .held__body, :global(html:not(.motion)) .held__answer { position: static; translate: none; }
-  :global(html:not(.motion)) .held__arch { --D: min(84vw, 36rem); margin-inline: auto; position: relative; }
+  :global(html:not(.motion)) .held__arch { --D: min(84vw, 36rem); margin-inline: auto; position: relative; left: auto; top: auto; translate: none; }
   :global(html:not(.motion)) .held__answer { display: none; }
   :global(html:not(.motion)) .held__lines { display: grid; gap: 1.5rem; }
   :global(html:not(.motion)) .held__hold, :global(html:not(.motion)) .held__cloud { display: none; }

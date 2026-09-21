@@ -9,8 +9,9 @@
  */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
+import { stock } from '../data/stock';
 import Arrow from '../components/ui/Arrow.astro';
-import Doors from '../components/chapters/Doors.astro';
+import Closing from '../components/scenes/Closing.astro';
 import { worlds } from '../data/worlds';
 import { engagements } from '../data/content';
 
@@ -19,7 +20,8 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
 <Base title="Services" description="The five kinds of workforce Nexora supplies in Qatar — hospitality, events, facilities, technical and recruitment — and the four ways to engage them." theme="dark">
   <PageHead
     label="Services"
-    title={['What we supply,', 'and how.']}
+    title={['What we supply,', '*and* how.']}
+    photo={stock.workforces.facilities}
     lead="Five kinds of workforce, engaged in four ways, coordinated from Doha."
     meta={[
       { k: 'Workforces', v: 'Hospitality · Events · Facilities · Technical · Recruitment' },
@@ -36,7 +38,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   </PageHead>
 
   {worlds.map((w, i) => (
-    <section class="sv surface ch-ember grain" id={w.id} data-theme="dark" data-sector={w.id} data-flip={i % 2 ? 'true' : 'false'} aria-labelledby={`${w.id}-h`} data-reveal>
+    <section class="sv surface" id={w.id} data-theme="paper" style={`--bg:${i % 2 ? "var(--sky)" : "var(--sand)"}`} data-sector={w.id} data-flip={i % 2 ? 'true' : 'false'} aria-labelledby={`${w.id}-h`} data-reveal>
       <div class="sv__wrap wrap">
         <div class="sv__grid">
           <p class="label sv__label" data-rise>{w.n} — Workforce</p>
@@ -86,7 +88,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
     </div>
   </section>
 
-  <Doors />
+  <Closing />
 </Base>
 
 <style>
@@ -96,14 +98,14 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .sv__jump:last-child { border-inline-end: 0; }
   .sv__jump:hover, .sv__jump:focus-visible { background: rgba(243, 237, 227, 0.06); }
   .sv__jn { color: var(--bronze); }
-  .sv__jt { font-family: var(--f-display); font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.1; }
+  .sv__jt { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.1; }
 
   /* One ground for all five. The colour change is the world's own accent, low and wide, and it swaps sides
      chapter to chapter so the page has rhythm without ever becoming a band. */
   .sv {
     padding-block: clamp(4.5rem, 12vh, 9rem);
     overflow: clip;
-    background-color: var(--ember);
+    background-color: var(--bg);
     background-image: radial-gradient(85% 75% at 6% 36%, color-mix(in oklab, var(--accent) 13%, transparent) 0%, transparent 64%);
   }
   .sv[data-flip='true'] { background-image: radial-gradient(85% 75% at 94% 36%, color-mix(in oklab, var(--accent) 13%, transparent) 0%, transparent 64%); }
@@ -112,7 +114,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .sv__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
 
   .sv__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
-  .sv__title { grid-column: 1 / 7; grid-row: 2; font-family: var(--f-display); font-size: clamp(2.25rem, 5vw, 5rem); line-height: 0.95; letter-spacing: -0.03em; margin-block-start: clamp(1rem, 3vh, 2rem); }
+  .sv__title { grid-column: 1 / 7; grid-row: 2; font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(2.25rem, 5vw, 5rem); line-height: 0.95; letter-spacing: -0.005em; margin-block-start: clamp(1rem, 3vh, 2rem); }
   .sv__line { grid-column: 1 / 6; grid-row: 3; margin-block-start: 1.5rem; }
   .sv__body { grid-column: 1 / 6; grid-row: 4; margin-block-start: 1.25rem; color: var(--fg-soft); }
   .sv__plate { grid-column: 7 / 13; grid-row: 2 / 5; margin-block-start: clamp(1rem, 3vh, 2rem); }
@@ -138,7 +140,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .eg__rows { border-block-start: 1px solid var(--line-strong); }
   .eg__row { display: grid; grid-template-columns: 3.5rem minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--gutter); align-items: baseline; padding-block: clamp(1.5rem, 3.5vh, 2.5rem); border-block-end: 1px solid var(--line); }
   .eg__n { color: var(--bronze-deep); }
-  .eg__t { font-family: var(--f-display); font-size: clamp(1.375rem, 2.6vw, 2.25rem); line-height: 1.05; letter-spacing: -0.02em; }
+  .eg__t { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.375rem, 2.6vw, 2.25rem); line-height: 1.05; letter-spacing: -0.005em; }
   .eg__b { color: var(--fg-soft); }
 
   @media (max-width: 1023px) {

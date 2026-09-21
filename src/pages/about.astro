@@ -7,9 +7,9 @@
  */
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/ui/PageHead.astro';
-import Seam from '../components/chapters/Seam.astro';
-import HowWeWork from '../components/chapters/HowWeWork.astro';
-import Doors from '../components/chapters/Doors.astro';
+import { stock } from '../data/stock';
+import Expect from '../components/scenes/Expect.astro';
+import Closing from '../components/scenes/Closing.astro';
 import { site } from '../data/site';
 import { statement } from '../data/content';
 
@@ -25,9 +25,9 @@ const identity = [
 <Base title="About" description="Nexora Hospitality and Services W.L.L. is a Qatar-registered workforce company established in 2026, supplying hospitality, events, facilities and technical teams." theme="dark">
   <PageHead
     label="About"
-    title={['A workforce company.', 'Established 2026.']}
+    title={['A workforce company.', '*Established* 2026.']}
     lead={statement.body}
-    plate="overview"
+    photo={stock.doha.arches}
     plateCaption="The Nexora model — five worlds, one operation"
     meta={[
       { k: 'Legal name', v: site.legalName },
@@ -68,16 +68,15 @@ const identity = [
     </div>
   </section>
 
-  <Seam from="var(--stone)" to="var(--ink-ground)" />
-  <HowWeWork />
-  <Doors />
+  <Expect />
+  <Closing />
 </Base>
 
 <style>
   .ab { padding-block: clamp(4.5rem, 12vh, 9rem); }
   .ab__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
   .ab__label { grid-column: 1 / 3; color: var(--fg-soft); padding-block: 0.9rem 0; border-block-start: 1px solid var(--line); }
-  .ab__h { grid-column: 3 / 11; font-family: var(--f-display); font-size: clamp(1.875rem, 4.2vw, 4.25rem); line-height: 1; letter-spacing: -0.03em; }
+  .ab__h { grid-column: 3 / 11; font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(1.875rem, 4.2vw, 4.25rem); line-height: 1; letter-spacing: -0.005em; }
   .ab__p { grid-column: 3 / 7; margin-block-start: clamp(2rem, 5vh, 3.5rem); color: var(--fg-soft); }
   .ab__p--b { grid-column: 7 / 11; }
 
