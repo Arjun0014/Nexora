@@ -1,39 +1,27 @@
 /**
  * The hero as a row of STOPS joined by LEGS. PURE — no DOM.
  *
- *   stop 0 overview ─leg 0 (entry)→ 1 Hospitality ─leg 1→ 2 Events ─leg 2→ 3 Facilities ─leg 3→ 4 Technical
+ *   stop 0 the ring ─leg 0 (dive)→ 1 Hospitality ─leg 1→ 2 Events ─leg 2→ 3 Facilities ─leg 3→ 4 Technical
  *                   ─leg 4→ 5 Recruitment ─leg 5 (exit: NEXORA mask)→ stop 6 title card
  *
- * The playhead `p` is a float in [0, 6]. An integer means "at rest on that stop"; the fraction is the progress
- * through leg ⌊p⌋. Legs are PLAYED IN TIME at the footage's natural 24 fps — one gesture, one leg — never
- * scrubbed by scroll distance.
+ * The playhead `p` is a float in [0, 6]. An integer means "at rest on that stop" (time is frozen there); the
+ * fraction is the progress through leg ⌊p⌋. Legs are PLAYED IN TIME — one gesture, one leg — never scrubbed by
+ * scroll distance. The world is drawn live from `p`, so every leg plays the same in either direction.
  */
 export const WORLD_COUNT = 5;
 export const TITLE_STOP = WORLD_COUNT + 1;
 export const LEG_COUNT = TITLE_STOP;
-export const FPS = 24;
 
-/**
- * The entry clip is joined ~0.8 s in, just as the spin starts (frame 24 is the first blurred one). Its first frames turn at idle speed from ONE pose, which forced the old
- * build to race the loop to its seam before anything moved. From here on the disc is a motion-blurred spin:
- * the rotation angle is unreadable, so any loop frame can hand off to it through a short cross-fade.
- * Must be even (the portrait set keeps every 2nd frame).
- */
-export const ENTRY_START_FRAME = 20;
-
-/** Seconds the NEXORA knock-out takes to pull back from inside the X. */
-const EXIT_SECONDS = 2.6;
+/** Seconds per leg at natural speed. */
+export const LEG_SECONDS = { entry: 4.6, sector: 4.0, exit: 2.8 };
 
 export type LegKind = 'entry' | 'sector' | 'exit';
-export interface Leg { kind: LegKind; /** index into the manifest's sequences; -1 for the exit */ seq: number; seconds: number }
+export interface Leg { kind: LegKind; seconds: number }
 
-export function buildLegs(sequenceFrames: number[]): Leg[] {
-  const legs: Leg[] = [];
-  for (let w = 0; w < WORLD_COUNT; w++) {
-    const first = w === 0 ? ENTRY_START_FRAME : 0;
-    legs.push({ kind: w === 0 ? 'entry' : 'sector', seq: w, seconds: (sequenceFrames[w] - 1 - first) / FPS });
-  }
-  legs.push({ kind: 'exit', seq: -1, seconds: EXIT_SECONDS });
+export function buildLegs(): Leg[] {
+  const legs: Leg[] = [{ kind: 'entry', seconds: LEG_SECONDS.entry }];
+  for (let w = 1; w < WORLD_COUNT; w++) legs.push({ kind: 'sector', seconds: LEG_SECONDS.sector });
+  legs.push({ kind: 'exit', seconds: LEG_SECONDS.exit });
   return legs;
 }
 
@@ -56,5 +44,5 @@ export function locate(p: number): Located {
   return { rest: false, stop: near, leg, local: v - leg };
 }
 
-/** World whose picture is on stage at stop `s` (-1 = the overview disc). */
+/** World in focus at stop `s` (-1 = the ring seen whole). */
 export const worldAtStop = (s: number) => (s <= 0 ? -1 : Math.min(s, WORLD_COUNT) - 1);

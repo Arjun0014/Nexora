@@ -37,7 +37,7 @@ export class HeroUI {
    * starting there — but ONLY on the stop the film is going to end on. Worlds passed through in a chain stay silent.
    */
   private chapterFor({ p, target, arrival }: UIState): string {
-    if (p === target) return chapterId(target);
+    if (p === target) return Number.isInteger(target) ? chapterId(target) : ''; // (a QA hook can park mid-leg)
     const nearTarget = Math.abs(target - p) < 1;
     const threshold = target === TITLE_STOP ? 0.8 : target === 0 ? 1 : 0.62;
     return nearTarget && arrival >= threshold ? chapterId(target) : '';
@@ -60,7 +60,7 @@ export class HeroUI {
     if (s.world !== this.lastWorld) {
       this.lastWorld = s.world;
       if (s.world >= 0) this.stage.dataset.sector = worlds[s.world].id; else delete this.stage.dataset.sector;
-      this.canvas.setAttribute('aria-label', s.world >= 0 ? worlds[s.world].alt : overview.alt);
+      this.canvas.setAttribute('aria-label', s.world >= 0 ? worlds[s.world].moment : overview.alt);
     }
   }
 
