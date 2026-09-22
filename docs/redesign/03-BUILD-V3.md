@@ -1,5 +1,6 @@
-> **The hero before the NEXORA title zoom is now `05-HERO-V5.md`** (branch `hero-v4`: a living mashrabiya with
-> five moments of work behind it; v4's night world is superseded). Everything from the title zoom on is as described here.
+> **The hero before the NEXORA title zoom is now `06-HERO-V6.md`** (branch `hero-v4`: one world under a rain of
+> light — a court under a latticed dome, five doorways onto five moments of work; v4 and v5 are superseded).
+> Everything from the title zoom on is as described here.
 
 # What was built — session 3
 

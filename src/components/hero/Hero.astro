@@ -1,15 +1,15 @@
 ---
 /**
- * The film, version 5: a living mashrabiya, and behind it five moments of work held in time.
- * See docs/redesign/05-HERO-V5.md.
+ * The film, version 6: one world under a rain of light — a limestone court under a latticed dome, five doorways
+ * onto five moments of work. See docs/redesign/06-HERO-V6.md.
  *
- * DEFAULT (no JS, reduced motion, Save-Data): six ordinary sections on limestone — the overview with its moment in
- * a circle, the five worlds each in an arch, the title card — complete and readable.
+ * DEFAULT (no JS, reduced motion, Save-Data): six ordinary sections on limestone — the overview, the five worlds each
+ * in an arch, the title card — complete and readable.
  *
- * html.cinema (set pre-paint): the same markup becomes ONE screen-high stage; the chapters stack over a WebGL canvas
- * that draws the screen (src/scripts/hero/screen), stepped by gesture. The canvas publishes where its opening is
- * (--arch-*, --circle-*), and every copy block stands on the arch's foot, so text and window share one ground line.
- * There is deliberately no HUD.
+ * html.cinema (set pre-paint): the same markup becomes ONE screen-high stage; the chapters stack over a WebGPU canvas
+ * that draws the court (src/scripts/hero/court), stepped by gesture. The canvas publishes where a doorway stands at
+ * its stop (--door-left/right/top/bottom), and every copy block stands on the doorway's foot, so the words and the
+ * door share one ground line. There is deliberately no HUD.
  */
 import Arrow from '../ui/Arrow.astro';
 import { worlds, overview } from '../../data/worlds';
@@ -21,15 +21,15 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
 <section class="hero" id="film" data-hero data-header-clear data-theme="paper" data-bg="light" aria-label="Introduction">
   <div class="hero__stage" data-stage>
     <div class="hero__media" data-media>
-      <!-- The film: one fragment shader, drawn by src/scripts/hero/screen. -->
+      <!-- The film: the court, drawn live by src/scripts/hero/court. -->
       <canvas class="hero__canvas" data-canvas role="img" aria-label={overview.alt}></canvas>
     </div>
     <canvas class="hero__mask" data-mask aria-hidden="true"></canvas>
 
     <div class="hero__ui">
       <section class="ch ch--overview" data-chapter="overview" data-active="true" aria-labelledby="hero-h1">
-        <figure class="ch__frame ch__frame--circle" aria-hidden="true">
-          <img src={img(worlds[0].id)} srcset={srcset(worlds[0].id)} sizes="(max-aspect-ratio: 1/1) 90vw, 46vw" width="1400" height="1556" alt="" loading="lazy" decoding="async" />
+        <figure class="ch__frame ch__frame--court" aria-hidden="true">
+          <img src="/media/hero6/court-960.webp" srcset="/media/hero6/court-960.webp 960w, /media/hero6/court-1600.webp 1600w" sizes="(max-aspect-ratio: 1/1) 90vw, 50vw" width="1600" height="1000" alt="" loading="lazy" decoding="async" />
         </figure>
         <div class="ch__copy">
           <p class="label ch__label">{overview.label}</p>
@@ -86,7 +86,8 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
   }
   .ch + .ch { border-block-start: 1px solid var(--line-soft); }
   .ch__frame { grid-column: 2; grid-row: 1; align-self: stretch; margin: 0; overflow: hidden; border-radius: 999px 999px 0 0 / 50% 50% 0 0; max-height: 82vh; }
-  .ch__frame--circle { border-radius: 50%; aspect-ratio: 1; align-self: center; max-height: none; }
+  .ch__frame--court { border-radius: 999px 999px 0 0 / 60% 60% 0 0; aspect-ratio: 16 / 11; align-self: center; max-height: none; }
+  .ch__frame--court img { object-position: 50% 60%; }
   .ch__frame img { width: 100%; height: 100%; object-fit: cover; }
   .ch__copy { grid-column: 1; grid-row: 1; max-width: 34rem; }
 
@@ -108,26 +109,44 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
 
   /* ═══ CINEMA: one screen, stepped by gesture ═══════════════════════════════════════════ */
   :global(html.cinema) .hero { height: 100vh; height: 100svh; }
-  :global(html.cinema) .hero__stage { position: relative; height: 100%; overflow: clip; background: #ebe4d8; contain: layout paint; }
+  :global(html.cinema) .hero__stage { position: relative; height: 100%; overflow: clip; background: #e9e1d5; contain: layout paint; }
   :global(html.cinema) .hero__media { display: block; position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
   .hero__canvas, .hero__mask { position: absolute; inset: 0; width: 100%; height: 100%; }
   .hero__canvas { display: block; touch-action: pan-y; }
   :global(html.cinema) .hero:not([data-ready]) .hero__media { opacity: 0; }
   :global(html.cinema) .hero[data-ready] .hero__media { opacity: 1; transition: opacity 600ms ease-out; }
   :global(html.cinema) .hero__mask { display: block; z-index: 3; pointer-events: none; }
+  /* a breath of limestone behind the header, so its small type reads over the lattice; gone on the black card */
+  :global(html.cinema) .hero__stage::before {
+    content: ''; position: absolute; inset: 0 0 auto; height: calc(var(--header-h) + 4.5rem); z-index: 4; pointer-events: none;
+    background: linear-gradient(rgba(236, 228, 216, 0.82), rgba(236, 228, 216, 0.5) 45%, rgba(236, 228, 216, 0));
+    transition: opacity 500ms ease;
+  }
+  :global(html.cinema) .hero[data-bg='dark'] .hero__stage::before { opacity: 0; }
 
   :global(html.cinema) .hero__ui { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
   :global(html.cinema) .ch { display: block; position: absolute; inset: 0; min-height: 0; padding: 0; border: 0; pointer-events: none; background: none; }
   :global(html.cinema) .ch__frame { display: none; }
   :global(html.cinema) .ch[data-active='true'] .ch__copy { pointer-events: auto; }
 
-  /* Every block stands on the arch's foot: one ground line for window and words. */
+  /* Every block stands on the doorway's foot: one ground line for the door and the words. */
   :global(html.cinema) .ch__copy {
     position: absolute; inset-inline-start: var(--margin);
-    inset-block-end: calc(100% - var(--arch-bottom, 94%));
-    width: calc(var(--arch-left, 52vw) - var(--margin) * 2.2); max-width: 40rem;
+    inset-block-end: calc(100% - var(--door-bottom, 92%) + 0.2rem);
+    width: calc(var(--door-left, 48vw) - var(--margin) * 2.2); max-width: 40rem;
   }
   :global(html.cinema) .ch--world .ch__copy { max-width: 31rem; }
+  :global(html.cinema) .ch--overview .ch__copy { inset-block-end: clamp(2.5rem, 8vh, 5.5rem); width: min(46rem, 52vw); max-width: none; }
+  /* A veil of frosted light behind the words, so they read over the moving stars without a box. */
+  :global(html.cinema) .ch__copy::before {
+    content: ''; position: absolute; inset: -18% -22% -16% -14%; z-index: -1; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(242, 234, 222, 0.62), rgba(242, 234, 222, 0.28) 62%, rgba(242, 234, 222, 0));
+    -webkit-backdrop-filter: blur(14px) saturate(0.85); backdrop-filter: blur(14px) saturate(0.85);
+    -webkit-mask: radial-gradient(closest-side, #000 55%, transparent); mask: radial-gradient(closest-side, #000 55%, transparent);
+    opacity: 0; transition: opacity 400ms ease;
+  }
+  :global(html.cinema) .ch[data-active='true'] .ch__copy::before { opacity: 1; transition: opacity 900ms ease-out 100ms; }
+  :global(html.cinema) .ch--title .ch__copy::before { display: none; }
 
   /* Copy leaves the instant time resumes; arrives as the window opens and settles. */
   :global(html.cinema) .ch .ch__copy { opacity: 0; transition: opacity 0s linear 300ms; }
@@ -152,7 +171,7 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
     .ch { grid-template-columns: 1fr; align-content: end; gap: 2rem; }
     .ch__frame, .ch__copy { grid-column: 1; }
     .ch__frame { grid-row: 1; max-height: 52vh; aspect-ratio: 4 / 5; }
-    .ch__frame--circle { aspect-ratio: 1; width: min(100%, 52vh); justify-self: center; }
+    .ch__frame--court { aspect-ratio: 4 / 3; width: 100%; justify-self: center; }
     .ch__copy { grid-row: 2; }
     .ch__h1 { font-size: clamp(2.6rem, 12.4vw, 4.6rem); }
     .ch__title { font-size: clamp(2.5rem, 11.8vw, 4.4rem); }

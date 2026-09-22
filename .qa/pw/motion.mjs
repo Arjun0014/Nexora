@@ -17,7 +17,7 @@ const every = Number(process.argv[6] || 300);
 // optional 7th arg: a full URL to record from navigation (no qa hooks, e.g. the intro on the production build)
 const fromUrl = process.argv[7] || '';
 
-const browser = await chromium.launch({ headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--force_high_performance_gpu', '--autoplay-policy=no-user-gesture-required', '--window-position=0,0'] });
+const browser = await chromium.launch({ headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--use-angle=d3d11', '--force_high_performance_gpu', '--autoplay-policy=no-user-gesture-required', '--window-position=0,0'] });
 const p = { ...PROFILES[profile] }; delete p.defaultBrowserType;
 const ctx = await browser.newContext(p);
 const page = await ctx.newPage();
@@ -73,3 +73,8 @@ const sheet = path.join(OUT, `${tag}-sheet.jpg`);
 execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...inputs, '-filter_complex', `${scale};${pick.map((_, k) => `[v${k}]`).join('')}xstack=inputs=${pick.length}:layout=${layout}:fill=black`, sheet]);
 console.log(sheet, pick.length, 'tiles');
 if (errors.length) console.log('ERRORS\n' + errors.join('\n'));
+// where the long gaps were (seconds from the first frame)
+{
+  const gaps = frames.slice(1).map((f, i) => ({ at: frames[i].t - frames[0].t, dt: (f.t - frames[i].t) * 1000 })).filter((g) => g.dt > 120);
+  if (gaps.length) console.log('long gaps:', gaps.map((g) => `${g.at.toFixed(2)}s +${Math.round(g.dt)}ms`).join(', '));
+}

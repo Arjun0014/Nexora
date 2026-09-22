@@ -8,9 +8,8 @@
  *
  *   shown = max( monotonic, min(real, elapsed / MIN_MS), force )   force = (elapsed - MIN_MS) / (MAX_MS - MIN_MS)
  *
- * The ending: the hairline draws in to a point, which travels to where the screen's one-world circle is and opens
- * there, to exactly its size, onto the first moment; then the intro's limestone gives way to the carved screen round
- * it. The circle is one object from the loader to the hero (v5, docs/redesign/05-HERO-V5.md).
+ * The ending: the hairline draws in to a point, which travels to the far doorway of the court (the first world, at
+ * the heart of the hero's first screen) and opens there, over the whole court (v6, docs/redesign/06-HERO-V6.md).
  */
 import { gsap } from 'gsap';
 import { $, $$, clamp } from './core/env';
@@ -50,7 +49,7 @@ export function initIntro() {
 
   const reveal = () => {
     root.dataset.close = '';
-    // Where the screen's one-world circle is (published by the hero's world as it lays itself out).
+    // Where the court's far doorway stands, and how far to open (published by the hero's world as it lays itself out).
     const hero = $('[data-hero]');
     const cs = hero ? getComputedStyle(hero) : null;
     const px = (k: string, d: number) => { const v = cs ? parseFloat(cs.getPropertyValue(k)) : NaN; return Number.isFinite(v) ? v : d; };
@@ -67,9 +66,9 @@ export function initIntro() {
       .add(() => { root.dataset.aperture = ''; })
       // The point of light travels to where the one world will be, swelling a little on the way.
       .to(state, { x: target.x, y: target.y, r: 6, open: 0.4, duration: 0.8, ease: EASE.inOut, onUpdate: paint })
-      // It opens, to exactly the circle's size: the first moment, seen through it.
+      // It opens from the doorway over the whole court.
       .to(state, { r: target.r, open: 1, duration: 1.1, ease: EASE.dive, onUpdate: paint })
-      // The limestone of the intro gives way to the carved screen round the circle.
+      // What is left of the intro's limestone lifts.
       .to(root, { opacity: 0, duration: 0.8, ease: 'none' }, '>-0.05');
   };
 

@@ -28,8 +28,9 @@ export const PROFILES = {
   phoneL: { ...devices['iPhone 13 landscape'], defaultBrowserType: undefined },
 };
 
-export async function open(profile = 'desktop', { url = 'http://localhost:4321/?nointro', wait = 2500 } = {}) {
-  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+export async function open(profile = 'desktop', { url = 'http://localhost:4321/?nointro', wait = 2500, gpu = false } = {}) {
+  // gpu: a headed browser on the real GPU (the hero's court needs WebGPU or WebGL2 at speed)
+  const browser = await chromium.launch(gpu ? { headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--use-angle=d3d11', '--force_high_performance_gpu', '--autoplay-policy=no-user-gesture-required'] } : { args: ['--autoplay-policy=no-user-gesture-required'] });
   const p = { ...PROFILES[profile] };
   delete p.defaultBrowserType;
   const context = await browser.newContext(p);

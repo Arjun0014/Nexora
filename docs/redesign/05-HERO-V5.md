@@ -1,3 +1,6 @@
+> **Superseded by `06-HERO-V6.md`** (22 Sep 2026): the client found v5 too simple. Kept for the record; its five
+> moments (`public/media/hero5`, `scripts/build-hero5.mjs`) are still the worlds behind v6's doorways.
+
 # The hero, version 5: the people behind the screen
 
 Branch `hero-v4` (still off `main`; `main` untouched). Replaces v4's night world (`04-HERO-V4.md`, kept for the

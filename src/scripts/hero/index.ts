@@ -1,9 +1,9 @@
 /**
- * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/04-HERO-V4.md.
+ * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/06-HERO-V6.md.
  *
- * The film is drawn live (./screen): a carved limestone mashrabiya, and behind it five moments of work held in time,
- * seen through the windows it opens. Its textures load while the intro is up, and every frame is a pure function of
- * the playhead `p` (plus the pointer).
+ * The film is drawn live (./court): one world under a rain of light — a limestone court under a latticed dome, five
+ * doorways onto five moments of work held in time. Its assets load and its shaders compile while the intro is up,
+ * and every frame is a pure function of the playhead `p` (plus the pointer).
  *
  * One gesture = one leg at natural speed. Gestures that arrive while a leg is playing move `target` on (a short
  * queue); queued legs play faster; a change of mind eases through zero and plays the leg backwards. After the
@@ -18,7 +18,7 @@ import { buildLegs, TITLE_STOP, LEG_COUNT } from './timeline';
 import { TitleMask } from './mask';
 import { HeroUI } from './ui';
 import { bindInput, type Dir } from './input';
-import type { World, Quality } from './screen';
+import type { World, Quality } from './court';
 
 const MAX_PENDING = 2; // stops that may be queued beyond the leg being played
 const BOOST = 0.85; // extra playback speed per queued stop
@@ -27,6 +27,8 @@ const BOOST = 0.85; // extra playback speed per queued stop
 export const heroLoad = { active: false, progress: 0, done: false };
 
 function pickQuality(): Quality {
+  const forced = new URLSearchParams(location.search).get('q');
+  if (forced === 'high' || forced === 'medium' || forced === 'low') return forced;
   const small = Math.min(screen.width, screen.height) < 760;
   const coarse = matchMedia('(pointer: coarse)').matches;
   const cores = navigator.hardwareConcurrency || 4;
@@ -184,7 +186,7 @@ export function initHero() {
 
   const report = (f: number) => { heroLoad.progress = f; };
   report(0.05);
-  import('./screen').then(async ({ World }) => {
+  import('./court').then(async ({ World }) => {
     report(0.45);
     world = await World.create(canvas, pickQuality(), (f) => report(0.45 + 0.55 * f));
     heroLoad.done = true;

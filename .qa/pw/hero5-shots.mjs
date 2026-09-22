@@ -7,7 +7,7 @@ import { PROFILES, OUT } from './lib.mjs';
 const require = createRequire('C:/Users/aswin/.claude/skills/gstack/node_modules/');
 const { chromium } = require('playwright');
 const [tag = 'h5', profile = 'desktop', ...ps] = process.argv.slice(2);
-const browser = await chromium.launch({ headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--force_high_performance_gpu', '--window-position=0,0'] });
+const browser = await chromium.launch({ headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--use-angle=d3d11', '--force_high_performance_gpu', '--window-position=0,0'] });
 const p = { ...PROFILES[profile] }; delete p.defaultBrowserType;
 const ctx = await browser.newContext(p);
 const page = await ctx.newPage();
