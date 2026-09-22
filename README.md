@@ -1,8 +1,8 @@
 # Nexora — website
 
 Website for **Nexora Hospitality and Services W.L.L.** (Doha, Qatar · CR 250993).
-A living hero — one world under a rain of light: a limestone court under a latticed dome, five doorways onto five
-moments of work held in time, *One world, many workforces* — and then one continuous scroll film,
+A living hero — a turning world: a limestone court under a latticed dome, turning about its pool, five doorways onto
+five moments of work held in time, *One world, many workforces* — and then one continuous scroll film,
 from night into a Doha day and back to dusk, with two conversion paths: employers request workforce,
 candidates register a CV.
 
@@ -62,7 +62,7 @@ promises, payroll/EOR/visa/healthcare claims, or construction — see
 media/                       approved originals — never modified (hero/, clouds/, stock/ + stock/SOURCES.md);
                              media/ph/ (Poly Haven, CC0) is fetched by scripts/ph-fetch.mjs, not committed
 nexora_website_context/      the brief
-docs/redesign/               CURRENT: 06-HERO-V6 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (everything after it)
+docs/redesign/               CURRENT: 07-HERO-V7 + 06-HERO-V6 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (the rest)
 docs/implementation/         session 1. 04 (the hero) still applies
 scripts/build-media.mjs      diorama originals → public/media/hero (still used by the Held scene)
 scripts/build-hero5.mjs      the hero's five moments: frame, retouch, crop, grade, depth map → public/media/hero5
@@ -90,25 +90,29 @@ src/pages/                   index, services, industries, about, request, career
 The hero is a real-time scene: a round limestone court under a latticed brass dome of eight-point stars, the sun
 coming through it as a rain of light that falls on the stone and the water as moving stars. Five doorways lead out
 of the court, one per workforce, and beyond each is a moment of work held in time (a pour of gahwa, a registration
-desk, a sheet lifted over a bed, a technician at a panel, a handshake). On the first screen the sun drifts and the
-pointer moves it. **One gesture — a wheel notch, a trackpad flick, a swipe, an arrow key — plays one leg:** the camera
-crosses the court to a doorway, the sun turning with it so the stars sweep over the walls; when it arrives, time
-stops — the stars stand still — and the pointer leans round the frozen moment. Gestures that arrive mid-leg are queued
-(up to two). It ends on the title card: the camera looks up into the dome, NEXORA closes in from inside the X, and
-its letters open onto all five workforces at once. From there the page scrolls natively; scrolling back to the top
-re-enters at the title card. A reload always starts at the top, and the intro (limestone, real loading progress) ends
-by opening from the court's far doorway. Full detail: `docs/redesign/06-HERO-V6.md`.
+desk, a sheet lifted over a bed, a technician at a panel, a handshake). **On the first screen the court turns**, once
+round in 72 seconds, about the pool at its heart: the walls and their doorways go by, the title stands still on the
+floor in front of the pool, and the ring of names below it marks the doorway you face. **One gesture — a wheel notch,
+a trackpad flick, a swipe, an arrow key — plays one leg:** the turn comes to rest with that doorway before you as the
+camera crosses to it, and the tour goes on round the ring from there. Between two doorways a day goes by — the sun
+runs once round the sky, its rain sweeping the wall that wipes the view — and when the camera arrives, time stops and
+the pointer leans round the frozen moment. Gestures that arrive mid-leg are queued (up to two). It ends on the title
+card: the camera looks up into the dome, NEXORA closes in from inside the X, and its letters open onto all five
+workforces at once. From there the page scrolls natively; scrolling back to the top re-enters at the title card. A
+reload always starts at the top, and the intro (limestone, real loading progress) ends by opening from the pool.
+Full detail: `docs/redesign/07-HERO-V7.md` (and 06 for the court itself).
 
 Three rendering modes are chosen **before first paint** (inline script in `src/layouts/Base.astro`):
 
 | Mode | When | Hero |
 |---|---|---|
-| `cinema` | JS on, motion allowed, network OK, WebGL2 | the live court (WebGPU, else WebGL2), after a 5–7.5 s intro that opens from its far doorway |
+| `cinema` | JS on, motion allowed, network OK, WebGL2 | the live court (WebGPU, else WebGL2), after a 5–7.5 s intro that opens from its pool |
 | static | reduced motion · Save-Data / 2g–3g · footer “Reduce motion” toggle · no WebGL2 | six ordinary sections on limestone: a still of the court, the moments in arches; the scene is never loaded; no intro |
 | no-JS | scripting off | same as static; header scrolls away; the stack is a list; gates set their word as type |
 
 QA switches: `?nointro` skips the intro · `?stop=N` boots the hero onto stop N (0–6) · `?q=high|medium|low` forces
-the court's quality · `?qa` exposes `window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop,
+the court's quality (`?gov=0` holds it) · `?spin=0` holds the first screen's turn and `?th=N` sets what it faces (in
+doorways) · `?qa` exposes `window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop,
 `world.timings`, `world.quality`) · `[data-hero]` exposes `data-mode` (`film | rest`), `data-stop` and `data-bg`.
 Judge visual changes in a real GPU window (`.qa/pw/hero5-shots.mjs`, `motion.mjs`, `perf-igpu.mjs`): headless
 Chromium renders in software.

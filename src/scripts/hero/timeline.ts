@@ -1,8 +1,8 @@
 /**
  * The hero as a row of STOPS joined by LEGS. PURE — no DOM.
  *
- *   stop 0 the ring ─leg 0 (dive)→ 1 Hospitality ─leg 1→ 2 Events ─leg 2→ 3 Facilities ─leg 3→ 4 Technical
- *                   ─leg 4→ 5 Recruitment ─leg 5 (exit: NEXORA mask)→ stop 6 title card
+ *   stop 0 the court ─leg 0 (in)→ 1 the doorway facing you ─legs 1…4→ 2…5 the next doorways round the ring
+ *                    ─leg 5 (exit: NEXORA mask)→ stop 6 title card
  *
  * The playhead `p` is a float in [0, 6]. An integer means "at rest on that stop" (time is frozen there); the
  * fraction is the progress through leg ⌊p⌋. Legs are PLAYED IN TIME — one gesture, one leg — never scrubbed by
@@ -44,5 +44,11 @@ export function locate(p: number): Located {
   return { rest: false, stop: near, leg, local: v - leg };
 }
 
-/** World in focus at stop `s` (-1 = the ring seen whole). */
-export const worldAtStop = (s: number) => (s <= 0 ? -1 : Math.min(s, WORLD_COUNT) - 1);
+/**
+ * The court is a ring and it turns: the tour starts at whichever doorway faces you when you step in, and goes on
+ * round the ring from there. `ring.start` is that first world (set by the world when the film leaves stop 0).
+ */
+export const ring = { start: 0 };
+
+/** World in focus at stop `s` (-1 = the court seen whole). */
+export const worldAtStop = (s: number) => (s <= 0 ? -1 : (ring.start + Math.min(s, WORLD_COUNT) - 1) % WORLD_COUNT);

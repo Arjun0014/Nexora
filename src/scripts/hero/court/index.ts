@@ -1,19 +1,24 @@
 /**
- * The hero world, version 6: one world under a rain of light. See docs/redesign/06-HERO-V6.md.
+ * The hero world, version 7: the turning world. See docs/redesign/07-HERO-V7.md (and 06 for the court itself).
  *
- * A round limestone court under a latticed brass dome; the sun comes through as moving stars. Five doorways lead
+ * A round limestone court under a latticed brass dome; the sun comes through as a rain of stars. Five doorways lead
  * out of it, one per workforce, and beyond each is a moment of work, held.
  *
- *   stop 0         the court: the sun drifts, the stars glide over the stone; the pointer moves the sun
- *   leg 0          the camera crosses the court to the first doorway
- *   stops 1…5      at a doorway: time stops (the stars stand still, the dust hangs); the pointer leans round
- *                  the frozen moment beyond the door
- *   legs 1…4       time runs: the camera turns along the court to the next doorway, the sun moving on
+ *   stop 0         the court turns (once round in 72 s) about its pool, the one still thing: the walls and their
+ *                  doorways go by, the stars glide; the sun keeps low behind us, so the floor before us is in
+ *                  shade (the title stands there) and the far wall in the rain of light
+ *   leg 0          the turn comes to rest with the doorway before us (or the one named in the ring) as we cross
+ *                  to it; the tour goes on round the ring from there (../timeline.ts `ring`)
+ *   stops 1…5      at a doorway: time stops; the sun stands behind the doorway, so the wall beside it is in soft
+ *                  shade (the words stand there) and the world's light spills over the threshold; the pointer
+ *                  leans round the frozen moment
+ *   legs 1…4       time runs, a day in three seconds: the sun goes once round the sky as the camera turns along
+ *                  the court to the next doorway, on the right; its rain sweeps the wall that wipes the view
  *   leg 5 / stop 6 the camera looks up into the rain of light; NEXORA closes over it (../mask.ts, unchanged);
  *                  behind the letters, the five worlds
  *
- * Rendered with three's WebGPU renderer (WebGL2 where WebGPU is missing). Everything is a pure function of the
- * playhead `p` plus the pointer (and, at stop 0 only, the clock).
+ * Rendered with three's WebGPU renderer (WebGL2 where WebGPU is missing). Every frame is a pure function of the
+ * playhead `p`, the pointer, and (on the first screen only) the clock.
  */
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, normalView, diffuseColor, velocity, add, vec4, vec3, vec2, float, packNormalToRGB, unpackRGBToNormal, sample, screenUV, texture, uniform, mix, smoothstep, length, color, step, clamp, positionGeometry, luminance, pow } from 'three/tsl';
@@ -22,8 +27,8 @@ import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { godrays } from 'three/addons/tsl/display/GodraysNode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import { buildCourt, COURT, DOORS, doorAngle, at, type Court, type Tex } from './scene';
-import { locate, TITLE_STOP } from '../timeline';
+import { buildCourt, COURT, DOORS, STEP, doorAngle, at, type Court, type Tex } from './scene';
+import { locate, ring, TITLE_STOP, LEG_SECONDS } from '../timeline';
 import { worlds } from '../../../data/worlds';
 import wordmark from '../../../data/wordmark.json';
 
@@ -44,25 +49,52 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** A camera pose: where it stands, what it looks at, its field of view. */
 interface Pose { pos: THREE.Vector3; look: THREE.Vector3; fov: number }
 
-/** Door stop: the doorway a little right of centre, the wall to its left free for the words. */
-function doorPose(k: number): Pose {
+const QX = new URLSearchParams(typeof location === 'undefined' ? '' : location.search);
+const qn = (k: string, d: number) => { const v = QX.get(k); return v === null ? d : Number(v); };
+
+/** The first screen's turn: the court goes once round in this many seconds (`?spin=0` holds it, for stills). */
+const SPIN = QX.get('spin') === '0' ? 0 : (2 * Math.PI) / qn('turn', 72);
+/**
+ * The sun, as an azimuth relative to where the camera faces (0 = straight ahead, π = behind) and an elevation.
+ * First screen: low behind us, so the floor in front lies in the shade of the wall at our back (the ground for the
+ * title) while the far wall and its doorways stand in the rain of light. At a doorway: high behind the doorway, so the
+ * wall beside it is in soft, even shade (the ground for the words) and the world's light spills over the threshold.
+ * Between doorways it goes once round the sky (a day between two worlds), so the rain sweeps across the wall that
+ * wipes the view.
+ */
+const SUN = {
+  court: { az: qn('sun0', Math.PI + 0.31), el: qn('el0', 0.38) },
+  door: { az: qn('dsun', 0.12), el: qn('del', 0.95) },
+  swing: qn('swing', 2 * Math.PI), dip: qn('dip', 0.45),
+  up: { az: 0.4, el: 1.1 },
+};
+
+/** A doorway stop, at the doorway whose (unwrapped) angle is a: the doorway a little right of centre, the wall to its
+ *  left free for the words. */
+function doorPose(a: number): Pose {
   // about ten metres back, pitched up a little: the doorway stands from ~10% to ~85% of the height, its foot a
-  // ground line for the words; the camera looks left of the door so the door sits right of centre
-  const a = doorAngle(k), tan = new THREE.Vector3(Math.cos(a), 0, -Math.sin(a));
+  // ground line for the words; the camera looks left of the door (+tan) so the door sits right of centre
+  const tan = new THREE.Vector3(Math.cos(a), 0, -Math.sin(a));
   const pos = at(a, COURT.R - 9.8, 1.7);
   const look = at(a, COURT.R - 0.35, 1.7 + 9.8 * Math.tan((9 * Math.PI) / 180)).addScaledVector(tan, 2.6);
   return { pos, look, fov: 52 };
 }
-/** Stop 0: across the pool from the far side of the court, looking toward the first doorway, the dome overhead. */
-function overviewPose(): Pose {
-  const a = doorAngle(0) + Math.PI;
-  return { pos: at(a, COURT.R - 1.6, 1.85), look: at(doorAngle(0), COURT.R, 5.2), fov: 62 };
+/** Stop 0, facing azimuth th: from the foot of the wall, across the pool to the doorways opposite, the dome overhead.
+ *  As the court turns, th runs down and this pose goes round the pool: the pool stays put, the walls go by. */
+function overviewPose(th: number): Pose {
+  return { pos: at(th + Math.PI, COURT.R - 1.6, 1.85), look: at(th, COURT.R, 5.2), fov: 62 };
 }
-/** The title card: looking up into the dome. */
-function upPose(): Pose {
-  const a = doorAngle(4);
-  return { pos: at(a, COURT.R - 9, 1.9), look: at(a + 0.4, 2, COURT.domeBase + 4), fov: 60 };
+/** The title card, from the last doorway (angle a): looking up into the dome. */
+function upPose(a: number): Pose {
+  return { pos: at(a, COURT.R - 9, 1.9), look: at(a - 0.4, 2, COURT.domeBase + 4), fov: 60 };
 }
+const Y = new THREE.Vector3(0, 1, 0);
+const LEG_ENTRY = LEG_SECONDS.entry;
+/** Cubic from 0 to 1 that leaves with slope v0 and arrives at rest (monotonic for v0 ≤ 3). */
+const hermite = (x: number, v0: number) => v0 * x + (3 - 2 * v0) * x * x + (v0 - 2) * x * x * x;
+const mod5 = (j: number) => ((j % DOORS) + DOORS) % DOORS;
+/** The sun's shadow map per tier: the lattice drawn into it is the dearest pass in the frame (`?sm=` for QA). */
+const shadowSize = (q: Quality) => qn('sm', q === 'high' ? 4096 : q === 'medium' ? 1536 : 1024);
 
 export class World {
   readonly timings: Record<string, number | string> = {};
@@ -73,12 +105,21 @@ export class World {
   private pipeline!: THREE.RenderPipeline;
   private court!: Court;
   private sun!: THREE.DirectionalLight;
+  private bounce!: THREE.HemisphereLight;
   private w = 1; private h = 1; private dpr = 1;
-  private sunAz = 0; // the sun's azimuth offset (radians), the film's clock
+  private sunNudge = 0; // the pointer's hand on the sun, first screen only (radians, eased)
+  private sunSeen = new THREE.Vector3(); // the sun's direction when its shadow map was last drawn
+  private shadowAge = 0;
   private lean = new THREE.Vector2();
   private strips!: { mix: ReturnType<typeof uniform>; box: ReturnType<typeof uniform>; aspect: ReturnType<typeof uniform> };
   private titleQuad!: THREE.Mesh;
   private clock = 0;
+  /** stop 0: the azimuth the camera faces; it runs down as the court turns (the next doorway comes in from the right) */
+  private theta = doorAngle(0) - qn('th', 0) * STEP;
+  /** how the film left stop 0: the azimuth it faced then, and the doorway it went into (unwrapped angle, world) */
+  private entry = { theta: 0, a: 0, k: 0 };
+  private aimed = -1; // a world asked for by name (the index) before the film leaves stop 0
+  private atStart = false;
 
   private constructor(private canvas: HTMLCanvasElement, quality: Quality, private root: HTMLElement | null) {
     this.quality = quality;
@@ -97,7 +138,7 @@ export class World {
     w.renderer = renderer;
     const Qs = new URLSearchParams(location.search);
     renderer.toneMapping = Qs.get('tm') === 'agx' ? THREE.AgXToneMapping : Qs.get('tm') === 'neutral' ? THREE.NeutralToneMapping : THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = Number(Qs.get('exp') ?? 0.95);
+    renderer.toneMappingExposure = Number(Qs.get('exp') ?? 1.0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     w.timings.init = performance.now() - t0;
@@ -168,18 +209,27 @@ export class World {
     }
     hdr.needsUpdate = true;
     hdr.mapping = THREE.EquirectangularReflectionMapping;
-    scene.environment = hdr;
-    scene.environmentIntensity = 0.2;
+    // prefiltered here, before anything compiles: left to itself, three prefilters it lazily inside the first
+    // material's build, which during compileAsync sometimes leaves the court without its sky light (a black shade)
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    pmrem.dispose();
     scene.background = new THREE.Color(0xdfe7ea);
 
     const sun = new THREE.DirectionalLight(0xfff0d8, 13.5);
     sun.castShadow = true;
-    const sm = Number(new URLSearchParams(location.search).get('sm') ?? (q === 'high' ? 4096 : q === 'medium' ? 2048 : 1024));
-    sun.shadow.mapSize.set(sm, sm);
+    sun.shadow.mapSize.setScalar(shadowSize(q));
     const sc = sun.shadow.camera as THREE.OrthographicCamera;
     sc.left = sc.bottom = -COURT.R - 3; sc.right = sc.top = COURT.R + 3; sc.near = 1; sc.far = 120;
     sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+    // drawn by hand (render): left to itself, three draws it again for every camera, the pool's mirror included
+    sun.shadow.autoUpdate = false;
+    sun.shadow.needsUpdate = true;
     scene.add(sun, sun.target);
+    // the light the sunlit stone throws back into the shade: the top tier traces it (SSGI); below that this warm fill
+    // stands in for it (always in the scene, so a step down changes a uniform, not every shader)
+    this.bounce = new THREE.HemisphereLight(0xf6e6cf, 0xe9cfae, 0);
+    scene.add(this.bounce);
     this.sun = sun;
 
     const aspect = (photos[0].image as HTMLImageElement).width / (photos[0].image as HTMLImageElement).height;
@@ -227,6 +277,9 @@ export class World {
   /** The post chain for the current quality: screen-space GI (high), sunbeams (high, medium), temporal AA, bloom, the grade. */
   private buildPipeline() {
     const q = this.quality, scene = this.scene, sun = this.sun;
+    // without the traced bounce, the fill and a stronger sky make up the shade's light (matched by eye to the top tier)
+    this.bounce.intensity = q === 'high' ? 0 : qn('hemi', 2.4);
+    scene.environmentIntensity = q === 'high' ? qn('env', 0.34) : qn('env', 0.75);
     this.pipeline?.dispose();
     const pipeline = new THREE.RenderPipeline(this.renderer);
     const scenePass = pass(scene, this.camera);
@@ -258,7 +311,7 @@ export class World {
     const lit = q === 'low' ? tn : tn.add(bloom(tn, 0.28, 0.55, 1.05));
     // the grade: Doha light — warm where the sun falls, a cool breath of sky in the shade — and a soft vignette
     const Q = new URLSearchParams(location.search);
-    const warm = color(new THREE.Color(Q.get('warm') ?? '#fff1dc')), cool = color(new THREE.Color(Q.get('cool') ?? '#e3e8f1'));
+    const warm = color(new THREE.Color(Q.get('warm') ?? '#fff1dc')), cool = color(new THREE.Color(Q.get('cool') ?? '#dde6f2'));
     const lum = luminance(lit.rgb);
     const toned = lit.rgb.mul(mix(cool, warm, smoothstep(0.08, 0.9, lum)));
     const sat = Number(Q.get('sat') ?? 1.04);
@@ -303,44 +356,119 @@ export class World {
     s.setProperty('--door-right', `${Math.round(Math.max(...xs))}px`);
     s.setProperty('--door-top', `${Math.round(Math.min(...ys))}px`);
     s.setProperty('--door-bottom', `${Math.round(Math.max(...ys))}px`);
-    // for the intro: its point of light travels to the far doorway on the first screen, then opens over the court
-    const o = overviewPose();
+    // the first screen turns about the pool, so the pool stands still on screen: the intro's point of light travels to
+    // its heart and opens from there over the court; the title stands on the floor in front of its near rim
+    const o = overviewPose(0);
     cam.position.copy(o.pos); cam.lookAt(o.look); cam.fov = o.fov; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
-    const c = at(doorAngle(0), COURT.R, D.apex * 0.5).project(cam);
+    const c = new THREE.Vector3(0, -0.1, 0).project(cam);
+    const rim = at(Math.PI, COURT.pool + 0.34, 0.12).project(cam);
     s.setProperty('--circle-x', `${Math.round((c.x * 0.5 + 0.5) * this.w)}px`);
     s.setProperty('--circle-y', `${Math.round((0.5 - c.y * 0.5) * this.h)}px`);
     s.setProperty('--circle-r', `${Math.round(Math.hypot(this.w, this.h) * 0.62)}px`);
+    s.setProperty('--pool-front', `${Math.round((0.5 - rim.y * 0.5) * this.h)}px`);
     this.root.dataset.layout = 'court';
   }
 
   // ── the film ────────────────────────────────────────────────────────────────────────────
+  /** The unwrapped angle of the doorway at stop s (1…5): the first one the film went into, then on round to the right. */
+  private doorAt(s: number) { return this.entry.a - (s - 1) * STEP; }
+
+  /**
+   * On the first screen: the doorway you would step into now — the one facing you, or the next once it is well past
+   * — as a world index, and where the court stands between doorways (continuous; k.0 = world k dead ahead), for the
+   * index's marker.
+   */
+  facing() {
+    const u = -this.theta / STEP;
+    const j = this.aimed >= 0 ? this.aimed + DOORS * Math.round((u - this.aimed) / DOORS) : Math.ceil(u - 0.3056);
+    return { k: mod5(j), j, c: ((u % DOORS) + DOORS) % DOORS };
+  }
+  /** Go into this world rather than the one facing you (the index), when the film next leaves stop 0. */
+  aim(k: number) { this.aimed = k; }
+  /** A name in the ring under the pointer (-1: none): its doorway's world brightens on the first screen. */
+  hover(k: number) { this.hovered = k; }
+  private hovered = -1;
+
+  /** How much of the court's turn is left at x (0…1) through leg 0, as a fraction of what was left when it began. */
+  private turnLeft(x: number) {
+    const left = this.entry.theta - this.entry.a;
+    const v0 = left > 0.02 ? Math.min(3, (SPIN * LEG_ENTRY) / left) : 0;
+    return 1 - hermite(x, v0);
+  }
+
+  /** The ring's mark for playhead p: where it stands (continuous, k.0 = world k's name) and which name is lit. */
+  mark(p: number): { c: number; k: number; show: boolean } {
+    const L = locate(p);
+    const wrap = (c: number) => ((c % DOORS) + DOORS) % DOORS;
+    if (L.rest && L.stop === 0) { const f = this.facing(); return { c: f.c, k: f.k, show: true }; }
+    if (p >= TITLE_STOP - 1) { const k = mod5(this.entry.k + DOORS - 1); return { c: k, k, show: p === TITLE_STOP - 1 }; }
+    if (p >= 1) { const c = this.entry.k + (p - 1); return { c: wrap(c), k: mod5(Math.round(c)), show: true }; }
+    // leg 0: from where the court stood as we left to the doorway we went into, as its turn comes to rest
+    const u = -this.entry.theta / STEP, j = -this.entry.a / STEP;
+    return { c: wrap(j + (u - j) * this.turnLeft(L.local)), k: this.entry.k, show: true };
+  }
+
+  /** The film leaves stop 0: the tour is laid out from the doorway it goes into (and the court stops turning). */
+  private depart() {
+    const f = this.facing();
+    this.entry = { theta: this.theta, a: -f.j * STEP, k: f.k };
+    ring.start = f.k;
+    this.aimed = -1;
+  }
+
   /** Camera pose for playhead p (before the pointer's lean). */
   private poseAt(p: number): Pose {
     const L = locate(p);
-    if (L.rest) return L.stop === 0 ? overviewPose() : L.stop === TITLE_STOP ? upPose() : doorPose(L.stop - 1);
+    if (L.rest) return L.stop === 0 ? overviewPose(this.theta) : L.stop === TITLE_STOP ? upPose(this.doorAt(DOORS)) : doorPose(this.doorAt(L.stop));
     const t = easeIO(L.local);
     if (L.leg === 0) {
-      // entry: round the pool's edge to the first doorway
-      const A = overviewPose(), B = doorPose(0);
-      const mid = at(doorAngle(0) + Math.PI * 0.62, COURT.pool + 3.2, 1.95);
-      const mid2 = at(doorAngle(0) + 0.9, COURT.pool + 3.6, 1.85);
+      // in: round the pool to the doorway, laid out as if it had been dead ahead...
+      const a = this.entry.a, A = overviewPose(a), B = doorPose(a);
+      const mid = at(a - Math.PI * 0.62, COURT.pool + 3.2, 1.95), mid2 = at(a - 0.9, COURT.pool + 3.6, 1.85);
       const curve = new THREE.CatmullRomCurve3([A.pos, mid, mid2, B.pos], false, 'centripetal');
-      const lookCurve = new THREE.CatmullRomCurve3([A.look, at(doorAngle(0) + 0.5, COURT.R, 4.2), B.look], false, 'centripetal');
-      return { pos: curve.getPoint(t), look: lookCurve.getPoint(t), fov: lerp(A.fov, B.fov, t) };
+      const lookCurve = new THREE.CatmullRomCurve3([A.look, at(a - 0.5, COURT.R, 4.2), B.look], false, 'centripetal');
+      // ...and turned by what is left of the court's turn: all of it as we leave (the first screen's own frame, turning
+      // at its own speed), none on arrival — the court comes to rest with the doorway before us
+      const turn = (this.entry.theta - a) * this.turnLeft(L.local);
+      return { pos: curve.getPoint(t).applyAxisAngle(Y, turn), look: lookCurve.getPoint(t).applyAxisAngle(Y, turn), fov: lerp(A.fov, B.fov, t) };
     }
     if (L.leg === TITLE_STOP - 1) {
-      const A = doorPose(4), B = upPose();
+      const a = this.doorAt(DOORS), A = doorPose(a), B = upPose(a);
       const tt = easeIO(ss(0, 0.8, L.local));
       return { pos: A.pos.clone().lerp(B.pos, tt), look: A.look.clone().lerp(B.look, tt), fov: lerp(A.fov, B.fov, tt) };
     }
-    // sector: back from the doorway, along the court, into the next
-    const k = L.leg - 1, A = doorPose(k), B = doorPose(k + 1);
-    const a0 = doorAngle(k), a1 = doorAngle(k + 1);
-    const pts = [A.pos, at(a0 + 0.12, COURT.R - 9.6, 1.9), at((a0 + a1) / 2, COURT.R - 10.4, 2.05), at(a1 - 0.2, COURT.R - 9.6, 1.9), B.pos];
+    // between doorways: back from the doorway, along the court (its wall wipes across the view), into the next one,
+    // which stands to the right
+    const a0 = this.doorAt(L.leg), a1 = a0 - STEP, A = doorPose(a0), B = doorPose(a1);
+    const pts = [A.pos, at(a0 - 0.12, COURT.R - 9.6, 1.9), at((a0 + a1) / 2, COURT.R - 10.4, 2.05), at(a1 + 0.2, COURT.R - 9.6, 1.9), B.pos];
     const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
-    const looks = [A.look, at(a0 + 0.55, COURT.R, 3.9), at((a0 + a1) / 2 + 0.25, COURT.R, 4.1), at(a1 - 0.1, COURT.R, 3.8), B.look];
+    const looks = [A.look, at(a0 - 0.55, COURT.R, 3.9), at((a0 + a1) / 2 - 0.25, COURT.R, 4.1), at(a1 + 0.1, COURT.R, 3.8), B.look];
     const lookCurve = new THREE.CatmullRomCurve3(looks, false, 'centripetal');
     return { pos: curve.getPoint(t), look: lookCurve.getPoint(t), fov: lerp(A.fov, B.fov, t) };
+  }
+
+  /** The sun for playhead p: the azimuth the camera faces, plus the sun's place relative to it, and its height. */
+  private sunAt(p: number): { az: number; el: number } {
+    const L = locate(p);
+    if (L.rest) {
+      if (L.stop === 0) return { az: this.theta + SUN.court.az, el: SUN.court.el };
+      if (L.stop === TITLE_STOP) return { az: this.doorAt(DOORS) + SUN.up.az, el: SUN.up.el };
+      return { az: this.doorAt(L.stop) + SUN.door.az, el: SUN.door.el };
+    }
+    const x = L.local, t = easeIO(x);
+    if (L.leg === 0) {
+      // from low behind us to high behind the doorway, swinging round by our right as we cross the court
+      const face = lerp(this.entry.theta, this.entry.a, t);
+      return { az: face + lerp(SUN.court.az, SUN.door.az + 2 * Math.PI, t), el: lerp(SUN.court.el, SUN.door.el, ss(0.1, 0.9, x)) };
+    }
+    if (L.leg === TITLE_STOP - 1) {
+      const a = this.doorAt(DOORS);
+      return { az: a + lerp(SUN.door.az, SUN.up.az, t), el: lerp(SUN.door.el, SUN.up.el, t) };
+    }
+    // between doorways a day goes by: the sun goes once round the sky, lower as it passes behind us, so its rain
+    // sweeps across the wall that wipes the view
+    const face = lerp(this.doorAt(L.leg), this.doorAt(L.leg + 1), t), s = Math.sin(Math.PI * x);
+    return { az: face + SUN.door.az + SUN.swing * easeIO(x), el: SUN.door.el - SUN.dip * s };
   }
 
   private sig = '';
@@ -358,16 +486,27 @@ export class World {
     this.settle++;
     this.govern(f.dt, running0);
     // time runs while the camera moves and on the first screen; it stops at a doorway
-    const running = f.moving || (L.rest && L.stop === 0);
+    const start = L.rest && L.stop === 0;
+    const running = f.moving || start;
     if (running) this.clock += f.dt;
-    // the sun turns with the camera, behind it (72° a leg), so every doorway stands in the same light and the stars
-    // sweep across the stone as we move; on the first screen it drifts, and the pointer adds to it
-    const door = Math.min(DOORS - 1, Math.max(0, f.p - 1));
-    const base = doorAngle(0) + Math.PI + 0.55 + door * ((2 * Math.PI) / DOORS) + (L.rest && L.stop === 0 ? Math.sin(this.clock * 0.05) * 0.06 : 0);
-    const want = base + (L.rest && L.stop === 0 && f.pointer.active ? f.pointer.x * 0.08 : 0);
-    this.sunAz += (want - this.sunAz) * Math.min(1, f.dt * 3);
-    const el = 1.02; // ~58°
-    const sd = new THREE.Vector3(Math.sin(this.sunAz) * Math.cos(el), Math.sin(el), Math.cos(this.sunAz) * Math.cos(el));
+    // the first screen: the court turns; leaving it lays the tour out from the doorway we go into
+    if (start) this.theta -= SPIN * f.dt;
+    else if (this.atStart) this.depart();
+    this.atStart = start;
+    // the sun keeps its place relative to the camera (so every doorway stands in the same light), swinging between
+    // places while time runs; on the first screen the pointer nudges it
+    const sun = this.sunAt(f.p);
+    this.sunNudge += ((start && f.pointer.active ? f.pointer.x * 0.08 : 0) - this.sunNudge) * Math.min(1, f.dt * 3);
+    const az = sun.az + this.sunNudge, el = sun.el;
+    const sd = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+    // the sun's shadow map (the lattice, the dearest thing we draw): once a frame at most, only when the sun has
+    // moved, and on the first screen — where it creeps round with the court — every other frame below the top tier
+    this.shadowAge++;
+    if (this.sunSeen.distanceToSquared(sd) > 1e-12 && this.shadowAge >= (start && this.quality !== 'high' ? 2 : 1)) {
+      this.sun.shadow.needsUpdate = true;
+      this.sunSeen.copy(sd);
+      this.shadowAge = 0;
+    }
     this.sun.position.copy(sd).multiplyScalar(60);
     this.sun.target.position.set(0, 0, 0);
     (this.court.sunDir.value as THREE.Vector3).copy(sd);
@@ -385,7 +524,13 @@ export class World {
     this.camera.position.copy(pose.pos).addScaledVector(right, this.lean.x * k).add(new THREE.Vector3(0, this.lean.y * k * 0.5, 0));
     this.camera.lookAt(pose.look);
     if (Math.abs(this.camera.fov - pose.fov) > 1e-3) { this.camera.fov = pose.fov; this.camera.updateProjectionMatrix(); }
-    for (const r of this.court.rooms) (r.lean.value as THREE.Vector2).set(-this.lean.x * 0.02, -this.lean.y * 0.015);
+    for (const r of this.court.rooms) {
+      (r.lean.value as THREE.Vector2).set(-this.lean.x * 0.02, -this.lean.y * 0.015);
+      // a name hovered in the ring lights its doorway's world a little
+      const g = r.glow as unknown as { value: number };
+      const want = start && this.hovered === r.k ? 1.32 : 1;
+      if (Math.abs(g.value - want) > 1e-3) g.value += (want - g.value) * Math.min(1, f.dt * 6);
+    }
 
     // the title card's ground fades in under the closing mask
     const exit = L.leg === TITLE_STOP - 1 ? (L.rest ? (L.stop === TITLE_STOP ? 1 : 0) : ss(0.45, 0.8, L.local)) : 0;
@@ -399,7 +544,7 @@ export class World {
 
   /** Frames that run long for two seconds step the quality down (rebuilt between frames; a short stall once). */
   private govern(dt: number, animating: boolean) {
-    if (!animating || this.stepping || this.quality === 'low') return;
+    if (!animating || this.stepping || this.quality === 'low' || QX.get('gov') === '0') return;
     this.slow.push(dt);
     if (this.slow.length < 90) return;
     const sorted = this.slow.slice().sort((a, b) => a - b);
@@ -409,6 +554,8 @@ export class World {
       this.stepping = true;
       (this as { quality: Quality }).quality = this.quality === 'high' ? 'medium' : 'low';
       this.buildPipeline();
+      this.sun.shadow.mapSize.setScalar(shadowSize(this.quality));
+      this.sun.shadow.needsUpdate = true;
       this.resize();
       this.timings.stepped = performance.now();
       this.stepping = false;

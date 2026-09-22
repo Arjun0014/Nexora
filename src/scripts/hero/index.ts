@@ -1,9 +1,12 @@
 /**
- * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/06-HERO-V6.md.
+ * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/07-HERO-V7.md.
  *
- * The film is drawn live (./court): one world under a rain of light — a limestone court under a latticed dome, five
- * doorways onto five moments of work held in time. Its assets load and its shaders compile while the intro is up,
- * and every frame is a pure function of the playhead `p` (plus the pointer).
+ * The film is drawn live (./court): a limestone court under a latticed dome that turns about its pool, five doorways
+ * onto five moments of work held in time. Its assets load and its shaders compile while the intro is up, and every
+ * frame is a pure function of the playhead `p` (plus the pointer, and the clock on the first screen).
+ *
+ * The court is a ring: the film goes into whichever doorway faces you when you step in — or the one you name in the
+ * ring of names — and on round the ring from there (./timeline.ts `ring`).
  *
  * One gesture = one leg at natural speed. Gestures that arrive while a leg is playing move `target` on (a short
  * queue); queued legs play faster; a change of mind eases through zero and plays the leg backwards. After the
@@ -12,9 +15,9 @@
  * Invariant: the film only ever rests on a stop (integer p), so it cannot be left between two states.
  */
 import { overview } from '../../data/worlds';
-import { $, clamp, env } from '../core/env';
+import { $, $$, clamp, env } from '../core/env';
 import { onTick, damp } from '../core/ticker';
-import { buildLegs, TITLE_STOP, LEG_COUNT } from './timeline';
+import { buildLegs, ring, TITLE_STOP, LEG_COUNT, WORLD_COUNT } from './timeline';
 import { TitleMask } from './mask';
 import { HeroUI } from './ui';
 import { bindInput, type Dir } from './input';
@@ -119,6 +122,20 @@ export function initHero() {
   // Anything else that moves the page (skip link, End, focus, anchors) ends the film on its title card.
   addEventListener('scroll', () => { if (scrollY > 1 && (p !== TITLE_STOP || moving())) settleAt(TITLE_STOP); }, { passive: true });
 
+  // The ring of names: each takes you to its doorway. From the first screen, the film goes into that doorway rather
+  // than the one facing you; on the way round, it plays on (or back) to it.
+  $$<HTMLButtonElement>('[data-ring-item]', root).forEach((a) => {
+    const k = Number(a.dataset.ringItem);
+    a.addEventListener('click', () => {
+      if (!world || introUp() || scrollY > 1) return;
+      if (p === 0 && !moving()) { world.aim(k); target = 1; return; }
+      target = ((k - ring.start + WORLD_COUNT) % WORLD_COUNT) + 1;
+    });
+    for (const [on, ev] of [[true, 'pointerenter'], [true, 'focus'], [false, 'pointerleave'], [false, 'blur']] as const) {
+      a.addEventListener(ev, () => world?.hover(on ? k : -1));
+    }
+  });
+
   // The pointer turns the camera about a frozen moment (fine pointers only).
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (fine) {
@@ -148,7 +165,7 @@ export function initHero() {
 
     const dir = target >= p ? 1 : -1;
     const arrival = !moving() ? 1 : local === 0 ? 0 : dir > 0 ? local : 1 - local;
-    ui.update({ p, target, world: HeroUI.worldFor(p), arrival });
+    ui.update({ p, target, world: HeroUI.worldFor(p), arrival, ring: world.mark(p) });
 
     const tag = moving() ? 'film' : 'rest';
     if (root.dataset.mode !== tag) root.dataset.mode = tag;
@@ -170,12 +187,15 @@ export function initHero() {
     resizeTimer = window.setTimeout(() => {
       world?.resize(); mask.resize();
       ui.setTitleY(mask.restBottomCss() + stage.offsetHeight * 0.05);
+      ui.fit();
     }, 140);
   }, { passive: true });
 
   // ── boot ────────────────────────────────────────────────────────────────────────────────
   mask.resize();
   ui.setTitleY(mask.restBottomCss() + stage.offsetHeight * 0.05);
+  ui.fit();
+  document.fonts?.ready.then(() => ui.fit());
   // Refreshed part-way down the page: the film is over, its title card is what sits above the content.
   // (?stop=N is a QA switch: boot straight onto a stop.)
   const qaStop = params.has('stop') ? clamp(Math.round(Number(params.get('stop')) || 0), 0, TITLE_STOP) : -1;
@@ -191,6 +211,7 @@ export function initHero() {
     world = await World.create(canvas, pickQuality(), (f) => report(0.45 + 0.55 * f));
     heroLoad.done = true;
     root.dataset.ready = 'true';
+    ui.fit(); // again, now that the world has published where the pool stands
     if (params.has('qa')) (window as unknown as { __hero: unknown }).__hero = { go: (s: number) => { target = clamp(s, 0, TITLE_STOP); }, set: (v: number) => settleAt(v), get p() { return p; }, world };
     wake();
   }).catch((err) => {

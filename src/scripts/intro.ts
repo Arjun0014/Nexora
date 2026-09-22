@@ -8,8 +8,8 @@
  *
  *   shown = max( monotonic, min(real, elapsed / MIN_MS), force )   force = (elapsed - MIN_MS) / (MAX_MS - MIN_MS)
  *
- * The ending: the hairline draws in to a point, which travels to the far doorway of the court (the first world, at
- * the heart of the hero's first screen) and opens there, over the whole court (v6, docs/redesign/06-HERO-V6.md).
+ * The ending: the hairline draws in to a point, which travels to the pool at the heart of the court — the one thing
+ * the first screen's turn leaves still — and opens there, over the whole court (docs/redesign/07-HERO-V7.md).
  */
 import { gsap } from 'gsap';
 import { $, $$, clamp } from './core/env';
@@ -49,7 +49,7 @@ export function initIntro() {
 
   const reveal = () => {
     root.dataset.close = '';
-    // Where the court's far doorway stands, and how far to open (published by the hero's world as it lays itself out).
+    // Where the court's pool stands, and how far to open (published by the hero's world as it lays itself out).
     const hero = $('[data-hero]');
     const cs = hero ? getComputedStyle(hero) : null;
     const px = (k: string, d: number) => { const v = cs ? parseFloat(cs.getPropertyValue(k)) : NaN; return Number.isFinite(v) ? v : d; };

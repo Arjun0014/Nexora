@@ -1,15 +1,16 @@
 ---
 /**
- * The film, version 6: one world under a rain of light — a limestone court under a latticed dome, five doorways
- * onto five moments of work. See docs/redesign/06-HERO-V6.md.
+ * The film, version 7: the turning world — a limestone court under a latticed dome that turns about its pool, five
+ * doorways onto five moments of work. See docs/redesign/07-HERO-V7.md.
  *
  * DEFAULT (no JS, reduced motion, Save-Data): six ordinary sections on limestone — the overview, the five worlds each
  * in an arch, the title card — complete and readable.
  *
  * html.cinema (set pre-paint): the same markup becomes ONE screen-high stage; the chapters stack over a WebGPU canvas
- * that draws the court (src/scripts/hero/court), stepped by gesture. The canvas publishes where a doorway stands at
- * its stop (--door-left/right/top/bottom), and every copy block stands on the doorway's foot, so the words and the
- * door share one ground line. There is deliberately no HUD.
+ * that draws the court (src/scripts/hero/court), stepped by gesture. Words only ever stand on plain stone in shade:
+ * the first screen's title on the floor before the pool (one line, fitted to the page's margins, over the ring of
+ * names), each world's words on the wall beside its doorway, on the doorway's foot (--door-left/right/top/bottom,
+ * published by the canvas). The ring of names is the court unrolled: its mark follows the doorway you face.
  */
 import Arrow from '../ui/Arrow.astro';
 import { worlds, overview } from '../../data/worlds';
@@ -33,8 +34,8 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
         </figure>
         <div class="ch__copy">
           <p class="label ch__label">{overview.label}</p>
-          <h1 id="hero-h1" class="ch__h1 lines">
-            {overview.headline.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line.startsWith('Many ') ? <><em>many</em>{line.slice(4)}</> : line}</span></span>)}
+          <h1 id="hero-h1" class="ch__h1 lines" data-fit>
+            {overview.headline.map((line, i) => <><span class="l" style={`--i:${i}`}><span>{line.startsWith('many ') ? <><em>many</em>{line.slice(4)}</> : line}</span></span>{i === 0 ? ' ' : ''}</>)}
           </h1>
           <p class="ch__support" style="--i:2">{overview.support}</p>
         </div>
@@ -69,6 +70,17 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
           <span>Est. {site.established} — {site.city}, {site.country}</span>
         </div>
       </section>
+
+      <!-- The ring, unrolled: the five doorways in the order they stand round the court. Its mark is where the court
+           faces you (it slides as the court turns, and along the tour); each name takes you to that doorway. -->
+      <nav class="ring" data-ring aria-label="The five workforces">
+        <ol class="ring__list">
+          {worlds.map((w, i) => (
+            <li><button type="button" class="ring__item" data-ring-item={i} aria-label={`${w.title}: go to this doorway`}><span class="ring__n">{w.n}</span>{w.short}</button></li>
+          ))}
+        </ol>
+        <span class="ring__rule" aria-hidden="true"><i class="ring__mark" data-ring-mark></i><i class="ring__mark" data-ring-mark></i></span>
+      </nav>
     </div>
   </div>
 </section>
@@ -93,7 +105,8 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
 
   .ch__label { display: flex; align-items: center; gap: 0.9em; margin-block-end: 1.4rem; color: var(--ink-soft); }
   .ch__rule { width: 2.25rem; height: 1px; background: currentColor; opacity: 0.5; }
-  .ch__h1 { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(3rem, 6.6vw, 8.4rem); line-height: 0.88; letter-spacing: -0.006em; }
+  .ch__h1 { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(3rem, 5.6vw, 7.2rem); line-height: 0.88; letter-spacing: -0.006em; }
+  .ch__h1 .l > span { white-space: nowrap; }
   .ch__h1 em { font-style: italic; font-stretch: 75%; text-transform: none; color: var(--amber-deep); }
   .ch__support { margin-block-start: 1.5rem; max-width: 25rem; font-size: var(--t-body); line-height: 1.55; color: var(--ink-soft); }
   .ch__title { font-size: clamp(2.75rem, 5.4vw, 6.8rem); line-height: 0.9; }
@@ -129,24 +142,47 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
   :global(html.cinema) .ch__frame { display: none; }
   :global(html.cinema) .ch[data-active='true'] .ch__copy { pointer-events: auto; }
 
-  /* Every block stands on the doorway's foot: one ground line for the door and the words. */
+  /* Every world's words stand on its doorway's foot (one ground line for the door and the words), on the wall beside
+     it: at every stop the sun is behind that wall, so the words sit on plain stone in soft shade — nothing behind
+     them but limestone. */
   :global(html.cinema) .ch__copy {
     position: absolute; inset-inline-start: var(--margin);
     inset-block-end: calc(100% - var(--door-bottom, 92%) + 0.2rem);
-    width: calc(var(--door-left, 48vw) - var(--margin) * 2.2); max-width: 40rem;
+    width: calc(var(--door-left, 48vw) - var(--margin) * 2.2); max-width: 31rem;
   }
-  :global(html.cinema) .ch--world .ch__copy { max-width: 31rem; }
-  :global(html.cinema) .ch--overview .ch__copy { inset-block-end: clamp(2.5rem, 8vh, 5.5rem); width: min(46rem, 52vw); max-width: none; }
-  /* A veil of frosted light behind the words, so they read over the moving stars without a box. */
-  :global(html.cinema) .ch__copy::before {
-    content: ''; position: absolute; inset: -18% -22% -16% -14%; z-index: -1; pointer-events: none;
-    background: radial-gradient(closest-side, rgba(242, 234, 222, 0.62), rgba(242, 234, 222, 0.28) 62%, rgba(242, 234, 222, 0));
-    -webkit-backdrop-filter: blur(14px) saturate(0.85); backdrop-filter: blur(14px) saturate(0.85);
-    -webkit-mask: radial-gradient(closest-side, #000 55%, transparent); mask: radial-gradient(closest-side, #000 55%, transparent);
-    opacity: 0; transition: opacity 400ms ease;
+  /* The first screen: the title stands on the court's floor, in the shade before the pool, while the court turns
+     above it. One line, fitted to the page's margins (--fit-size, --fit-w: ./ui.ts), over the ring of names. */
+  :global(html.cinema) .hero { --ring-b: clamp(1.5rem, 4.6vh, 2.9rem); --ring-h: 2.35rem; --ring-gap: clamp(1.1rem, 2.8vh, 1.9rem); }
+  :global(html.cinema) .ch--overview .ch__copy {
+    inset-inline: 0; margin-inline: auto; width: var(--fit-w, 88vw); max-width: none; text-align: center;
+    inset-block-end: calc(var(--ring-b) + var(--ring-h) + var(--ring-gap));
   }
-  :global(html.cinema) .ch[data-active='true'] .ch__copy::before { opacity: 1; transition: opacity 900ms ease-out 100ms; }
-  :global(html.cinema) .ch--title .ch__copy::before { display: none; }
+  :global(html.cinema) .ch--overview .ch__h1 { white-space: nowrap; width: max-content; margin-inline: auto; font-size: var(--fit-size, 6.6vw); line-height: 0.84; }
+  :global(html.cinema) .ch--overview .ch__h1 .l { display: inline-block; }
+  :global(html.cinema) .ch--overview .ch__h1 em { color: inherit; }
+  :global(html.cinema) .ch--overview .ch__label, :global(html.cinema) .ch--overview .ch__support {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+
+  /* The ring of names (cinema only): the width of the title, on a hairline whose mark rides under the name you face. */
+  .ring { display: none; }
+  :global(html.cinema) .ring {
+    display: block; position: absolute; inset-inline: 0; margin-inline: auto; width: var(--fit-w, 88vw);
+    inset-block-end: var(--ring-b); pointer-events: auto; transition: opacity 500ms ease, visibility 0s linear 0s;
+  }
+  :global(html.cinema) .hero:not([data-ring]) .ring { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 300ms ease, visibility 0s linear 300ms; }
+  .ring__rule { position: relative; display: block; height: 1px; background: rgba(28, 27, 46, 0.3); clip-path: inset(-4px 0); }
+  .ring__mark { position: absolute; inset-block-start: -1px; inset-inline-start: 0; height: 3px; width: var(--w, 3rem); background: var(--ink); transform: translateX(var(--x, 0)); opacity: var(--o, 0); }
+  .ring__list { display: flex; justify-content: space-between; margin: 0; padding: 0; list-style: none; }
+  .ring__list > li { display: flex; }
+  .ring__item {
+    display: inline-flex; gap: 0.85em; padding: 0.35rem 0 0.9rem; border: 0; background: none; cursor: pointer; color: rgba(28, 27, 46, 0.68);
+    font-family: var(--f-label); font-stretch: 125%; font-size: var(--t-label); line-height: 1; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+    transition: color 400ms ease;
+  }
+  .ring__n { font-variant-numeric: tabular-nums; }
+  .ring__item[data-on], .ring__item:hover, .ring__item:focus-visible { color: var(--ink); }
+  .ring__item:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
 
   /* Copy leaves the instant time resumes; arrives as the window opens and settles. */
   :global(html.cinema) .ch .ch__copy { opacity: 0; transition: opacity 0s linear 300ms; }

@@ -109,7 +109,8 @@ export const worldById = Object.fromEntries(worlds.map((w) => [w.id, w])) as Rec
 
 export const overview = {
   label: 'Workforce solutions — Doha, Qatar',
-  headline: ['One world.', 'Many workforces.'],
+  /** Set as one line in the film (the lines only break in the static reading); `many` is the italic accent. */
+  headline: ['One world,', 'many workforces.'],
   support: 'Hospitality, events, facilities, technical and recruitment teams from one Qatar-based partner.',
   alt: 'A carved limestone screen in the sun; a circle of it stands open onto a man pouring Arabic coffee, the first of five moments of work held in time behind it.',
 };

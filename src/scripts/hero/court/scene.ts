@@ -2,7 +2,7 @@
  * The court: one world under a latticed dome. A round limestone court with a pool at its heart; five doorways in the
  * ring wall, each opening onto a world of work; above, two brass shells of eight-point stars that the sun comes
  * through as a rain of light. Metres, y up, the court's centre at the origin; world k's doorway on the axis at angle
- * k·72° measured from +z toward +x.
+ * −k·72° measured from +z toward +x, so that, facing a doorway from inside, the next world's stands to its right.
  */
 import * as THREE from 'three/webgpu';
 import {
@@ -19,7 +19,9 @@ export const COURT = {
   room: 1.6, // how far behind the doorway's face the world's image hangs
 };
 export const DOORS = 5;
-export const doorAngle = (k: number) => (k * 2 * Math.PI) / DOORS;
+export const STEP = (2 * Math.PI) / DOORS;
+/** World k's doorway (k may run past 4 or below 0: the angle is then unwrapped, for smooth turns). */
+export const doorAngle = (k: number) => -k * STEP;
 /** A point on the court at angle a (from +z toward +x), radius r, height y. */
 export const at = (a: number, r: number, y: number) => new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a) * r);
 
@@ -217,7 +219,8 @@ export function buildCourt(tex: Record<string, Tex>, pics: Pictures, scene: THRE
   const halfW = D.span / 2 + D.frame;
   const half = Math.asin(halfW / C.R);
   for (let k = 0; k < DOORS; k++) {
-    const a0 = doorAngle(k) + half, a1 = doorAngle(k + 1) - half;
+    // the wall between two neighbouring doorways (built counter-clockwise, so its faces keep their winding)
+    const a0 = k * STEP + half, a1 = (k + 1) * STEP - half;
     const w = new THREE.CylinderGeometry(C.R, C.R, C.wallH, 72, 1, true, a0, a1 - a0);
     w.translate(0, C.wallH / 2, 0); ringUV(w);
     root.add(mesh(w, wallM));

@@ -1,3 +1,7 @@
+> **Carried on by `07-HERO-V7.md`** (22 Sep 2026): the court, its assets and its engineering are as described here;
+> v7 changes the light (so the words stand on stone in shade), turns the court on the first screen, and re-sets the
+> title. Read this for the court, 07 for what the hero does now.
+
 # The hero, version 6: one world under a rain of light
 
 Branch `hero-v4` (still off `main`; `main` untouched). Replaces v5's mashrabiya screen (`05-HERO-V5.md`, kept for the
