@@ -1,11 +1,12 @@
 {
-  "_": "The hero's five frozen moments (docs/redesign/05-HERO-V5.md). Originals in media/hero5/src (for the two clips: the frame used, pulled at full 4K) (Pexels License, see media/hero5/SOURCES.md); built by scripts/build-hero5.mjs into public/media/hero5. focus = the point of the action in the source frame (0..1); zoom < 1 crops in; retouch = marks painted out of the original (third-party names and logos), keyed on their ink (scripts/retouch.mjs).",
+  "_": "The hero's five frozen moments (docs/redesign/05-HERO-V5.md, 08-HERO-V8.md). Originals in media/hero5/src, or named stock/<file>.jpg to take the site's own photography from media/stock (Pexels and Unsplash Licences, see media/hero5/SOURCES.md); built by scripts/build-hero5.mjs into public/media/hero5. ar = the shape of the doorway's own view, so that the crop is very nearly all that is seen through the opening. focus = the point of the action in the source frame (0..1); zoom < 1 crops in; retouch = marks painted out of the original (third-party names and logos), keyed on their ink (scripts/retouch.mjs).",
+  "ar": 0.86,
   "worlds": [
     {
       "id": "hospitality",
-      "src": "px-v5988416-2.2s.jpg",
+      "src": "stock/A1-hospitality-2.jpg",
       "focus": [
-        0.47,
+        0.51,
         0.5
       ],
       "zoom": 1.0,
@@ -14,20 +15,20 @@
     },
     {
       "id": "events",
-      "src": "px-7648057.jpg",
+      "src": "px-7648051.jpg",
       "focus": [
-        0.66,
-        0.46
+        0.53,
+        0.5
       ],
       "zoom": 1.0,
-      "exposure": 1.02,
+      "exposure": 1.0,
       "retouch": []
     },
     {
       "id": "facilities",
-      "src": "px-v9472830-4.15s.jpg",
+      "src": "stock/B3-facilities-2.jpg",
       "focus": [
-        0.36,
+        0.55,
         0.5
       ],
       "zoom": 1.0,
@@ -56,7 +57,7 @@
     },
     {
       "id": "recruitment",
-      "src": "px-5673488.jpg",
+      "src": "px-7643739.jpg",
       "focus": [
         0.42,
         0.5

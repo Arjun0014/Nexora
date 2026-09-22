@@ -97,8 +97,9 @@ export class HeroUI {
   setTitleY(px: number) { this.root.style.setProperty('--title-y', `${Math.round(px)}px`); }
 
   /**
-   * The first screen's title is one line fitted to the page's margins (the header's wordmark on the left, its last
-   * button on the right), no taller than an eighth of the screen; the ring of names takes the same width.
+   * The first screen's title is fitted to the page's margins (the header's wordmark on the left, its last button on
+   * the right), no taller than an eighth of the screen; the ring of names takes the same width. Wide screens set it
+   * as one line; upright ones stack its two lines and fit the longer.
    */
   fit() {
     const h1 = $<HTMLElement>('[data-fit]', this.root);
@@ -108,12 +109,18 @@ export class HeroUI {
     this.root.appendChild(probe);
     const margin = probe.getBoundingClientRect().width;
     probe.remove();
+    const W = this.stage.clientWidth, H = this.stage.clientHeight;
+    const ar = W / H, port = ar < 0.92;
+    // an eighth of the screen's height, less where there is little of it: upright (two lines), or squat (a phone on
+    // its side, where the floor in front of the pool is a narrow band)
+    const cap = port ? 0.105 : ar > 1.8 ? 0.1 : 0.125;
     h1.style.fontSize = '100px';
-    const w = h1.getBoundingClientRect().width;
+    // Upright, the lines are stacked blocks that fill the width, so their boxes say nothing: measure the type itself.
+    const typeWidth = (el: Element) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().width; };
+    const w = port ? Math.max(...$$('.l', h1).map(typeWidth)) : h1.getBoundingClientRect().width;
     h1.style.removeProperty('font-size');
     if (!w) return;
-    const W = this.stage.clientWidth, H = this.stage.clientHeight;
-    let size = Math.min((100 * (W - 2 * margin)) / w, H * 0.125);
+    let size = Math.min((100 * (W - 2 * margin)) / w, H * cap);
     const apply = () => {
       this.root.style.setProperty('--fit-size', `${size.toFixed(2)}px`);
       this.root.style.setProperty('--fit-w', `${((w * size) / 100).toFixed(1)}px`);
@@ -126,7 +133,7 @@ export class HeroUI {
     if (Number.isFinite(pool) && line) {
       const top0 = this.stage.getBoundingClientRect().top;
       const top = line.getBoundingClientRect().top - top0, bottom = h1.getBoundingClientRect().bottom - top0;
-      const clear = pool + Math.max(12, H * 0.02);
+      const clear = pool + Math.max(14, H * 0.024);
       if (top < clear && bottom > clear) { size *= Math.max(0.55, (bottom - clear) / (bottom - top)); apply(); }
     }
     requestAnimationFrame(() => this.measureRing());

@@ -4,6 +4,9 @@ Branch `hero-v4` (still off `main`; `main` untouched). v7 keeps v6's court (`06-
 engineering) and changes three things the client asked for on 22 Sep 2026. Desktop only, at their request; phones and
 tablets follow once the desktop is approved.
 
+> Carried on by **`08-HERO-V8.md`**: the doorways are wider and each picture is cut to what its opening shows, four of
+> the five photographs are replaced, and the film is laid out for phones and tablets.
+
 ## 0. What the client said
 
 1. "The texts in the main screen isn't legible at all — there's a cloud effect behind it on the side but isn't legible

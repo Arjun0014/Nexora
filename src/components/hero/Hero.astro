@@ -44,7 +44,7 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
       {worlds.map((w) => (
         <section class="ch ch--world" data-chapter={w.id} data-sector={w.id} aria-labelledby={`world-${w.id}`}>
           <figure class="ch__frame">
-            <img src={img(w.id)} srcset={srcset(w.id)} sizes="(max-aspect-ratio: 1/1) 90vw, 46vw" width="1400" height="1556" alt={w.moment} loading="lazy" decoding="async" />
+            <img src={img(w.id)} srcset={srcset(w.id)} sizes="(max-aspect-ratio: 1/1) 90vw, 46vw" width="1400" height="1628" alt={w.moment} loading="lazy" decoding="async" />
           </figure>
           <div class="ch__copy">
             <p class="label ch__label"><span class="num">{w.n}</span><span class="ch__rule" aria-hidden="true"></span><span class="ch__of">05</span></p>
@@ -76,7 +76,7 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
       <nav class="ring" data-ring aria-label="The five workforces">
         <ol class="ring__list">
           {worlds.map((w, i) => (
-            <li><button type="button" class="ring__item" data-ring-item={i} aria-label={`${w.title}: go to this doorway`}><span class="ring__n">{w.n}</span>{w.short}</button></li>
+            <li><button type="button" class="ring__item" data-ring-item={i} aria-label={`${w.title}: go to this doorway`}><span class="ring__n">{w.n}</span><span class="ring__name">{w.short}</span></button></li>
           ))}
         </ol>
         <span class="ring__rule" aria-hidden="true"><i class="ring__mark" data-ring-mark></i><i class="ring__mark" data-ring-mark></i></span>
@@ -202,7 +202,9 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
   :global(html.cinema) .ch[data-active='true'] .ch__meta { opacity: 1; transition: opacity 700ms ease-out 500ms; }
 
   /* ═══ UPRIGHT SCREENS ══════════════════════════════════════════════════════════════════
-     The window stands at the top; the words stand under it, on its foot. */
+     The window stands at the top; the words stand under it, on its foot. In the film the doorway stands squarely
+     across the top of the screen and the words on the floor below it — floor the light is kept off, so it is as
+     plain a ground as the wall is on a wide screen (court/index.ts, UP). */
   @media (max-aspect-ratio: 104/100) {
     .ch { grid-template-columns: 1fr; align-content: end; gap: 2rem; }
     .ch__frame, .ch__copy { grid-column: 1; }
@@ -216,19 +218,40 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
     .ch__link { display: flex; justify-content: space-between; padding-block: 0.9rem; border-block-start: 1px solid var(--line); }
     .ch__link::after, .ch__link::before { display: none; }
 
-    :global(html.cinema) .ch__copy { inset-block: calc(var(--arch-bottom, 58%) + clamp(1.25rem, 3.2vh, 2rem)) auto; inset-inline: var(--margin); width: auto; max-width: none; }
+    :global(html.cinema) .ch__copy { inset-block: calc(var(--door-bottom, 58%) + clamp(1rem, 2.6vh, 1.75rem)) auto; inset-inline: var(--margin); width: auto; max-width: none; }
     :global(html.cinema) .ch--world .ch__copy { max-width: none; }
     :global(html.cinema) .ch__statement { inset-inline: var(--margin); font-size: clamp(2rem, 9vw, 3rem); }
+
+    /* The first screen: the title on the floor before the pool, two lines fitted to the margins, over the ring. */
+    :global(html.cinema) .ch--overview .ch__copy {
+      inset-block: auto calc(var(--ring-b) + var(--ring-h) + var(--ring-gap)); inset-inline: var(--margin);
+      width: auto; text-align: start;
+    }
+    :global(html.cinema) .ch--overview .ch__h1 { white-space: normal; width: auto; margin-inline: 0; line-height: 0.86; }
+    :global(html.cinema) .ch--overview .ch__h1 .l { display: block; }
+
+    /* The ring, upright: no room for five names, so the five doorways are numbered and the mark rides under the one
+       you face. The name is said by the words themselves at each stop (and by each button, to a screen reader). */
+    :global(html.cinema) .hero { --ring-h: 1.5rem; --ring-gap: clamp(0.9rem, 2.4vh, 1.5rem); }
+    :global(html.cinema) .ring { inset-inline: var(--margin); width: auto; }
+    .ring__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .ring__item { gap: 0; padding: 0.25rem 0.5rem 0.65rem; margin-inline: -0.5rem; letter-spacing: 0.1em; }
   }
   /* Short upright phones (SE and the like): the window has taken its share, the words tighten to fit under it. */
   @media (max-aspect-ratio: 104/100) and (max-height: 720px) {
-    :global(html.cinema) .ch__copy { inset-block-start: calc(var(--arch-bottom, 58%) + 0.9rem); }
+    :global(html.cinema) .ch__copy { inset-block-start: calc(var(--door-bottom, 58%) + 0.7rem); }
     .ch__label { margin-block-end: 0.8rem; }
     .ch__h1 { font-size: clamp(2.3rem, 10.6vw, 3.4rem); }
     .ch__title { font-size: clamp(2.2rem, 10.2vw, 3.3rem); }
     .ch__line { font-size: 0.975rem; margin-block: 0.7rem 0.6rem; }
     .ch__link { padding-block: 0.7rem; }
     :global(html.cinema) .ch--overview .ch__support { display: none; }
+  }
+  /* The shortest phones (SE and the like): the words tighten again, so the ring keeps its place under them. */
+  @media (max-aspect-ratio: 104/100) and (max-height: 620px) {
+    .ch__line { font-size: 0.9375rem; margin-block: 0.55rem 0.5rem; }
+    .ch__link { padding-block: 0.55rem; }
+    .ch__label { margin-block-end: 0.6rem; }
   }
   /* Phones on their side: little height, so the type floor drops. */
   @media (max-height: 520px) and (min-aspect-ratio: 1/1) {

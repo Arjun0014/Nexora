@@ -69,20 +69,38 @@ const SUN = {
   up: { az: 0.4, el: 1.1 },
 };
 
+/**
+ * An upright screen (phones, tablets held tall) is framed the other way about. There is no room beside a doorway for
+ * words, so the doorway stands across the TOP of the screen — squarely, not to one side — and the floor between us
+ * and it carries them. For that floor to be a calm ground the sun comes down to 36°, still behind the doorway: the
+ * wall's shade then reaches twelve metres, past us, and the picture beyond is made to cast a shadow so no beam comes
+ * through the opening to fall across the words. The world beyond is a lit picture, so it loses nothing by it.
+ */
+const UP = { back: 10.45, fov: 70, sun: { az: qn('usun', 0.12), el: qn('uel', 0.63) }, courtFov: 70, courtLook: 4.0 };
+/** Screens narrower than this (width ÷ height) are framed upright. */
+const UPRIGHT = 0.92;
+
 /** A doorway stop, at the doorway whose (unwrapped) angle is a: the doorway a little right of centre, the wall to its
- *  left free for the words. */
-function doorPose(a: number): Pose {
-  // about ten metres back, pitched up a little: the doorway stands from ~10% to ~85% of the height, its foot a
+ *  left free for the words — or, upright, squarely across the top with the floor below it free. */
+function doorPose(a: number, ar = 1.6): Pose {
+  const S = COURT.stop;
+  // upright: level, ten metres back, the doorway from a tenth to about three fifths of the height
+  if (ar < UPRIGHT) return { pos: at(a, COURT.R - UP.back, S.eye), look: at(a, COURT.R - 0.35, S.eye), fov: UP.fov };
+  // about ten metres back, pitched up a little: the doorway stands from the floor to ~90% of the height, its foot a
   // ground line for the words; the camera looks left of the door (+tan) so the door sits right of centre
   const tan = new THREE.Vector3(Math.cos(a), 0, -Math.sin(a));
-  const pos = at(a, COURT.R - 9.8, 1.7);
-  const look = at(a, COURT.R - 0.35, 1.7 + 9.8 * Math.tan((9 * Math.PI) / 180)).addScaledVector(tan, 2.6);
+  const pos = at(a, COURT.R - S.back, S.eye);
+  const look = at(a, COURT.R - 0.35, S.eye + S.back * Math.tan((S.pitch * Math.PI) / 180)).addScaledVector(tan, 2.6);
   return { pos, look, fov: 52 };
 }
 /** Stop 0, facing azimuth th: from the foot of the wall, across the pool to the doorways opposite, the dome overhead.
  *  As the court turns, th runs down and this pose goes round the pool: the pool stays put, the walls go by. */
-function overviewPose(th: number): Pose {
-  return { pos: at(th + Math.PI, COURT.R - 1.6, 1.85), look: at(th, COURT.R, 5.2), fov: 62 };
+function overviewPose(th: number, ar = 1.6): Pose {
+  const port = ar < UPRIGHT;
+  // a squat screen (a phone on its side) is pitched down a little, so that the floor before the pool — where the
+  // title stands — keeps its band
+  const look = port ? UP.courtLook : ar > 1.8 ? 3.5 : 5.2;
+  return { pos: at(th + Math.PI, COURT.R - 1.6, 1.85), look: at(th, COURT.R, look), fov: port ? UP.courtFov : 62 };
 }
 /** The title card, from the last doorway (angle a): looking up into the dome. */
 function upPose(a: number): Pose {
@@ -120,6 +138,9 @@ export class World {
   private entry = { theta: 0, a: 0, k: 0 };
   private aimed = -1; // a world asked for by name (the index) before the film leaves stop 0
   private atStart = false;
+  /** the screen's shape (width ÷ height): under UPRIGHT the film is framed upright (see UP) */
+  private ar = 1.6;
+  private get port() { return this.ar < UPRIGHT; }
 
   private constructor(private canvas: HTMLCanvasElement, quality: Quality, private root: HTMLElement | null) {
     this.quality = quality;
@@ -328,6 +349,14 @@ export class World {
     const cap = this.quality === 'high' ? 1.5 : this.quality === 'medium' ? 1.25 : 1;
     this.dpr = Math.min(devicePixelRatio, cap);
     this.w = W; this.h = H;
+    const port = W / H < UPRIGHT;
+    if (port !== this.port && this.court) {
+      // upright: the doorway holds its light back, so the floor under it stays a clean ground for the words
+      for (const r of this.court.rooms) r.pic.castShadow = port;
+      this.sun.shadow.needsUpdate = true;
+      this.sunSeen.set(0, 0, 0);
+    }
+    this.ar = W / H;
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(W, H, false);
     this.camera.aspect = W / H;
@@ -343,7 +372,7 @@ export class World {
   /** The doorway's box on screen at its stop, published for the copy (CSS custom properties on the hero). */
   private publish() {
     if (!this.root) return;
-    const pose = doorPose(0);
+    const pose = doorPose(0, this.ar);
     const cam = this.camera.clone();
     cam.position.copy(pose.pos); cam.lookAt(pose.look); cam.fov = pose.fov; cam.aspect = this.w / this.h; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const a = doorAngle(0), D = COURT.door;
@@ -358,7 +387,7 @@ export class World {
     s.setProperty('--door-bottom', `${Math.round(Math.max(...ys))}px`);
     // the first screen turns about the pool, so the pool stands still on screen: the intro's point of light travels to
     // its heart and opens from there over the court; the title stands on the floor in front of its near rim
-    const o = overviewPose(0);
+    const o = overviewPose(0, this.ar);
     cam.position.copy(o.pos); cam.lookAt(o.look); cam.fov = o.fov; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const c = new THREE.Vector3(0, -0.1, 0).project(cam);
     const rim = at(Math.PI, COURT.pool + 0.34, 0.12).project(cam);
@@ -366,7 +395,7 @@ export class World {
     s.setProperty('--circle-y', `${Math.round((0.5 - c.y * 0.5) * this.h)}px`);
     s.setProperty('--circle-r', `${Math.round(Math.hypot(this.w, this.h) * 0.62)}px`);
     s.setProperty('--pool-front', `${Math.round((0.5 - rim.y * 0.5) * this.h)}px`);
-    this.root.dataset.layout = 'court';
+    this.root.dataset.layout = this.port ? 'portrait' : 'court';
   }
 
   // ── the film ────────────────────────────────────────────────────────────────────────────
@@ -419,11 +448,12 @@ export class World {
   /** Camera pose for playhead p (before the pointer's lean). */
   private poseAt(p: number): Pose {
     const L = locate(p);
-    if (L.rest) return L.stop === 0 ? overviewPose(this.theta) : L.stop === TITLE_STOP ? upPose(this.doorAt(DOORS)) : doorPose(this.doorAt(L.stop));
+    const ar = this.ar;
+    if (L.rest) return L.stop === 0 ? overviewPose(this.theta, ar) : L.stop === TITLE_STOP ? upPose(this.doorAt(DOORS)) : doorPose(this.doorAt(L.stop), ar);
     const t = easeIO(L.local);
     if (L.leg === 0) {
       // in: round the pool to the doorway, laid out as if it had been dead ahead...
-      const a = this.entry.a, A = overviewPose(a), B = doorPose(a);
+      const a = this.entry.a, A = overviewPose(a, ar), B = doorPose(a, ar);
       const mid = at(a - Math.PI * 0.62, COURT.pool + 3.2, 1.95), mid2 = at(a - 0.9, COURT.pool + 3.6, 1.85);
       const curve = new THREE.CatmullRomCurve3([A.pos, mid, mid2, B.pos], false, 'centripetal');
       const lookCurve = new THREE.CatmullRomCurve3([A.look, at(a - 0.5, COURT.R, 4.2), B.look], false, 'centripetal');
@@ -433,13 +463,13 @@ export class World {
       return { pos: curve.getPoint(t).applyAxisAngle(Y, turn), look: lookCurve.getPoint(t).applyAxisAngle(Y, turn), fov: lerp(A.fov, B.fov, t) };
     }
     if (L.leg === TITLE_STOP - 1) {
-      const a = this.doorAt(DOORS), A = doorPose(a), B = upPose(a);
+      const a = this.doorAt(DOORS), A = doorPose(a, ar), B = upPose(a);
       const tt = easeIO(ss(0, 0.8, L.local));
       return { pos: A.pos.clone().lerp(B.pos, tt), look: A.look.clone().lerp(B.look, tt), fov: lerp(A.fov, B.fov, tt) };
     }
     // between doorways: back from the doorway, along the court (its wall wipes across the view), into the next one,
     // which stands to the right
-    const a0 = this.doorAt(L.leg), a1 = a0 - STEP, A = doorPose(a0), B = doorPose(a1);
+    const a0 = this.doorAt(L.leg), a1 = a0 - STEP, A = doorPose(a0, ar), B = doorPose(a1, ar);
     const pts = [A.pos, at(a0 - 0.12, COURT.R - 9.6, 1.9), at((a0 + a1) / 2, COURT.R - 10.4, 2.05), at(a1 + 0.2, COURT.R - 9.6, 1.9), B.pos];
     const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
     const looks = [A.look, at(a0 - 0.55, COURT.R, 3.9), at((a0 + a1) / 2 - 0.25, COURT.R, 4.1), at(a1 + 0.1, COURT.R, 3.8), B.look];
@@ -450,25 +480,28 @@ export class World {
   /** The sun for playhead p: the azimuth the camera faces, plus the sun's place relative to it, and its height. */
   private sunAt(p: number): { az: number; el: number } {
     const L = locate(p);
+    // where the sun stands at a doorway: high behind it (wide screens: the wall beside it goes into shade for the
+    // words), or low behind us (upright screens: the floor below it does)
+    const door = this.port ? UP.sun : SUN.door;
     if (L.rest) {
       if (L.stop === 0) return { az: this.theta + SUN.court.az, el: SUN.court.el };
       if (L.stop === TITLE_STOP) return { az: this.doorAt(DOORS) + SUN.up.az, el: SUN.up.el };
-      return { az: this.doorAt(L.stop) + SUN.door.az, el: SUN.door.el };
+      return { az: this.doorAt(L.stop) + door.az, el: door.el };
     }
     const x = L.local, t = easeIO(x);
     if (L.leg === 0) {
       // from low behind us to high behind the doorway, swinging round by our right as we cross the court
       const face = lerp(this.entry.theta, this.entry.a, t);
-      return { az: face + lerp(SUN.court.az, SUN.door.az + 2 * Math.PI, t), el: lerp(SUN.court.el, SUN.door.el, ss(0.1, 0.9, x)) };
+      return { az: face + lerp(SUN.court.az, door.az + 2 * Math.PI, t), el: lerp(SUN.court.el, door.el, ss(0.1, 0.9, x)) };
     }
     if (L.leg === TITLE_STOP - 1) {
       const a = this.doorAt(DOORS);
-      return { az: a + lerp(SUN.door.az, SUN.up.az, t), el: lerp(SUN.door.el, SUN.up.el, t) };
+      return { az: a + lerp(door.az, SUN.up.az, t), el: lerp(door.el, SUN.up.el, t) };
     }
     // between doorways a day goes by: the sun goes once round the sky, lower as it passes behind us, so its rain
     // sweeps across the wall that wipes the view
     const face = lerp(this.doorAt(L.leg), this.doorAt(L.leg + 1), t), s = Math.sin(Math.PI * x);
-    return { az: face + SUN.door.az + SUN.swing * easeIO(x), el: SUN.door.el - SUN.dip * s };
+    return { az: face + door.az + SUN.swing * easeIO(x), el: door.el - SUN.dip * s * (this.port ? 0.4 : 1) };
   }
 
   private sig = '';

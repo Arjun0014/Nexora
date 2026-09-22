@@ -39,8 +39,8 @@ export const worlds: World[] = [
     roles: ['Waiting and service staff', 'Hosts and reception', 'Baristas and beverage service', 'Kitchen stewards and commis', 'Room attendants', 'Banqueting teams'],
     linkLabel: 'Hospitality staffing',
     alt: 'A waiter frozen mid-pour at a candle-lit table, the stream of liquid suspended in the air.',
-    frozen: 'a pour, suspended',
-    moment: 'A man in a white thobe pours Arabic coffee from a silver dallah into a small cup, the stream held in the air.',
+    frozen: 'a doorman, at his post',
+    moment: 'A doorman in a red tunic and top hat stands at his post in a hotel lobby, under a chandelier.',
     focus: '70% 50%',
   },
   {
@@ -54,8 +54,8 @@ export const worlds: World[] = [
     roles: ['Event hosts', 'Registration and accreditation desks', 'Ushers and guest guidance', 'Brand ambassadors', 'Exhibition stand staff', 'Event runners'],
     linkLabel: 'Event workforce',
     alt: 'An event host frozen while handing a lanyard to a guest, the ribbon curved in mid-air between their hands.',
-    frozen: 'a lanyard, mid-handover',
-    moment: 'Two hosts at a conference registration desk, badges on lanyards, handing a guest her programme.',
+    frozen: 'the badges, being laid out',
+    moment: 'Two hosts lay out name badges along a conference registration desk before the doors open.',
     focus: '73% 50%',
   },
   {
@@ -69,8 +69,8 @@ export const worlds: World[] = [
     roles: ['Cleaning teams', 'Housekeeping attendants', 'Office and pantry assistants', 'Porters and helpers', 'Front desk', 'Supervisors'],
     linkLabel: 'Facilities staffing',
     alt: 'A housekeeping attendant frozen while unfolding fresh linen, the white fabric hanging in the air beside a service trolley.',
-    frozen: 'linen, mid-fold',
-    moment: 'A housekeeper in a hotel room, caught lifting a white sheet over the bed as she makes it.',
+    frozen: 'a floor, halfway clean',
+    moment: 'A cleaner works a vacuum along the floor of a glass-walled office, his machine beside him.',
     focus: '76% 50%',
   },
   {
@@ -99,8 +99,8 @@ export const worlds: World[] = [
     roles: ['Permanent recruitment', 'Sourcing and assessment', 'Interview coordination', 'Onboarding support', 'On-site coordination', 'Rostering support'],
     linkLabel: 'Recruitment',
     alt: 'A recruiter frozen while passing a document across a desk to a candidate, the page floating between their hands.',
-    frozen: 'a document, mid-air',
-    moment: 'Two people shake hands across a desk, papers and a laptop between them.',
+    frozen: 'a page, mid-handover',
+    moment: 'A woman at a desk takes a page held out to her across it, an interview under way.',
     focus: '72% 50%',
   },
 ];

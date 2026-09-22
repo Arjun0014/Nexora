@@ -17,7 +17,7 @@ for (const profile of profiles) {
       const hero = document.querySelector('[data-hero]');
       const cs = getComputedStyle(hero);
       const px = (k) => parseFloat(cs.getPropertyValue(k));
-      const door = { l: px('--door-left'), b: px('--door-bottom') };
+      const door = { l: px('--door-left'), b: px('--door-bottom'), t: px('--door-top') };
       const portrait = hero.dataset.layout === 'portrait';
       const ch = hero.querySelector('[data-chapter][data-active="true"]');
       if (!ch) return { id: '-', issues: ['no active chapter'] };
@@ -31,7 +31,11 @@ for (const profile of profiles) {
           if (q.left < -0.5 || q.right > W + 0.5 || q.top < -0.5 || q.bottom > H + 0.5) issues.push(`off-screen: "${el.textContent.trim().slice(0, 24)}"`);
         }
       }
-      if (!portrait && ch.dataset.chapter !== 'overview' && box.r > door.l - 12) issues.push(`overlaps the doorway by ${Math.round(box.r - door.l + 12)}px`);
+      // wide: the words stand on the wall beside the doorway; upright: on the floor below it
+      if (ch.dataset.chapter !== 'overview') {
+        if (!portrait && box.r > door.l - 12) issues.push(`overlaps the doorway by ${Math.round(box.r - door.l + 12)}px`);
+        if (portrait && box.t < door.b + 4) issues.push(`words over the doorway by ${Math.round(door.b + 4 - box.t)}px`);
+      }
       // the first screen's title stands on the floor in front of the pool, never over it
       const pool = px('--pool-front');
       if (ch.dataset.chapter === 'overview' && Number.isFinite(pool) && box.t < pool + 8) issues.push(`title over the pool by ${Math.round(pool + 8 - box.t)}px`);

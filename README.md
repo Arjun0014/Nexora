@@ -62,7 +62,7 @@ promises, payroll/EOR/visa/healthcare claims, or construction — see
 media/                       approved originals — never modified (hero/, clouds/, stock/ + stock/SOURCES.md);
                              media/ph/ (Poly Haven, CC0) is fetched by scripts/ph-fetch.mjs, not committed
 nexora_website_context/      the brief
-docs/redesign/               CURRENT: 07-HERO-V7 + 06-HERO-V6 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (the rest)
+docs/redesign/               CURRENT: 08-HERO-V8 + 07-HERO-V7 + 06-HERO-V6 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (the rest)
 docs/implementation/         session 1. 04 (the hero) still applies
 scripts/build-media.mjs      diorama originals → public/media/hero (still used by the Held scene)
 scripts/build-hero5.mjs      the hero's five moments: frame, retouch, crop, grade, depth map → public/media/hero5
@@ -100,7 +100,10 @@ the pointer leans round the frozen moment. Gestures that arrive mid-leg are queu
 card: the camera looks up into the dome, NEXORA closes in from inside the X, and its letters open onto all five
 workforces at once. From there the page scrolls natively; scrolling back to the top re-enters at the title card. A
 reload always starts at the top, and the intro (limestone, real loading progress) ends by opening from the pool.
-Full detail: `docs/redesign/07-HERO-V7.md` (and 06 for the court itself).
+Upright screens (phones, tablets held tall) are framed the other way about: the doorway stands squarely across the
+top of the screen and the words on the floor below it, which the light is kept off; the ring of names becomes the
+five doorways numbered.
+Full detail: `docs/redesign/08-HERO-V8.md` (07 for the turn, 06 for the court itself).
 
 Three rendering modes are chosen **before first paint** (inline script in `src/layouts/Base.astro`):
 
@@ -112,7 +115,7 @@ Three rendering modes are chosen **before first paint** (inline script in `src/l
 
 QA switches: `?nointro` skips the intro · `?stop=N` boots the hero onto stop N (0–6) · `?q=high|medium|low` forces
 the court's quality (`?gov=0` holds it) · `?spin=0` holds the first screen's turn and `?th=N` sets what it faces (in
-doorways) · `?qa` exposes `window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop,
+doorways) · `?span=`/`?apex=` size the doorways and `?room=` how far behind them the world hangs · `?qa` exposes `window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop,
 `world.timings`, `world.quality`) · `[data-hero]` exposes `data-mode` (`film | rest`), `data-stop` and `data-bg`.
 Judge visual changes in a real GPU window (`.qa/pw/hero5-shots.mjs`, `motion.mjs`, `perf-igpu.mjs`): headless
 Chromium renders in software.

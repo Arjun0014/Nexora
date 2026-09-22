@@ -11,12 +11,18 @@ import {
   step, time,
 } from 'three/tsl';
 
+const Q = new URLSearchParams(typeof location === 'undefined' ? '' : location.search);
+const qn = (k: string, d: number) => { const v = Q.get(k); return v === null ? d : Number(v); };
+
 export const COURT = {
   R: 18, wallH: 9, // the ring wall
   domeBase: 9, rise: 4.8, // the dome springs from the wall head
   pool: 6.2,
-  door: { span: 4.2, spring: 5.4, apex: 7.3, reveal: 1.5, frame: 1.3 },
-  room: 1.6, // how far behind the doorway's face the world's image hangs
+  // the doorways: wide enough that the world beyond reads as a place, not a glimpse (`?span=`, `?apex=` for QA)
+  door: { span: qn('span', 6.2), spring: qn('spring', 5.0), apex: qn('apex', 7.5), reveal: 1.5, frame: 1.15 },
+  room: qn('room', 1.0), // how far behind the doorway's face the world's image hangs
+  /** The doorway stop: the camera's radius, its eye height, how far it is pitched up (degrees). */
+  stop: { back: 9.8, eye: 1.7, pitch: 10.5 },
 };
 export const DOORS = 5;
 export const STEP = (2 * Math.PI) / DOORS;
@@ -41,10 +47,9 @@ export const starLattice = Fn(([p, cell, rot, hole]: any[]) => {
 });
 
 /** The two shells (outer, inner): height at radius r, and their patterns. */
-const Q = new URLSearchParams(typeof location === 'undefined' ? '' : location.search);
 export const SHELLS = [
-  { lift: 0.8, riseK: 1.0, cell: Number(Q.get('c1') ?? 0.78), rot: 0.0, hole: 0.25 },
-  { lift: 0.15, riseK: 0.94, cell: Number(Q.get('c2') ?? 1.22), rot: Math.PI / 8, hole: 0.28 },
+  { lift: 0.8, riseK: 1.0, cell: qn('c1', 0.78), rot: 0.0, hole: 0.25 },
+  { lift: 0.15, riseK: 0.94, cell: qn('c2', 1.22), rot: Math.PI / 8, hole: 0.28 },
 ];
 
 function pbr(t: Tex, size: number, tint: THREE.ColorRepresentation, o: { normal?: number; side?: THREE.Side; rough?: number } = {}) {
@@ -141,6 +146,9 @@ function mesh(g: THREE.BufferGeometry, m: THREE.Material, cast = true, receive =
 export interface Room {
   k: number;
   group: THREE.Group;
+  /** the world's picture, hung in the room beyond (it casts a shadow when the sun must not come through the
+   *  doorway — upright screens, where the words stand on the floor in front of it) */
+  pic: THREE.Mesh;
   /** uniforms of the world's picture */
   lean: ReturnType<typeof uniform>;
   glow: ReturnType<typeof uniform>;
@@ -235,6 +243,14 @@ export function buildCourt(tex: Record<string, Tex>, pics: Pictures, scene: THRE
 
   const rooms: Room[] = [];
   const roomM = new THREE.MeshStandardNodeMaterial({ color: 0x8a7560, roughness: 0.9, side: THREE.BackSide });
+  // How big the picture hangs. A doorway is a window: all you ever see of the world beyond is the cone from the eye,
+  // at its stop, through the opening. The picture is cut to that cone — with a margin, so that a lean of the head, or
+  // a glance from across the court, never finds its edge — and the photograph is fitted into it as CSS `cover` would,
+  // so nothing is stretched and no wall is left showing inside the opening.
+  const dFace = C.stop.back - 0.35, dPic = dFace + D.reveal + C.room, kCone = dPic / dFace;
+  const coneW = D.span * kCone, coneTop = C.stop.eye + (D.apex - C.stop.eye) * kCone, coneBot = C.stop.eye * (1 - kCone);
+  const picW = coneW * 1.2, picH = (coneTop - coneBot) * 1.12, picY = (coneTop + coneBot) / 2;
+  const cover = vec2(Math.min(1, picW / picH / pics.aspect), Math.min(1, (pics.aspect * picH) / picW));
   for (let k = 0; k < DOORS; k++) {
     const g = place(new THREE.Group(), doorAngle(k), C.R - 0.35);
     root.add(g);
@@ -255,23 +271,22 @@ export function buildCourt(tex: Record<string, Tex>, pics: Pictures, scene: THRE
     const m = new THREE.MeshBasicNodeMaterial();
     const photo = pics.photos[k], dep = pics.depths[k];
     const u0 = uv();
-    const d = texture(dep, u0).r;
-    const puv = u0.add(lean.mul(d.sub(0.45)));
+    const pu = u0.sub(0.5).mul(cover).add(0.5);
+    const d = texture(dep, pu).r;
+    const puv = pu.add(lean.mul(d.sub(0.45)));
     const img = texture(photo, puv).rgb;
     // the room's own light: a touch brighter at the heart, falling off to its edges
     const vign = smoothstep(0.95, 0.35, length(u0.sub(vec2(0.5, 0.55)).mul(vec2(1.2, 1.0))));
     m.colorNode = img.mul(mix(float(0.78), float(1.06), vign)).mul(glow);
-    // sized to fill the doorway seen from its stop (about ten metres back), with room for the pointer's lean
-    const H = 10.6, W = H * pics.aspect;
-    const pic = new THREE.Mesh(new THREE.PlaneGeometry(W, H), m);
-    pic.position.set(0, 3.7, -D.reveal - C.room);
+    const pic = new THREE.Mesh(new THREE.PlaneGeometry(picW, picH), m);
+    pic.position.set(0, picY, -D.reveal - C.room);
     g.add(pic);
     // the room's sides and floor, dim and warm, so the picture sits in a space
-    const box = new THREE.BoxGeometry(W * 1.02, H, C.room + 0.1);
-    box.translate(0, 3.7, -D.reveal - C.room / 2);
+    const box = new THREE.BoxGeometry(picW * 1.02, picH, C.room + 0.1);
+    box.translate(0, picY, -D.reveal - C.room / 2);
     const roomMesh = mesh(box, roomM, false, true);
     g.add(roomMesh);
-    rooms.push({ k, group: g, lean, glow });
+    rooms.push({ k, group: g, pic, lean, glow });
   }
 
   // ── the dome: two brass lattice shells on a ring beam ───────────────────────────────────
