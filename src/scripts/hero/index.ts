@@ -1,9 +1,9 @@
 /**
  * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/04-HERO-V4.md.
  *
- * The film is a real-time scene (./world): five moments held in time, floating in a ring over night water. There
- * is nothing to stream: the world is built from code once, while the intro is up, and every frame is a pure
- * function of the playhead `p` (plus the ring's turn, the ambient clock and the pointer).
+ * The film is drawn live (./screen): a carved limestone mashrabiya, and behind it five moments of work held in time,
+ * seen through the windows it opens. Its textures load while the intro is up, and every frame is a pure function of
+ * the playhead `p` (plus the pointer).
  *
  * One gesture = one leg at natural speed. Gestures that arrive while a leg is playing move `target` on (a short
  * queue); queued legs play faster; a change of mind eases through zero and plays the leg backwards. After the
@@ -18,7 +18,7 @@ import { buildLegs, TITLE_STOP, LEG_COUNT } from './timeline';
 import { TitleMask } from './mask';
 import { HeroUI } from './ui';
 import { bindInput, type Dir } from './input';
-import type { World, Quality } from './world';
+import type { World, Quality } from './screen';
 
 const MAX_PENDING = 2; // stops that may be queued beyond the leg being played
 const BOOST = 0.85; // extra playback speed per queued stop
@@ -184,7 +184,7 @@ export function initHero() {
 
   const report = (f: number) => { heroLoad.progress = f; };
   report(0.05);
-  import('./world').then(async ({ World }) => {
+  import('./screen').then(async ({ World }) => {
     report(0.45);
     world = await World.create(canvas, pickQuality(), (f) => report(0.45 + 0.55 * f));
     heroLoad.done = true;

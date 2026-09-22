@@ -1,54 +1,52 @@
 ---
 /**
- * The film.
+ * The film, version 5: a living mashrabiya, and behind it five moments of work held in time.
+ * See docs/redesign/05-HERO-V5.md.
  *
- * DEFAULT (no JS, reduced motion, Save-Data): six ordinary full-height sections — overview, five worlds,
- * title card — each with a still rendered from the live world behind its copy. Complete and readable.
+ * DEFAULT (no JS, reduced motion, Save-Data): six ordinary sections on limestone — the overview with its moment in
+ * a circle, the five worlds each in an arch, the title card — complete and readable.
  *
- * html.cinema (set pre-paint): the same markup becomes ONE screen-high stage; the chapters stack; a WebGL canvas
- * draws the five moments live; src/scripts/hero steps it by gesture. See docs/redesign/04-HERO-V4.md.
- * There is deliberately no HUD: no skip, pause, timecode, glyph, world selector or scroll hint.
+ * html.cinema (set pre-paint): the same markup becomes ONE screen-high stage; the chapters stack over a WebGL canvas
+ * that draws the screen (src/scripts/hero/screen), stepped by gesture. The canvas publishes where its opening is
+ * (--arch-*, --circle-*), and every copy block stands on the arch's foot, so text and window share one ground line.
+ * There is deliberately no HUD.
  */
 import Arrow from '../ui/Arrow.astro';
 import { worlds, overview } from '../../data/worlds';
 import { statement } from '../../data/content';
 import { site } from '../../data/site';
-const sizes = '100vw';
-// Stills rendered from the live world (scripts/build-hero4.mjs), for the static reading of the film.
-const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media/hero4/${id}-${w}.${fmt} ${w}w`).join(', ');
+const img = (id: string) => `/media/hero5/${id}-900.webp`;
+const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/${id}-1400.webp 1400w`;
 ---
-<section class="hero" id="film" data-hero data-header-clear data-theme="dark" aria-label="Introduction">
+<section class="hero" id="film" data-hero data-header-clear data-theme="paper" data-bg="light" aria-label="Introduction">
   <div class="hero__stage" data-stage>
     <div class="hero__media" data-media>
-      <!-- The film: a real-time 3D scene drawn by src/scripts/hero/world. -->
+      <!-- The film: one fragment shader, drawn by src/scripts/hero/screen. -->
       <canvas class="hero__canvas" data-canvas role="img" aria-label={overview.alt}></canvas>
     </div>
-    <div class="hero__scrim" data-scrim aria-hidden="true"></div>
     <canvas class="hero__mask" data-mask aria-hidden="true"></canvas>
 
     <div class="hero__ui">
       <section class="ch ch--overview" data-chapter="overview" data-active="true" aria-labelledby="hero-h1">
-        <picture class="ch__bg">
-          <source type="image/avif" srcset={srcset('overview', 'avif')} sizes={sizes} />
-          <img src="/media/hero4/overview-1200.webp" srcset={srcset('overview', 'webp')} sizes={sizes} width="1672" height="941" alt={overview.alt} loading="lazy" decoding="async" />
-        </picture>
+        <figure class="ch__frame ch__frame--circle" aria-hidden="true">
+          <img src={img(worlds[0].id)} srcset={srcset(worlds[0].id)} sizes="(max-aspect-ratio: 1/1) 90vw, 46vw" width="1400" height="1556" alt="" loading="lazy" decoding="async" />
+        </figure>
         <div class="ch__copy">
           <p class="label ch__label">{overview.label}</p>
           <h1 id="hero-h1" class="ch__h1 lines">
             {overview.headline.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line.startsWith('Many ') ? <><em>many</em>{line.slice(4)}</> : line}</span></span>)}
           </h1>
-          <p class="ch__support">{overview.support}</p>
+          <p class="ch__support" style="--i:2">{overview.support}</p>
         </div>
       </section>
 
       {worlds.map((w) => (
         <section class="ch ch--world" data-chapter={w.id} data-sector={w.id} aria-labelledby={`world-${w.id}`}>
-          <picture class="ch__bg">
-            <source type="image/avif" srcset={srcset(w.id, 'avif')} sizes={sizes} />
-            <img src={`/media/hero4/${w.id}-1200.webp`} srcset={srcset(w.id, 'webp')} sizes={sizes} width="1672" height="941" alt={w.moment} loading="lazy" decoding="async" />
-          </picture>
+          <figure class="ch__frame">
+            <img src={img(w.id)} srcset={srcset(w.id)} sizes="(max-aspect-ratio: 1/1) 90vw, 46vw" width="1400" height="1556" alt={w.moment} loading="lazy" decoding="async" />
+          </figure>
           <div class="ch__copy">
-            <p class="label ch__label"><span class="num">{w.n}</span><span class="ch__of"> / 05</span></p>
+            <p class="label ch__label"><span class="num">{w.n}</span><span class="ch__rule" aria-hidden="true"></span><span class="ch__of">05</span></p>
             <h2 id={`world-${w.id}`} class="display ch__title lines">
               {w.titleLines.map((line, i) => <span class="l" style={`--i:${i}`}><span>{line}</span></span>)}
             </h2>
@@ -60,7 +58,7 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
 
       <section class="ch ch--title" data-chapter="title" aria-labelledby="title-h">
         <h2 id="title-h" class="sr-only">Nexora</h2>
-        <!-- Static fallback for the title card: the still shows through the word via a CSS mask. -->
+        <!-- Static fallback for the title card: a moment shows through the word via a CSS mask. -->
         <div class="ch__word" aria-hidden="true"></div>
         <p class="h1 ch__statement lines" data-title-line>
           <span class="l" style="--i:0"><span>{statement.heading[0]}</span></span>
@@ -76,93 +74,71 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
 </section>
 
 <style>
-  /* ═══ DEFAULT: six ordinary sections ═══════════════════════════════════════════════════ */
-  .hero { position: relative; background: var(--studio); color: var(--bone); }
-  .hero__media, .hero__mask, .hero__scrim { display: none; }
+  /* ═══ DEFAULT: six ordinary sections on limestone ═══════════════════════════════════════ */
+  .hero { position: relative; background: var(--sand); color: var(--ink); }
+  .hero__media, .hero__mask { display: none; }
 
-  /* The five worlds: copy sits on the vertical centre of the calm left third of each composition.
-     The scrim is a soft pool around the copy, not a full-height band, so the scene keeps its corners. */
-  .hero {
-    --scrim-world:
-      radial-gradient(ellipse 56% 66% at 0% 50%, rgba(11, 10, 9, 0.8) 0%, rgba(11, 10, 9, 0.56) 42%, rgba(11, 10, 9, 0) 100%),
-      linear-gradient(90deg, rgba(11, 10, 9, 0.6) 0%, rgba(11, 10, 9, 0.3) 24%, rgba(11, 10, 9, 0) 50%),
-      linear-gradient(180deg, rgba(11, 10, 9, 0.5) 0%, rgba(11, 10, 9, 0) 20%);
+  .ch {
+    position: relative; display: grid; align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr); gap: clamp(2rem, 5vw, 6rem);
+    min-height: 100vh; min-height: 100svh;
+    padding: calc(var(--header-h) + 2rem) var(--margin) clamp(2.5rem, 7vh, 5rem);
   }
+  .ch + .ch { border-block-start: 1px solid var(--line-soft); }
+  .ch__frame { grid-column: 2; grid-row: 1; align-self: stretch; margin: 0; overflow: hidden; border-radius: 999px 999px 0 0 / 50% 50% 0 0; max-height: 82vh; }
+  .ch__frame--circle { border-radius: 50%; aspect-ratio: 1; align-self: center; max-height: none; }
+  .ch__frame img { width: 100%; height: 100%; object-fit: cover; }
+  .ch__copy { grid-column: 1; grid-row: 1; max-width: 34rem; }
 
-  .ch { position: relative; display: flex; align-items: flex-end; min-height: 100vh; min-height: 100svh; padding: calc(var(--header-h) + 2rem) var(--margin) clamp(2.5rem, 7vh, 5rem); overflow: clip; isolation: isolate; }
-  .ch + .ch { border-block-start: 1px solid rgba(243, 237, 227, 0.12); }
-  .ch__bg { position: absolute; inset: 0; z-index: -2; }
-  .ch__bg img { width: 100%; height: 100%; object-fit: cover; }
-  .ch::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--scrim-world); }
-  .ch__bg img { object-position: 60% 50%; }
-  .ch--overview .ch__bg img { object-position: 62% 50%; }
-  .ch--overview::before { background: linear-gradient(0deg, rgba(11, 10, 9, 0.85) 0%, rgba(11, 10, 9, 0) 45%); }
-  .ch--world { align-items: center; padding-block: calc(var(--header-h) + 1.5rem); }
-
-  .ch__copy { max-width: min(38vw, 36rem); min-width: min(100%, 19rem); }
-  .ch__label { margin-block-end: 1.5rem; }
-  .ch__of { opacity: 0.6; }
-  .ch__h1 { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(2.6rem, 4.8vw, 5.4rem); line-height: 0.9; letter-spacing: -0.005em; }
-  .ch__h1 em { font-style: italic; font-stretch: 75%; text-transform: none; color: #f1c28f; }
-  .ch__support { margin-block-start: 1.25rem; max-width: 24rem; font-size: var(--t-small); line-height: 1.55; color: var(--bone-soft); }
-  /* Each title line is one line by design ('Recruitment' / '& Workforce'): it may run past the copy column, never
-     wrap into a third, and never be cut (the line masks clip only vertically). */
-  .ch__title { text-shadow: 0 1px 40px rgba(11, 10, 9, 0.45); }
+  .ch__label { display: flex; align-items: center; gap: 0.9em; margin-block-end: 1.4rem; color: var(--ink-soft); }
+  .ch__rule { width: 2.25rem; height: 1px; background: currentColor; opacity: 0.5; }
+  .ch__h1 { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(3rem, 6.6vw, 8.4rem); line-height: 0.88; letter-spacing: -0.006em; }
+  .ch__h1 em { font-style: italic; font-stretch: 75%; text-transform: none; color: var(--amber-deep); }
+  .ch__support { margin-block-start: 1.5rem; max-width: 25rem; font-size: var(--t-body); line-height: 1.55; color: var(--ink-soft); }
+  .ch__title { font-size: clamp(2.75rem, 5.4vw, 6.8rem); line-height: 0.9; }
   .ch__title .l > span { white-space: nowrap; }
-  .ch__line { margin-block: 1.5rem 1.75rem; max-width: 25rem; font-size: var(--t-lead); line-height: 1.4; }
-  .ch__link { color: var(--bone); }
+  .ch__line { margin-block: 1.5rem 1.75rem; max-width: 26rem; font-size: var(--t-lead); line-height: 1.45; }
+  .ch__link { color: var(--ink); }
 
-  .ch--title { flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(2rem, 5vw, 4rem); min-height: 80svh; background: var(--studio); }
-  .ch--title::before { display: none; }
-  .ch__word { width: 100%; aspect-ratio: 4290 / 740; background: url('/media/hero4/overview-1200.webp') 60% 45% / cover no-repeat var(--bone);
+  .ch--title { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(2rem, 5vw, 4rem); min-height: 80svh; background: var(--studio); color: var(--bone); }
+  .ch__word { width: 100%; aspect-ratio: 4290 / 740; background: url('/media/hero5/facilities-1400.webp') 50% 45% / cover no-repeat var(--bone);
     -webkit-mask: url('/wordmark.svg') center / contain no-repeat; mask: url('/wordmark.svg') center / contain no-repeat; }
-  .ch__statement em { color: var(--bronze); }
+  .ch__statement em { color: var(--amber); }
   .ch__meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; color: var(--bone-soft); padding-block-start: 1.25rem; border-block-start: 1px solid rgba(243, 237, 227, 0.16); }
 
   /* ═══ CINEMA: one screen, stepped by gesture ═══════════════════════════════════════════ */
   :global(html.cinema) .hero { height: 100vh; height: 100svh; }
-  :global(html.cinema) .hero__stage { position: relative; height: 100%; overflow: clip; background: var(--studio); contain: layout paint; }
-
+  :global(html.cinema) .hero__stage { position: relative; height: 100%; overflow: clip; background: #ebe4d8; contain: layout paint; }
   :global(html.cinema) .hero__media { display: block; position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
   .hero__canvas, .hero__mask { position: absolute; inset: 0; width: 100%; height: 100%; }
   .hero__canvas { display: block; touch-action: pan-y; }
-  /* Black until the world has drawn its first frame (the intro normally covers this moment). */
   :global(html.cinema) .hero:not([data-ready]) .hero__media { opacity: 0; }
   :global(html.cinema) .hero[data-ready] .hero__media { opacity: 1; transition: opacity 600ms ease-out; }
   :global(html.cinema) .hero__mask { display: block; z-index: 3; pointer-events: none; }
 
-  /* Copy protection, built for the brightest scene (Facilities' pale marble). */
-  :global(html.cinema) .hero__scrim { display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 500ms ease; background: var(--scrim-world); }
-  :global(html.cinema) .hero__scrim[data-on='true'] { opacity: 1; }
-  :global(html.cinema) .hero__scrim[data-mode='overview'] { opacity: 1; background: linear-gradient(0deg, rgba(11, 10, 9, 0.72) 0%, rgba(11, 10, 9, 0) 36%), linear-gradient(180deg, rgba(11, 10, 9, 0.55) 0%, rgba(11, 10, 9, 0) 22%); }
-
-
   :global(html.cinema) .hero__ui { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-  :global(html.cinema) .ch { position: absolute; inset: 0; min-height: 0; border: 0; pointer-events: none; background: none; }
-  :global(html.cinema) .ch::before, :global(html.cinema) .ch__bg { display: none; }
+  :global(html.cinema) .ch { display: block; position: absolute; inset: 0; min-height: 0; padding: 0; border: 0; pointer-events: none; background: none; }
+  :global(html.cinema) .ch__frame { display: none; }
   :global(html.cinema) .ch[data-active='true'] .ch__copy { pointer-events: auto; }
 
-  /* Copy leaves the instant time resumes; arrives with a hard stop when it freezes.
-     Inactive blocks are also transparent: display-serif ascenders overshoot a 0.95 line box, so a
-     translate alone leaves glyph tips showing through the line masks of the stacked chapters. */
-  :global(html.cinema) .ch .ch__copy { opacity: 0; transition: opacity 0s linear 280ms; }
+  /* Every block stands on the arch's foot: one ground line for window and words. */
+  :global(html.cinema) .ch__copy {
+    position: absolute; inset-inline-start: var(--margin);
+    inset-block-end: calc(100% - var(--arch-bottom, 94%));
+    width: calc(var(--arch-left, 52vw) - var(--margin) * 2.2); max-width: 40rem;
+  }
+  :global(html.cinema) .ch--world .ch__copy { max-width: 31rem; }
+
+  /* Copy leaves the instant time resumes; arrives as the window opens and settles. */
+  :global(html.cinema) .ch .ch__copy { opacity: 0; transition: opacity 0s linear 300ms; }
   :global(html.cinema) .ch[data-active='true'] .ch__copy { opacity: 1; transition-delay: 0s; }
-  :global(html.cinema) .ch .l > span { transform: translateY(125%); transition: transform 260ms cubic-bezier(0.5, 0, 0.9, 0.4); }
-  :global(html.cinema) .ch .ch__label, :global(html.cinema) .ch .ch__support, :global(html.cinema) .ch .ch__line, :global(html.cinema) .ch .ch__link { opacity: 0; transform: translateY(10px); transition: opacity 200ms ease, transform 200ms ease; }
-  :global(html.cinema) .ch[data-active='true'] .l > span { transform: none; transition: transform var(--d-type) var(--ease-freeze); transition-delay: calc(var(--i, 0) * 80ms + 60ms); }
-  :global(html.cinema) .ch[data-active='true'] .ch__label, :global(html.cinema) .ch[data-active='true'] .ch__support, :global(html.cinema) .ch[data-active='true'] .ch__line, :global(html.cinema) .ch[data-active='true'] .ch__link { opacity: 1; transform: none; transition: opacity 520ms ease-out, transform 520ms var(--ease-freeze); transition-delay: calc(var(--i, 0) * 80ms + 140ms); }
+  :global(html.cinema) .ch .l > span { transform: translateY(118%); transition: transform 280ms cubic-bezier(0.5, 0, 0.9, 0.4); }
+  :global(html.cinema) .ch .ch__label, :global(html.cinema) .ch .ch__support, :global(html.cinema) .ch .ch__line, :global(html.cinema) .ch .ch__link { opacity: 0; transform: translateY(12px); transition: opacity 220ms ease, transform 220ms ease; }
+  :global(html.cinema) .ch[data-active='true'] .l > span { transform: none; transition: transform var(--d-type) var(--ease-freeze); transition-delay: calc(var(--i, 0) * 90ms + 80ms); }
+  :global(html.cinema) .ch[data-active='true'] .ch__label, :global(html.cinema) .ch[data-active='true'] .ch__support, :global(html.cinema) .ch[data-active='true'] .ch__line, :global(html.cinema) .ch[data-active='true'] .ch__link { opacity: 1; transform: none; transition: opacity 600ms ease-out, transform 700ms var(--ease-freeze); transition-delay: calc(var(--i, 0) * 90ms + 160ms); }
 
-  :global(html.cinema) .ch--overview .ch__copy { max-width: min(30vw, 27rem); }
-
-  /* In the live film the world's name stands in the scene as monumental letters, so the page copy steps down to a
-     caption at the foot of the frame: number, one line, the link. The name stays in the DOM for readers. */
-  :global(html.cinema) .ch--world { align-items: flex-end; padding-block: calc(var(--header-h) + 1rem) clamp(2.5rem, 9vh, 6rem); }
-  :global(html.cinema) .ch--world .ch__copy { max-width: min(28rem, 32vw); }
-  :global(html.cinema) .ch--world .ch__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  :global(html.cinema) .ch--world .ch__label { margin-block-end: 0.9rem; }
-  :global(html.cinema) .ch--world .ch__line { margin-block: 0 1.35rem; font-size: clamp(1rem, 1.15vw, 1.1875rem); }
-  :global(html.cinema) .hero { --scrim-world: radial-gradient(ellipse 48% 42% at 0% 100%, rgba(5, 6, 8, 0.72) 0%, rgba(5, 6, 8, 0.38) 45%, rgba(5, 6, 8, 0) 100%); }
-  :global(html.cinema) .ch--title { display: block; padding: 0; min-height: 0; background: none; }
+  /* The title card: the black of the NEXORA knock-out, light type (unchanged from v4). */
+  :global(html.cinema) .ch--title { display: block; padding: 0; min-height: 0; background: none; color: var(--bone); }
   :global(html.cinema) .ch--title .ch__statement { opacity: 0; transition: opacity 0s linear 280ms; }
   :global(html.cinema) .ch--title[data-active='true'] .ch__statement { opacity: 1; transition-delay: 0s; }
   :global(html.cinema) .ch__word { display: none; }
@@ -170,29 +146,39 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   :global(html.cinema) .ch__meta { position: absolute; inset-inline: 6vw; inset-block-end: clamp(1.5rem, 5vh, 3.25rem); opacity: 0; transition: opacity 200ms ease; }
   :global(html.cinema) .ch[data-active='true'] .ch__meta { opacity: 1; transition: opacity 700ms ease-out 500ms; }
 
-  /* ═══ PORTRAIT ═════════════════════════════════════════════════════════════════════════
-     The portrait crop is built around the action (x ≈ 0.72), which fills the middle of the screen. Centred copy
-     would sit on the people, so here the worlds keep a lower-third block over a bottom scrim — deliberately. */
-  @media (max-aspect-ratio: 999/1000) {
-    .hero { --scrim-world: linear-gradient(0deg, rgba(11, 10, 9, 0.94) 0%, rgba(11, 10, 9, 0.72) 28%, rgba(11, 10, 9, 0) 58%), linear-gradient(180deg, rgba(11, 10, 9, 0.6) 0%, rgba(11, 10, 9, 0) 18%); }
-    .ch, .ch--world { align-items: flex-end; padding-block: calc(var(--header-h) + 2rem) calc(clamp(1.75rem, 5vh, 3rem) + env(safe-area-inset-bottom, 0px)); }
-    .ch--overview::before { background: var(--scrim-world); }
-    .ch__copy, :global(html.cinema) .ch--overview .ch__copy { max-width: 100%; }
-    .ch__bg img { object-position: 62% 50% !important; }
-    .ch--overview .ch__bg img { object-position: 60% 50% !important; }
-    .ch__h1 { font-size: clamp(2.5rem, 11vw, 4rem); }
-    .ch__title { font-size: clamp(2.75rem, 12.5vw, 4.5rem); }
+  /* ═══ UPRIGHT SCREENS ══════════════════════════════════════════════════════════════════
+     The window stands at the top; the words stand under it, on its foot. */
+  @media (max-aspect-ratio: 104/100) {
+    .ch { grid-template-columns: 1fr; align-content: end; gap: 2rem; }
+    .ch__frame, .ch__copy { grid-column: 1; }
+    .ch__frame { grid-row: 1; max-height: 52vh; aspect-ratio: 4 / 5; }
+    .ch__frame--circle { aspect-ratio: 1; width: min(100%, 52vh); justify-self: center; }
+    .ch__copy { grid-row: 2; }
+    .ch__h1 { font-size: clamp(2.6rem, 12.4vw, 4.6rem); }
+    .ch__title { font-size: clamp(2.5rem, 11.8vw, 4.4rem); }
     .ch__line { font-size: 1.0625rem; margin-block: 1rem 1.25rem; }
-    .ch__link { display: flex; justify-content: space-between; padding-block: 0.9rem; border-block-start: 1px solid rgba(243, 237, 227, 0.3); }
+    .ch__support { margin-block-start: 1rem; }
+    .ch__link { display: flex; justify-content: space-between; padding-block: 0.9rem; border-block-start: 1px solid var(--line); }
     .ch__link::after, .ch__link::before { display: none; }
 
-    :global(html.cinema) .hero__scrim[data-mode='overview'] { background: var(--scrim-world); }
+    :global(html.cinema) .ch__copy { inset-block: calc(var(--arch-bottom, 58%) + clamp(1.25rem, 3.2vh, 2rem)) auto; inset-inline: var(--margin); width: auto; max-width: none; }
+    :global(html.cinema) .ch--world .ch__copy { max-width: none; }
     :global(html.cinema) .ch__statement { inset-inline: var(--margin); font-size: clamp(2rem, 9vw, 3rem); }
   }
-  /* Phone landscape: little height, so the type floor drops. */
+  /* Short upright phones (SE and the like): the window has taken its share, the words tighten to fit under it. */
+  @media (max-aspect-ratio: 104/100) and (max-height: 720px) {
+    :global(html.cinema) .ch__copy { inset-block-start: calc(var(--arch-bottom, 58%) + 0.9rem); }
+    .ch__label { margin-block-end: 0.8rem; }
+    .ch__h1 { font-size: clamp(2.3rem, 10.6vw, 3.4rem); }
+    .ch__title { font-size: clamp(2.2rem, 10.2vw, 3.3rem); }
+    .ch__line { font-size: 0.975rem; margin-block: 0.7rem 0.6rem; }
+    .ch__link { padding-block: 0.7rem; }
+    :global(html.cinema) .ch--overview .ch__support { display: none; }
+  }
+  /* Phones on their side: little height, so the type floor drops. */
   @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
-    .ch--world { padding-block: calc(var(--header-h) + 0.5rem) 1rem; }
     .ch__title { font-size: clamp(2rem, 5.2vw, 3.25rem); }
+    .ch__h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); }
     .ch__label { margin-block-end: 0.75rem; }
     .ch__line { font-size: 1rem; margin-block: 0.75rem 1rem; }
     .ch__support { display: none; }

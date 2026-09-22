@@ -1,3 +1,6 @@
+> **Superseded by `05-HERO-V5.md`** (the client rejected v4's night world: too dark for the company, names badly
+> placed, 3D that did not look real). Kept as the record of what v4 was and why it failed.
+
 # The hero, version 4: five moments held in time
 
 Branch `hero-v4` (from `main`, 22 Sep 2026). Replaces everything in the hero **before** the NEXORA title zoom: the

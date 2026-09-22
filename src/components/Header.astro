@@ -2,12 +2,12 @@
 import Wordmark from './Wordmark.astro';
 import { site, nav, cta } from '../data/site';
 
-interface Props { home?: boolean }
-const { home = false } = Astro.props;
+interface Props { home?: boolean; ink?: 'light' | 'dark' }
+const { home = false, ink = 'light' } = Astro.props;
 const path = Astro.url.pathname;
 const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
 ---
-<header class="hd" data-header data-ink="light" data-clear={home ? 'true' : 'false'}>
+<header class="hd" data-header data-ink={ink} data-clear={home ? 'true' : 'false'}>
   <div class="hd__bar">
     <a class="hd__brand" href="/" aria-label={`${site.name} — home`}>
       <Wordmark class="hd__mark" title={false} />

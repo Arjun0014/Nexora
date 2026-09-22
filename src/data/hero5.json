@@ -1,0 +1,75 @@
+{
+  "_": "The hero's five frozen moments (docs/redesign/05-HERO-V5.md). Originals in media/hero5/src (for the two clips: the frame used, pulled at full 4K) (Pexels License, see media/hero5/SOURCES.md); built by scripts/build-hero5.mjs into public/media/hero5. focus = the point of the action in the source frame (0..1); zoom < 1 crops in; retouch = marks removed from the original (third-party names and logos), dark = dark marks on a light ground.",
+  "worlds": [
+    {
+      "id": "hospitality",
+      "src": "px-v5988416-2.2s.jpg",
+      "focus": [
+        0.47,
+        0.5
+      ],
+      "zoom": 1.0,
+      "exposure": 1.16,
+      "retouch": []
+    },
+    {
+      "id": "events",
+      "src": "px-7648057.jpg",
+      "focus": [
+        0.66,
+        0.46
+      ],
+      "zoom": 1.0,
+      "exposure": 1.02,
+      "retouch": []
+    },
+    {
+      "id": "facilities",
+      "src": "px-v9472830-4.15s.jpg",
+      "focus": [
+        0.36,
+        0.5
+      ],
+      "zoom": 1.0,
+      "exposure": 1.0,
+      "retouch": []
+    },
+    {
+      "id": "technical",
+      "src": "px-39174676.jpg",
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "zoom": 1.0,
+      "exposure": 1.04,
+      "retouch": [
+        {
+          "x": 1015,
+          "y": 440,
+          "w": 250,
+          "h": 170,
+          "mode": "dark"
+        },
+        {
+          "x": 720,
+          "y": 1040,
+          "w": 170,
+          "h": 330,
+          "mode": "light"
+        }
+      ]
+    },
+    {
+      "id": "recruitment",
+      "src": "px-5673488.jpg",
+      "focus": [
+        0.42,
+        0.5
+      ],
+      "zoom": 1.0,
+      "exposure": 1.0,
+      "retouch": []
+    }
+  ]
+}

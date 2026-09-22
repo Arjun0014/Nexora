@@ -1,5 +1,5 @@
-> **The hero before the NEXORA title zoom is now `04-HERO-V4.md`** (branch `hero-v4`: a real-time 3D world
-> replaces the diorama loop and the transition videos). Everything from the title zoom on is as described here.
+> **The hero before the NEXORA title zoom is now `05-HERO-V5.md`** (branch `hero-v4`: a living mashrabiya with
+> five moments of work behind it; v4's night world is superseded). Everything from the title zoom on is as described here.
 
 # What was built — session 3
 

@@ -2,10 +2,11 @@
 /**
  * The intro.
  *
- * Studio black. NEXORA sits at the centre and tracks open as the film's real bytes arrive; a hairline grows
- * beneath it; the five world names cycle in their own colours. It ends by drawing the hairline in to a point,
- * which opens as a circular aperture with a lit rim (the disc's own edge) and dives out past the corners while
- * the film behind it settles from a slight zoom onto the disc already turning.
+ * Limestone. NEXORA sits at the centre and tracks open as the film's real bytes arrive; a hairline grows beneath
+ * it; the five world names cycle. It ends by drawing the hairline in to a point, which travels to where the
+ * screen's one-world circle will be and opens there as an aperture, to exactly that circle's size, onto the first
+ * moment; then the limestone of the intro gives way to the carved screen round it. The circle is one object from
+ * the loader to the hero.
  *
  * Visibility is decided BEFORE first paint by the inline script in Base.astro (`html[data-intro]`), so the hero
  * is never visible for a frame first. Without JS the attribute is never set and this markup never displays.
@@ -49,12 +50,12 @@ import { site } from '../data/site';
   :global(html[data-intro]) .intro {
     display: grid; place-items: center;
     position: fixed; inset: 0; z-index: 300;
-    background: var(--studio); color: var(--bone);
+    background: #ece5d9; color: var(--ink);
   }
   .intro[data-done='true'] { visibility: hidden; pointer-events: none; }
-  .intro__grain { position: absolute; inset: 0; background-image: var(--grain-url); background-size: 180px 180px; opacity: 0.4; mix-blend-mode: overlay; }
+  .intro__grain { position: absolute; inset: 0; background-image: var(--grain-url); background-size: 180px 180px; opacity: 0.32; mix-blend-mode: multiply; }
 
-  .intro__corner { position: absolute; color: var(--bone-soft); opacity: 0; transition: opacity 800ms ease-out 240ms; }
+  .intro__corner { position: absolute; color: var(--ink-soft); opacity: 0; transition: opacity 800ms ease-out 240ms; }
   .intro__corner--tl { inset-block-start: clamp(1.25rem, 4vh, 2.5rem); inset-inline-start: var(--margin); }
   .intro__corner--bl { inset-block-end: clamp(1.25rem, 4vh, 2.5rem); inset-inline-start: var(--margin); }
   .intro__corner--br { inset-block-end: clamp(1.25rem, 4vh, 2.5rem); inset-inline-end: var(--margin); }
@@ -77,21 +78,21 @@ import { site } from '../data/site';
   .intro[data-on='true'] .intro__word { opacity: 1; }
 
   .intro__bar { position: relative; height: 1px; }
-  .intro__track { position: absolute; inset: 0; background: rgba(243, 237, 227, 0.14); transform: scaleX(0); transition: transform 1000ms var(--ease-freeze) 160ms; }
+  .intro__track { position: absolute; inset: 0; background: rgba(28, 27, 46, 0.14); transform: scaleX(0); transition: transform 1000ms var(--ease-freeze) 160ms; }
   .intro[data-on='true'] .intro__track { transform: none; }
-  .intro__fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 100%; background: var(--amber); transform: scaleX(0); transform-origin: left; }
+  .intro__fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 100%; background: var(--amber-deep); transform: scaleX(0); transform-origin: left; }
 
   .intro__foot { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-block-start: 0.85rem; }
 
   /* World names are stacked in one box and cross-faded, so nothing reflows as they change. */
   .intro__worlds { position: relative; display: block; height: 1.3em; flex: 1; min-width: 0; }
-  .intro__world { position: absolute; inset-block-start: 0; inset-inline-start: 0; white-space: nowrap; color: var(--accent, var(--amber)); opacity: 0; transition: opacity 260ms linear; }
+  .intro__world { position: absolute; inset-block-start: 0; inset-inline-start: 0; white-space: nowrap; color: var(--ink); opacity: 0; transition: opacity 260ms linear; }
   .intro__world > span { display: block; transform: translateY(0.45em); transition: transform 460ms var(--ease-freeze); }
   .intro__world[data-on='true'] { opacity: 1; }
   .intro__world[data-on='true'] > span { transform: none; }
-  .intro__world--final { color: var(--bone); }
+  .intro__world--final { color: var(--amber-deep); }
 
-  .intro__pct { color: var(--bone-soft); font-variant-numeric: tabular-nums; }
+  .intro__pct { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
   .intro__pct::after { content: '%'; opacity: 0.4; margin-inline-start: 0.15em; }
 
   /* The close: the hairline draws in to its centre, everything else fades, and a point of light remains. */
@@ -103,17 +104,16 @@ import { site } from '../data/site';
 
   /* The aperture. --r is animated from JS; the mask keeps the field everywhere outside the circle. */
   .intro[data-aperture] {
-    -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--r, 0px), #000 calc(var(--r, 0px) + 1px));
-    mask-image: radial-gradient(circle at 50% 50%, transparent var(--r, 0px), #000 calc(var(--r, 0px) + 1px));
+    -webkit-mask-image: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%), transparent var(--r, 0px), #000 calc(var(--r, 0px) + 1px));
+    mask-image: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%), transparent var(--r, 0px), #000 calc(var(--r, 0px) + 1px));
   }
   .intro__ring {
-    position: fixed; inset-block-start: 50%; inset-inline-start: 50%;
+    position: fixed; inset-block-start: var(--cy, 50%); inset-inline-start: var(--cx, 50%);
     width: calc(var(--r, 1.5px) * 2 + 2px); height: calc(var(--r, 1.5px) * 2 + 2px);
     translate: -50% -50%;
     border-radius: 50%;
-    border: 1px solid #f0bd86;
-    background: radial-gradient(circle, rgba(240, 189, 134, calc(0.9 - var(--open, 0) * 0.9)) 0 40%, transparent 72%);
-    box-shadow: 0 0 22px 1px rgba(224, 164, 107, 0.55), inset 0 0 26px rgba(224, 164, 107, 0.26);
+    border: 1px solid rgba(28, 27, 46, 0.55);
+    background: radial-gradient(circle, rgba(142, 90, 48, calc(0.9 - var(--open, 0) * 0.9)) 0 40%, transparent 72%);
     opacity: 0; pointer-events: none;
   }
   .intro[data-close] .intro__ring { opacity: var(--ring, 1); transition: opacity 260ms linear 420ms; }

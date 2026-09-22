@@ -13,7 +13,7 @@ export const TITLE_STOP = WORLD_COUNT + 1;
 export const LEG_COUNT = TITLE_STOP;
 
 /** Seconds per leg at natural speed. */
-export const LEG_SECONDS = { entry: 4.6, sector: 4.0, exit: 2.8 };
+export const LEG_SECONDS = { entry: 3.4, sector: 3.2, exit: 2.8 };
 
 export type LegKind = 'entry' | 'sector' | 'exit';
 export interface Leg { kind: LegKind; seconds: number }

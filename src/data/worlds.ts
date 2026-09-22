@@ -21,7 +21,7 @@ export interface World {
   alt: string;
   /** What is caught mid-air — used in captions. */
   frozen: string;
-  /** Describes the hero's live 3D moment for assistive tech (the `alt` above describes the rendered stills). */
+  /** Describes the hero's frozen moment, seen through the screen (the `alt` above describes the older rendered stills). */
   moment: string;
   /** object-position for wide crops of the reference still. */
   focus: string;
@@ -40,7 +40,7 @@ export const worlds: World[] = [
     linkLabel: 'Hospitality staffing',
     alt: 'A waiter frozen mid-pour at a candle-lit table, the stream of liquid suspended in the air.',
     frozen: 'a pour, suspended',
-    moment: 'A brass dallah tipped in mid-air over a porcelain cup, a stream of golden coffee held still between them, cardamom hanging where it was thrown.',
+    moment: 'A man in a white thobe pours Arabic coffee from a silver dallah into a small cup, the stream held in the air.',
     focus: '70% 50%',
   },
   {
@@ -55,7 +55,7 @@ export const worlds: World[] = [
     linkLabel: 'Event workforce',
     alt: 'An event host frozen while handing a lanyard to a guest, the ribbon curved in mid-air between their hands.',
     frozen: 'a lanyard, mid-handover',
-    moment: 'A lanyard flung across the air, its host badge turning at the end, a burst of violet and silver confetti frozen around it under a stage beam.',
+    moment: 'Two hosts at a conference registration desk, badges on lanyards, handing a guest her programme.',
     focus: '73% 50%',
   },
   {
@@ -70,7 +70,7 @@ export const worlds: World[] = [
     linkLabel: 'Facilities staffing',
     alt: 'A housekeeping attendant frozen while unfolding fresh linen, the white fabric hanging in the air beside a service trolley.',
     frozen: 'linen, mid-fold',
-    moment: 'A white linen sheet held at two corners and caught at the top of a shake, its lower half curling forward, lit from behind, dust hanging in a shaft of light.',
+    moment: 'A housekeeper in a hotel room, caught lifting a white sheet over the bed as she makes it.',
     focus: '76% 50%',
   },
   {
@@ -85,7 +85,7 @@ export const worlds: World[] = [
     linkLabel: 'Technical workforce',
     alt: 'A technician kneeling at an open equipment panel, frozen mid-adjustment with a cable hanging in the air.',
     frozen: 'a connection, mid-adjustment',
-    moment: 'Two cable ends reaching for each other, not yet touching, a burst of orange sparks frozen between them, a spanner and bolts turning slowly nearby.',
+    moment: 'A technician in overalls and a hard hat kneels at an open electrical panel, checking it against his notes.',
     focus: '78% 50%',
   },
   {
@@ -100,7 +100,7 @@ export const worlds: World[] = [
     linkLabel: 'Recruitment',
     alt: 'A recruiter frozen while passing a document across a desk to a candidate, the page floating between their hands.',
     frozen: 'a document, mid-air',
-    moment: 'Papers lifted into the air around an offer being signed, a fountain pen with no hand on it still writing, drops of ink hanging where they flew.',
+    moment: 'Two people shake hands across a desk, papers and a laptop between them.',
     focus: '72% 50%',
   },
 ];
@@ -111,5 +111,5 @@ export const overview = {
   label: 'Workforce solutions — Doha, Qatar',
   headline: ['One world.', 'Many workforces.'],
   support: 'Hospitality, events, facilities, technical and recruitment teams from one Qatar-based partner.',
-  alt: 'Five moments held still in the air, floating in a ring over night water around a lantern: a pour, a thrown lanyard, linen mid-shake, sparks between two cables, and a signature being written.',
+  alt: 'A carved limestone screen in the sun; a circle of it stands open onto a man pouring Arabic coffee, the first of five moments of work held in time behind it.',
 };

@@ -1,0 +1,20 @@
+// The hero's static reading (reduced motion): full-page screenshots of its six sections.  node .qa/pw/static5.mjs [profile]
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { PROFILES, OUT } from './lib.mjs';
+const require = createRequire('C:/Users/aswin/.claude/skills/gstack/node_modules/');
+const { chromium } = require('playwright');
+const profile = process.argv[2] || 'desktop';
+const browser = await chromium.launch();
+const p = { ...PROFILES[profile], reducedMotion: 'reduce' }; delete p.defaultBrowserType;
+const ctx = await browser.newContext(p);
+const page = await ctx.newPage();
+await page.goto('http://localhost:4321/', { waitUntil: 'load' });
+await page.waitForTimeout(1500);
+const h = await page.evaluate(() => document.querySelector('[data-hero]').getBoundingClientRect().height);
+await page.evaluate(() => document.querySelectorAll('img[loading="lazy"]').forEach((i) => { i.loading = 'eager'; }));
+await page.waitForTimeout(1500);
+const f = path.join(OUT, `static5-${profile}.png`);
+await page.screenshot({ path: f, clip: { x: 0, y: 0, width: page.viewportSize().width, height: Math.round(h) }, fullPage: true });
+console.log(f, Math.round(h));
+await browser.close();

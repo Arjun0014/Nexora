@@ -1,13 +1,13 @@
 # Nexora — website
 
 Website for **Nexora Hospitality and Services W.L.L.** (Doha, Qatar · CR 250993).
-A real-time 3D hero — five moments of service held in time over night water, *One world, many workforces* —
-and then one continuous scroll film,
+A living hero — a carved limestone mashrabiya in the Doha sun, and behind it five moments of work held in time,
+*One world, many workforces* — and then one continuous scroll film,
 from night into a Doha day and back to dusk, with two conversion paths: employers request workforce,
 candidates register a CV.
 
 Static site · Astro 7 · TypeScript · no UI framework · GSAP (ScrollTrigger, SplitText, CustomEase) + Lenis
-(~83 KB of JS, ~19 KB of CSS, gzipped) · the hero: three.js + postprocessing, lazy-loaded (241 KB gzipped).
+(~83 KB of JS, ~19 KB of CSS, gzipped) · the hero: one fragment shader on three.js core, lazy-loaded.
 
 ```
 npm install
@@ -60,17 +60,18 @@ promises, payroll/EOR/visa/healthcare claims, or construction — see
 ```
 media/                       approved originals — never modified (hero/, clouds/, stock/ + stock/SOURCES.md)
 nexora_website_context/      the brief
-docs/redesign/               CURRENT: 04-HERO-V4 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (everything after it)
+docs/redesign/               CURRENT: 05-HERO-V5 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (everything after it)
 docs/implementation/         session 1. 04 (the hero) still applies
 scripts/build-media.mjs      diorama originals → public/media/hero (still used by the Held scene)
-scripts/build-hero4.mjs      stills rendered from the live hero → public/media/hero4 + og.jpg
+scripts/build-hero5.mjs      the hero's five moments: frame, retouch, crop, grade, depth map → public/media/hero5
+scripts/depth.mjs            depth maps (Depth Anything V2 small, local), called by build-hero5
 scripts/build-stock.mjs      stock originals → public/media/stock, graded to one look (manifest: src/data/stock.json)
 scripts/build-clouds.mjs     cloud originals → public/media/clouds (+ copies tinted to the grounds)
 scripts/build-wordmark.mjs   font outline → src/data/wordmark.json, public/wordmark.svg, favicon
 scripts/build-words.mjs      outlines the gate words → src/data/words.json
 src/data/                    ALL copy and configuration (content.ts, worlds.ts, site.ts, stock.json)
 src/components/hero/         the film's markup and CSS
-src/scripts/hero/world/      the hero's 3D world: environment, dial, five moments, names, cloth simulation
+src/scripts/hero/screen/     the hero's screen: one fragment shader and the choreography that drives it
 src/components/scenes/       the homepage scenes: Portal, Held, Workforces, Sectors, Engagement, Expect,
                              Employers, Candidates, Closing (subpages)
 src/scripts/core/            motion (the eases), scroll (Lenis), ticker, env
@@ -82,30 +83,30 @@ src/pages/                   index, services, industries, about, request, career
 
 ## The hero in one paragraph
 
-The hero is drawn live in WebGL: five moments of service (a pour, a thrown lanyard, linen mid-shake, sparks
-between two cables, a signature) frozen in the air above an engraved bronze dial, over night water, with Doha on
-the horizon. **One gesture — a wheel notch, a trackpad flick, a swipe, an arrow key — plays one leg:** time runs,
-the moment finishes, the camera walks through a lattice wall to the next one, which freezes on its key frame; the
-reverse plays it backwards. Gestures that arrive mid-leg are queued (up to two) and chain without a pause. The
-playhead only ever rests on a stop, so the film can never be left between states. The pointer turns the camera
-around a frozen moment. It ends on the title card, unchanged: NEXORA knocked out of black, scaled down from inside
-the X, the lit dial showing through the letters; from there the page scrolls natively, and scrolling back to the
-top re-enters the film at that title card. A reload always starts at the top, and the intro runs on every load
-while the world is built. Full detail: `docs/redesign/04-HERO-V4.md`.
+The hero is drawn live by one fragment shader: a limestone mashrabiya — the Gulf's latticed screen, which lets the
+light through and keeps the people behind it unseen — fills the frame in the Doha sun. A circle of it stands open,
+the one world, onto the first of five moments of work held in time (a pour of gahwa, a registration desk, a sheet
+lifted over a bed, a technician at a panel, a handshake); the pointer is a lens that opens the screen wherever you
+look. **One gesture — a wheel notch, a trackpad flick, a swipe, an arrow key — plays one leg:** the circle opens into
+an arch; then the camera walks along the screen, each window closing to points of light as it leaves and the next
+opening as it arrives; at a moment, the pointer leans round it (depth from the photo). Gestures that arrive mid-leg are
+queued (up to two). It ends on the title card, unchanged: NEXORA closes in from inside the X, and its letters open onto
+all five workforces at once. From there the page scrolls natively; scrolling back to the top re-enters at the title
+card. A reload always starts at the top, and the intro (limestone, real loading progress) ends by opening exactly
+where the one-world circle is. Full detail: `docs/redesign/05-HERO-V5.md`.
 
 Three rendering modes are chosen **before first paint** (inline script in `src/layouts/Base.astro`):
 
 | Mode | When | Hero |
 |---|---|---|
-| `cinema` | JS on, motion allowed, network OK, WebGL2 | the live film, after a 5–7.5 s intro that really builds it and ends through a circular aperture |
-| static | reduced motion · Save-Data / 2g–3g · footer “Reduce motion” toggle · no WebGL2 | six ordinary sections with stills rendered from the world; the 3D code is never loaded; no intro |
+| `cinema` | JS on, motion allowed, network OK, WebGL2 | the live screen, after a 5–7.5 s intro that ends through the one-world circle |
+| static | reduced motion · Save-Data / 2g–3g · footer “Reduce motion” toggle · no WebGL2 | six ordinary sections on limestone: the moments in a circle and in arches; the shader is never loaded; no intro |
 | no-JS | scripting off | same as static; header scrolls away; the stack is a list; gates set their word as type |
 
 QA switches: `?nointro` skips the intro · `?stop=N` boots the hero onto stop N (0–6) · `?qa` exposes
-`window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop, `world.timings`) ·
-`?qa-nowords` renders without the monumental names (for the stills) · `[data-hero]` exposes `data-mode`
-(`film | rest`) and `data-stop`. Judge visual changes in a real GPU window (`.qa/pw/gpu-*.mjs`, `motion.mjs`):
-headless Chromium renders in software and hid a black-canvas bug once.
+`window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop, `world.timings`) · `[data-hero]`
+exposes `data-mode` (`film | rest`), `data-stop` and `data-bg`. Judge visual changes in a real GPU window
+(`.qa/pw/hero5-shots.mjs`, `motion.mjs`): headless Chromium renders in software.
 
 ## The site after the hero
 
@@ -141,7 +142,8 @@ npm run wordmark      # NEXORA outline → wordmark.json, wordmark.svg, favicon
 npm run words         # gate word outlines → words.json
 npm run stock         # stock derivatives (add a photo: put it in media/stock, list it in src/data/stock.json)
 npm run clouds        # cloud derivatives
-node .qa/pw/stills.mjs && node scripts/build-hero4.mjs   # re-render the hero's stills (dev server + a GPU)
+node scripts/build-hero5.mjs [--force]   # the hero's moments (ffmpeg; first run downloads the depth model)
+node .qa/pw/og5.mjs                      # the social image, from the live first screen (dev server + a GPU)
 ```
 
 Key facts baked into the pipeline (measured, see `docs/implementation/04`): the `*-final.png` stills are **not**

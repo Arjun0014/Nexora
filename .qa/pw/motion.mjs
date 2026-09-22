@@ -17,7 +17,7 @@ const every = Number(process.argv[6] || 300);
 // optional 7th arg: a full URL to record from navigation (no qa hooks, e.g. the intro on the production build)
 const fromUrl = process.argv[7] || '';
 
-const browser = await chromium.launch({ headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--autoplay-policy=no-user-gesture-required', '--window-position=0,0'] });
+const browser = await chromium.launch({ headless: false, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--force_high_performance_gpu', '--autoplay-policy=no-user-gesture-required', '--window-position=0,0'] });
 const p = { ...PROFILES[profile] }; delete p.defaultBrowserType;
 const ctx = await browser.newContext(p);
 const page = await ctx.newPage();
@@ -35,7 +35,7 @@ if (fromUrl) {
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 70, maxWidth: vp.width, maxHeight: vp.height, everyNthFrame: 1 });
   await page.goto(fromUrl, { waitUntil: 'commit' });
 } else {
-  await page.goto('http://localhost:4321/?nointro&qa', { waitUntil: 'load' });
+  await page.goto('http://localhost:4321/?nointro&qa' + (process.env.MOTION_QS || ''), { waitUntil: 'load' });
   await page.waitForFunction(() => !!window.__hero && window.__hero.world, null, { timeout: 60000 });
   await page.waitForTimeout(1500);
 }

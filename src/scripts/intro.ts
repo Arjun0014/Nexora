@@ -8,9 +8,9 @@
  *
  *   shown = max( monotonic, min(real, elapsed / MIN_MS), force )   force = (elapsed - MIN_MS) / (MAX_MS - MIN_MS)
  *
- * The ending (brief #2): the hairline draws in to a point of light; the point opens as a circular aperture with
- * a lit rim and dives out past the corners (ERA Residence's arch dive, drawn with our disc), while the film
- * behind settles from 1.14x to rest, so the reveal reads as a camera arriving rather than a curtain lifting.
+ * The ending: the hairline draws in to a point, which travels to where the screen's one-world circle is and opens
+ * there, to exactly its size, onto the first moment; then the intro's limestone gives way to the carved screen round
+ * it. The circle is one object from the loader to the hero (v5, docs/redesign/05-HERO-V5.md).
  */
 import { gsap } from 'gsap';
 import { $, $$, clamp } from './core/env';
@@ -38,7 +38,6 @@ export function initIntro() {
 
   // Nothing behind the intro may scroll or take focus while it is up.
   html.style.overflow = 'hidden';
-  if (media) gsap.set(media, { scale: 1.14, transformOrigin: '50% 50%' });
 
   const finish = () => {
     delete html.dataset.intro;
@@ -51,20 +50,27 @@ export function initIntro() {
 
   const reveal = () => {
     root.dataset.close = '';
-    const far = Math.hypot(innerWidth, innerHeight) / 2 + 60;
-    const state = { r: 1.5, open: 0 };
+    // Where the screen's one-world circle is (published by the hero's world as it lays itself out).
+    const hero = $('[data-hero]');
+    const cs = hero ? getComputedStyle(hero) : null;
+    const px = (k: string, d: number) => { const v = cs ? parseFloat(cs.getPropertyValue(k)) : NaN; return Number.isFinite(v) ? v : d; };
+    const target = { x: px('--circle-x', innerWidth / 2), y: px('--circle-y', innerHeight / 2), r: px('--circle-r', Math.min(innerWidth, innerHeight) * 0.3) };
+    const state = { r: 1.5, open: 0, x: innerWidth / 2, y: innerHeight / 2 };
     const paint = () => {
       root.style.setProperty('--r', `${state.r.toFixed(2)}px`);
       root.style.setProperty('--open', state.open.toFixed(3));
-      root.style.setProperty('--ring', String(1 - clamp((state.r / far - 0.72) / 0.28)));
+      root.style.setProperty('--cx', `${state.x.toFixed(1)}px`);
+      root.style.setProperty('--cy', `${state.y.toFixed(1)}px`);
     };
+    paint();
     gsap.timeline({ delay: 0.72, onComplete: finish })
       .add(() => { root.dataset.aperture = ''; })
-      // A breath: the point swells into a small lit circle, the disc just visible inside it.
-      .to(state, { r: Math.min(innerWidth, innerHeight) * 0.09, open: 1, duration: 0.7, ease: EASE.out, onUpdate: paint })
-      // The dive: slow to leave, then out past the corners.
-      .to(state, { r: far, duration: 1.25, ease: EASE.dive, onUpdate: paint }, '>-0.08')
-      .to(media, { scale: 1, duration: 1.6, ease: EASE.inOut }, '<-0.2');
+      // The point of light travels to where the one world will be, swelling a little on the way.
+      .to(state, { x: target.x, y: target.y, r: 6, open: 0.4, duration: 0.8, ease: EASE.inOut, onUpdate: paint })
+      // It opens, to exactly the circle's size: the first moment, seen through it.
+      .to(state, { r: target.r, open: 1, duration: 1.1, ease: EASE.dive, onUpdate: paint })
+      // The limestone of the intro gives way to the carved screen round the circle.
+      .to(root, { opacity: 0, duration: 0.8, ease: 'none' }, '>-0.05');
   };
 
   // ── counting ────────────────────────────────────────────────────────────────────────────
