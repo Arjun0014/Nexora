@@ -22,12 +22,12 @@ const vp = p.viewport;
 const log = [];
 for (let i = 0; i < 8; i++) {
   await finger(cdp, 260, { x: Math.round(vp.width / 2), y: Math.round(vp.height * 0.7), steps: 10, ms: 16 });
-  await page.waitForTimeout(i < 6 ? 5200 : 1500);
+  await page.waitForTimeout(i < 6 ? 4000 : 1500);
   const s = await page.evaluate(() => ({ p: window.__hero.p, y: Math.round(scrollY) }));
   log.push(`swipe ${i + 1}: p=${s.p} scrollY=${s.y}`);
   await page.screenshot({ path: path.join(OUT, `touch-${profile}-${i + 1}.png`) });
 }
 console.log(log.join('\n'));
-console.log('quality', await page.evaluate(() => window.__hero.world.quality), 'timings', JSON.stringify(await page.evaluate(() => window.__hero.world.timings)));
+console.log('timings', JSON.stringify(await page.evaluate(() => window.__hero.world.timings)));
 if (errors.length) console.log('ERRORS\n' + errors.join('\n'));
 await browser.close();

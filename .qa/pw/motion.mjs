@@ -45,7 +45,7 @@ fs.rmSync(dir, { recursive: true, force: true });
 fs.mkdirSync(dir, { recursive: true });
 if (!fromUrl) await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 70, maxWidth: vp.width, maxHeight: vp.height, everyNthFrame: 1 });
 await page.mouse.move(vp.width * 0.6, vp.height * 0.5);
-await page.waitForTimeout(400);
+await page.waitForTimeout(400 + Number(process.env.MOTION_DELAY || 0)); // MOTION_DELAY: let the intro finish first
 const t0 = Date.now();
 if (steps === 0) await page.waitForTimeout(perStep * 1000); // just watch
 for (let i = 0; i < steps; i++) {

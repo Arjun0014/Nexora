@@ -21,7 +21,7 @@ import {
 } from 'three';
 import { SCREEN_FRAG, SCREEN_VERT } from './shader';
 import { locate, TITLE_STOP, buildLegs } from '../timeline';
-import manifest from '../../../data/hero5.json';
+import { worlds } from '../../../data/worlds';
 import wordmark from '../../../data/wordmark.json';
 
 export type Quality = 'high' | 'medium' | 'low';
@@ -33,7 +33,7 @@ export interface Frame {
   pointer: { x: number; y: number; active: boolean };
 }
 
-const WORLDS = manifest.worlds.map((w) => w.id);
+const WORLDS = worlds.map((w) => w.id); // the order of the film (and of public/media/hero5)
 const SUN = new Vector3(0.55, 0.52, -0.66).normalize();
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ss = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -158,10 +158,12 @@ export class World {
     if (portrait) {
       const top = header + H * 0.02;
       const w = W - margin * 2;
-      // the words need about 45% of the height under the window, whatever the phone
+      // the words need about 45% of the height under the window, whatever the phone; the arch stays upright (a wide
+      // tablet does not get a squat dome), the circle may use the full width
       const h = Math.min(H * 0.41, w * 1.16);
-      const arch = { x: W / 2, y: top + h / 2, w, h };
-      return { portrait, arch, circle: { x: W / 2, y: arch.y + h * 0.03, r: Math.min(w * 0.46, h * 0.5) }, bay: (w + margin * 2) / H };
+      const aw = Math.min(w, h * 0.9);
+      const arch = { x: W / 2, y: top + h / 2, w: aw, h };
+      return { portrait, arch, circle: { x: W / 2, y: arch.y + h * 0.03, r: Math.min(w * 0.46, h * 0.5) }, bay: (W * 0.8) / H };
     }
     const top = header + H * 0.04;
     const bottom = H * 0.94;

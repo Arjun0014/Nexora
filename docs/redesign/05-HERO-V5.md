@@ -84,8 +84,11 @@ shader (no postprocessing, no cloth worker).
 
 Media (`scripts/build-hero5.mjs`, manifest `src/data/hero5.json`, credits `media/hero5/SOURCES.md`):
 frames pulled from 4K clips (hospitality 2.2 s, facilities 4.15 s) or photos; third-party marks painted out
-(normalised-convolution inpainting; claim safety); a 0.9:1 crop round the action (the windows are upright); the
-site's grade; a depth map from **Depth Anything V2 small**, run locally through transformers.js in a child process
+(claim safety; `scripts/retouch.mjs`: each mark is masked by its ink, not by a rectangle, so the helmet's outline and
+the wall behind a shoulder survive; refilled by solving Laplace's equation from the ground round it, with the ground's
+grain put back; `.qa/pw/retouch-check.mjs` shows every patch before and after); a 0.9:1 crop round the action (the
+windows are upright); the site's grade; a depth map from **Depth Anything V2 small**, run locally through
+transformers.js in a child process
 (`scripts/depth.mjs`; it bundles its own sharp, which cannot share a process with the project's). Output:
 `public/media/hero5/<id>-{1400,900}.webp`, `-1400.avif`, `-depth.webp` (~1.1 MB for all five at 1400).
 
@@ -118,7 +121,8 @@ through the word. `public/media/og.jpg` is the first screen (rendered by `.qa/pw
 
 `hero5-shots.mjs <tag> <profile> p…` (GPU stills at playhead positions; `HERO_POINTER=x,y` moves the pointer),
 `motion.mjs` (real wheel input, screencast; `MOTION_QS=&stop=5` to start elsewhere; 7th arg = URL for the intro),
-`static5.mjs` (the reduced-motion reading), `og5.mjs` (the social image).
+`static5.mjs` (the reduced-motion reading), `og5.mjs` (the social image), `hero5-audit.mjs` (every stop on eleven
+screen profiles: the words fully on screen and clear of the window), `retouch-check.mjs` (the paint-outs).
 
 ## 9. Open
 

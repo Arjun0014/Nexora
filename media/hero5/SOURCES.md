@@ -15,9 +15,11 @@ All under the **Pexels License** (free to use and modify, no attribution require
 | Specialist & Technical | `src/px-39174676.jpg` | https://www.pexels.com/photo/39174676/ | Vyvan BÙI VY VÂN | an engineer inspecting an electrical panel |
 | Recruitment & Workforce | `src/px-5673488.jpg` | https://www.pexels.com/photo/5673488/ | Sora Shimazaki | a handshake over a desk |
 
-Retouching (claim safety: no third-party names or logos on the site): on the technical photograph the lettering on
-the helmet and on the back of the uniform (a utility company's name) is painted out in the build
-(`retouch` in the manifest).
+Retouching (claim safety: no third-party names or logos on the site): on the technical photograph the build paints
+out a utility company's name on the helmet and on the back of the uniform, the helmet maker's sticker, and the
+equipment makers' names and logos in the panel (both contactors, the soft starter). `retouch` in the manifest; the
+method is `scripts/retouch.mjs` (masks keyed on the ink, a harmonic fill, the ground's grain); check every patch
+before and after with `node .qa/pw/retouch-check.mjs`.
 
 Chosen for Qatar: modest dress, no alcohol (the pour is gahwa), people shown at work with dignity.
 Replace any of them with the client's own photography by dropping a file in `src/` and editing the manifest.

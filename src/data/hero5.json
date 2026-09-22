@@ -1,5 +1,5 @@
 {
-  "_": "The hero's five frozen moments (docs/redesign/05-HERO-V5.md). Originals in media/hero5/src (for the two clips: the frame used, pulled at full 4K) (Pexels License, see media/hero5/SOURCES.md); built by scripts/build-hero5.mjs into public/media/hero5. focus = the point of the action in the source frame (0..1); zoom < 1 crops in; retouch = marks removed from the original (third-party names and logos), dark = dark marks on a light ground.",
+  "_": "The hero's five frozen moments (docs/redesign/05-HERO-V5.md). Originals in media/hero5/src (for the two clips: the frame used, pulled at full 4K) (Pexels License, see media/hero5/SOURCES.md); built by scripts/build-hero5.mjs into public/media/hero5. focus = the point of the action in the source frame (0..1); zoom < 1 crops in; retouch = marks painted out of the original (third-party names and logos), keyed on their ink (scripts/retouch.mjs).",
   "worlds": [
     {
       "id": "hospitality",
@@ -44,20 +44,14 @@
       "zoom": 1.0,
       "exposure": 1.04,
       "retouch": [
-        {
-          "x": 1015,
-          "y": 440,
-          "w": 250,
-          "h": 170,
-          "mode": "dark"
-        },
-        {
-          "x": 720,
-          "y": 1040,
-          "w": 170,
-          "h": 330,
-          "mode": "light"
-        }
+        { "x": 1012, "y": 440, "w": 256, "h": 165, "ink": "blue", "_": "the helmet: a utility's name, the maker's sticker" },
+        { "x": 712, "y": 1036, "w": 186, "h": 340, "ink": "white", "keep": "grey", "_": "the back of the uniform: the utility's name" },
+        { "x": 1708, "y": 149, "w": 48, "h": 21, "ink": ["dark", "blue"], "t": { "dark": 28, "blue": 16 }, "grow": 3, "_": "upper contactor: maker's name" },
+        { "x": 1709, "y": 272, "w": 46, "h": 12, "ink": "dark", "t": { "dark": 22 }, "grow": 2, "_": "upper contactor: maker's logo line" },
+        { "x": 1933, "y": 776, "w": 49, "h": 12, "ink": ["dark", "blue"], "t": { "dark": 28, "blue": 16 }, "grow": 3, "_": "lower contactor: maker's name" },
+        { "x": 1933, "y": 883, "w": 42, "h": 13, "ink": "dark", "t": { "dark": 22 }, "grow": 2, "_": "lower contactor: maker's logo line" },
+        { "x": 1610, "y": 775, "w": 22, "h": 6, "ink": "light", "grow": 1, "_": "soft starter: maker's logo" },
+        { "x": 1667, "y": 775, "w": 14, "h": 6, "ink": "light", "grow": 1, "_": "soft starter: model name" }
       ]
     },
     {
