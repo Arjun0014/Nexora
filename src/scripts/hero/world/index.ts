@@ -20,7 +20,7 @@ import {
   BlendFunction, BloomEffect, ChromaticAberrationEffect, EffectComposer, EffectPass, NoiseEffect, RenderPass,
   SMAAEffect, SMAAPreset, ToneMappingEffect, ToneMappingMode, VignetteEffect,
 } from 'postprocessing';
-import { buildEnvironment, makeEnvMap, R } from './env';
+import { buildEnvironment, HUB_Y, makeEnvMap, R } from './env';
 import { DIAL, makeDial, makeRipple } from './dial';
 import { makeMaterials } from './materials';
 import { camEase, clamp01, easeOut, fontsReady, mix, sstep } from './kit';
@@ -306,6 +306,8 @@ export class World {
       if (this.portrait) { wd.mesh.scale.setScalar(0.74); wd.mesh.position.set(0, two ? 1.08 : 1.2, -1.95); }
       else { wd.mesh.scale.setScalar(1); wd.mesh.position.set(-0.62, two ? 0.44 : 0.64, -1.95); }
     });
+    // an upright frame sees higher: lift the lantern out of it (it hung behind the header as a bright dot)
+    this.env.hub.group.position.y = this.portrait ? 6.4 : HUB_Y;
     this.applySize();
   }
 

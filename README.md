@@ -1,12 +1,13 @@
 # Nexora — website
 
 Website for **Nexora Hospitality and Services W.L.L.** (Doha, Qatar · CR 250993).
-A cinematic, gesture-stepped hero — *One world, many workforces* — and then one continuous scroll film,
+A real-time 3D hero — five moments of service held in time over night water, *One world, many workforces* —
+and then one continuous scroll film,
 from night into a Doha day and back to dusk, with two conversion paths: employers request workforce,
 candidates register a CV.
 
 Static site · Astro 7 · TypeScript · no UI framework · GSAP (ScrollTrigger, SplitText, CustomEase) + Lenis
-(~79 KB of JS, ~19 KB of CSS, gzipped).
+(~83 KB of JS, ~19 KB of CSS, gzipped) · the hero: three.js + postprocessing, lazy-loaded (241 KB gzipped).
 
 ```
 npm install
@@ -59,15 +60,17 @@ promises, payroll/EOR/visa/healthcare claims, or construction — see
 ```
 media/                       approved originals — never modified (hero/, clouds/, stock/ + stock/SOURCES.md)
 nexora_website_context/      the brief
-docs/redesign/               CURRENT: 02-DIRECTION-V3 (decisions), 03-BUILD-V3 (engineering). 00/01 = session 2, superseded
+docs/redesign/               CURRENT: 04-HERO-V4 (the hero), 02-DIRECTION-V3 + 03-BUILD-V3 (everything after it)
 docs/implementation/         session 1. 04 (the hero) still applies
-scripts/build-media.mjs      hero originals → public/media + src/data/media-manifest.json
+scripts/build-media.mjs      diorama originals → public/media/hero (still used by the Held scene)
+scripts/build-hero4.mjs      stills rendered from the live hero → public/media/hero4 + og.jpg
 scripts/build-stock.mjs      stock originals → public/media/stock, graded to one look (manifest: src/data/stock.json)
 scripts/build-clouds.mjs     cloud originals → public/media/clouds (+ copies tinted to the grounds)
 scripts/build-wordmark.mjs   font outline → src/data/wordmark.json, public/wordmark.svg, favicon
 scripts/build-words.mjs      outlines the gate words → src/data/words.json
 src/data/                    ALL copy and configuration (content.ts, worlds.ts, site.ts, stock.json)
 src/components/hero/         the film's markup and CSS
+src/scripts/hero/world/      the hero's 3D world: environment, dial, five moments, names, cloth simulation
 src/components/scenes/       the homepage scenes: Portal, Held, Workforces, Sectors, Engagement, Expect,
                              Employers, Candidates, Closing (subpages)
 src/scripts/core/            motion (the eases), scroll (Lenis), ticker, env
@@ -79,27 +82,30 @@ src/pages/                   index, services, industries, about, request, career
 
 ## The hero in one paragraph
 
-The idle loop is a `<video>` drawn into a canvas. **One gesture — a wheel notch, a trackpad flick, a swipe, an
-arrow key — plays one whole transition** at the footage's own 24 fps to the next frozen world; the reverse plays
-it backwards. Gestures that arrive mid-transition are queued (up to two), speed the playback up and chain
-without a pause. The playhead only ever rests on a stop, so the film can never be left between states, and it is
-clamped to the frames that have actually arrived, so a slow network makes it lag rather than flash. The entry
-clip is joined 20 frames in (0.8 s), just as the spin starts, through a 340 ms cross-fade from the loop. It ends on a
-title card: NEXORA knocked out of black, scaled down from inside the X; from there the page scrolls natively,
-and scrolling back to the top re-enters the film at that title card. A reload always starts at the top, and the
-intro runs on every load. Full detail:
-`docs/redesign/01-BUILD.md` §1 and `docs/implementation/04-HERO-IMPLEMENTATION.md`.
+The hero is drawn live in WebGL: five moments of service (a pour, a thrown lanyard, linen mid-shake, sparks
+between two cables, a signature) frozen in the air above an engraved bronze dial, over night water, with Doha on
+the horizon. **One gesture — a wheel notch, a trackpad flick, a swipe, an arrow key — plays one leg:** time runs,
+the moment finishes, the camera walks through a lattice wall to the next one, which freezes on its key frame; the
+reverse plays it backwards. Gestures that arrive mid-leg are queued (up to two) and chain without a pause. The
+playhead only ever rests on a stop, so the film can never be left between states. The pointer turns the camera
+around a frozen moment. It ends on the title card, unchanged: NEXORA knocked out of black, scaled down from inside
+the X, the lit dial showing through the letters; from there the page scrolls natively, and scrolling back to the
+top re-enters the film at that title card. A reload always starts at the top, and the intro runs on every load
+while the world is built. Full detail: `docs/redesign/04-HERO-V4.md`.
 
 Three rendering modes are chosen **before first paint** (inline script in `src/layouts/Base.astro`):
 
 | Mode | When | Hero |
 |---|---|---|
-| `cinema` | JS on, motion allowed, network OK | the stepped film, after a 5–7.5 s intro that really preloads it and ends through a circular aperture |
-| static | reduced motion · Save-Data / 2g–3g · footer “Reduce motion” toggle | six ordinary sections with the high-res stills; loop video never requested; no intro |
+| `cinema` | JS on, motion allowed, network OK, WebGL2 | the live film, after a 5–7.5 s intro that really builds it and ends through a circular aperture |
+| static | reduced motion · Save-Data / 2g–3g · footer “Reduce motion” toggle · no WebGL2 | six ordinary sections with stills rendered from the world; the 3D code is never loaded; no intro |
 | no-JS | scripting off | same as static; header scrolls away; the stack is a list; gates set their word as type |
 
-QA switches: `?nointro` skips the intro · `?stop=N` boots the hero onto stop N (0–6) ·
-`[data-hero]` exposes `data-mode` (`idle | film | dip`) and `data-stop`.
+QA switches: `?nointro` skips the intro · `?stop=N` boots the hero onto stop N (0–6) · `?qa` exposes
+`window.__hero` (`set(p)` parks the playhead anywhere, `go(n)` plays to a stop, `world.timings`) ·
+`?qa-nowords` renders without the monumental names (for the stills) · `[data-hero]` exposes `data-mode`
+(`film | rest`) and `data-stop`. Judge visual changes in a real GPU window (`.qa/pw/gpu-*.mjs`, `motion.mjs`):
+headless Chromium renders in software and hid a black-canvas bug once.
 
 ## The site after the hero
 
@@ -135,6 +141,7 @@ npm run wordmark      # NEXORA outline → wordmark.json, wordmark.svg, favicon
 npm run words         # gate word outlines → words.json
 npm run stock         # stock derivatives (add a photo: put it in media/stock, list it in src/data/stock.json)
 npm run clouds        # cloud derivatives
+node .qa/pw/stills.mjs && node scripts/build-hero4.mjs   # re-render the hero's stills (dev server + a GPU)
 ```
 
 Key facts baked into the pipeline (measured, see `docs/implementation/04`): the `*-final.png` stills are **not**
