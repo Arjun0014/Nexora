@@ -1,4 +1,4 @@
-import type { Color, Group, Vector3 } from 'three';
+import type { Color, Group, Light, Vector3 } from 'three';
 import type { Mats } from '../materials';
 import type { WorldId } from '../../../../data/worlds';
 import type { SheetSim } from '../sheet-sim';
@@ -22,6 +22,11 @@ export interface Tableau {
   pose(a: number): void;
   /** Time held under the pointer: particles near `p` (world space) drift by `amount` seconds of their own motion. */
   lens?(p: Vector3 | null, amount: number): void;
+  /**
+   * Lights that belong to the moment but must never be hidden with it (positions in the moment's frame). The world
+   * parents them to the ring: the scene's light count must stay constant, or every shader recompiles.
+   */
+  lights?: Light[];
 }
 
 export interface Ctx {

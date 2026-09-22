@@ -21,7 +21,7 @@ import {
   SMAAEffect, SMAAPreset, ToneMappingEffect, ToneMappingMode, VignetteEffect,
 } from 'postprocessing';
 import { buildEnvironment, makeEnvMap, R } from './env';
-import { DIAL, makeDial } from './dial';
+import { DIAL, makeDial, makeRipple } from './dial';
 import { makeMaterials } from './materials';
 import { camEase, clamp01, easeOut, fontsReady, mix, sstep } from './kit';
 import { makeWord, type Word } from './words';
@@ -62,6 +62,7 @@ const phi = (k: number) => PHI0 - (k * TAU) / 5; // the camera travels to the ri
 const OMEGA = -TAU / 72; // the ring's idle turn: once in 72 s, clockwise seen from above (as the diorama turned)
 const TABLEAU_Y = 1.55;
 const KEY = 0.5, START = 0.14;
+const SPIN_END = 0.7; // the dive: the ring's turn to present the first moment is complete by this point
 const UP = new Vector3(0, 1, 0);
 
 const WORD_COLOR: Record<string, Color> = {
@@ -88,7 +89,9 @@ function orbitLerp(a: Pose, b: Pose, t: number, delta: number, swing = { r: 0, h
     // one end looks at the axis: interpolate the target as a point
     return pose(new Vector3(Math.sin(ang) * r, h, Math.cos(ang) * r), a.tgt.clone().lerp(b.tgt, tt), mix(a.fov, b.fov, t));
   }
-  const tAng = TA.ang + (Math.abs(delta) > 0 ? delta : td) * tt;
+  // the aim takes its OWN shortest way round (in a sector leg that is the same 72° as the camera; on the dive it is
+  // not, and borrowing the camera's angle left the aim short until the last frame snapped it into place)
+  const tAng = TA.ang + td * tt;
   const tr = mix(TA.r, TB.r, tt), th = mix(TA.h, TB.h, tt);
   return pose(new Vector3(Math.sin(ang) * r, h, Math.cos(ang) * r), new Vector3(Math.sin(tAng) * tr, th, Math.cos(tAng) * tr), mix(a.fov, b.fov, t));
 }
@@ -117,7 +120,6 @@ export class World {
   private ringAngle = 0.35;
   private clock = 0;
   private timeScale = 1;
-  private entryDelta: number | null = null;
   private exitDelta: number | null = null;
   private spin: { A: number; D: number } | null = null;
   private prevP = 0;
@@ -125,6 +127,8 @@ export class World {
   private rig = new Vector2();
   private breath = 0;
   private freezePulse = 0;
+  private ripplePulse = 0;
+  private ripple: ReturnType<typeof makeRipple> | null = null;
   private wasMoving = false;
   private lensAmt = 0;
   private ray = new Raycaster();
@@ -134,6 +138,13 @@ export class World {
   private key = new SpotLight(new Color('#ffffff'), 0, 16, 0.5, 0.8, 1.2);
   private moon = new DirectionalLight(new Color('#a9bcdc'), 0);
   private kPos = new Vector3(); private kTgt = new Vector3(); private kCol = new Color(); private tmpV = new Vector3();
+  // idle skip and the frame-rate governor
+  private lastCam = new Float32Array(16);
+  private drawn = false;
+  private times: number[] = [];
+  private dprCeil = Infinity;
+  /** ?qa-nowords: the stills for the static page are rendered without the names (the page sets them as text). */
+  private noWords = new URLSearchParams(location.search).has('qa-nowords');
 
   private constructor(private canvas: HTMLCanvasElement, quality: Quality) {
     this.quality = quality;
@@ -194,16 +205,8 @@ export class World {
     onProgress(0.9);
     await breathe();
     // One real frame through the post chain compiles its (few) programs.
-    const probe = new URLSearchParams(location.search).has('qa');
-    if (probe) {
-      world.renderer.setRenderTarget(world.composer.inputBuffer);
-      world.renderer.render(world.scene, world.camera); world.renderer.getContext().finish(); lap('warmScene');
-      world.renderer.setRenderTarget(null);
-    }
     world.render({ p: 0.5, moving: true, dt: 0.016, pointer: { x: 0, y: 0, active: false } });
-    if (probe) world.renderer.getContext().finish();
     lap('warm');
-    if (probe) { world.render({ p: 0.5, moving: true, dt: 0.016, pointer: { x: 0, y: 0, active: false } }); world.renderer.getContext().finish(); lap('warm2'); }
     hidden.forEach((o) => { o.visible = false; });
     // Open with the first moment just right of front: the turn carries it round toward the camera.
     world.ringAngle = world.frontAngle() + 0.6;
@@ -239,6 +242,8 @@ export class World {
       colors: ['#e9ae62', '#b98ae8', '#78d0c4', '#79aef0', '#6fd2f2'],
     });
     this.ring.add(dial.group);
+    this.ripple = makeRipple();
+    this.ring.add(this.ripple.mesh);
     yield 0.3; await breathe();
 
     const ctx = { mats, quality: this.quality, sheet: await sheet };
@@ -252,6 +257,8 @@ export class World {
       t.group.position.set(Math.cos(f) * R, TABLEAU_Y, Math.sin(f) * R);
       t.group.rotation.y = PHI0 - f;
       this.ring.add(t.group);
+      t.group.updateMatrix();
+      for (const l of t.lights ?? []) { l.position.applyMatrix4(t.group.matrix); this.ring.add(l); }
       // the lattice screen on this moment's right-hand side: folded into the dial while the ring is seen whole,
       // it rises as the camera comes down, so each moment is seen in its own room
       const s = this.env.makeScreen();
@@ -289,10 +296,7 @@ export class World {
     this.w = Math.max(1, Math.round(rect.width)); this.h = Math.max(1, Math.round(rect.height));
     this.portrait = this.w / this.h < 0.9;
     const cap = this.quality === 'high' ? 1.75 : this.quality === 'medium' ? 1.5 : 1;
-    this.dpr = Math.min(devicePixelRatio || 1, cap);
-    this.renderer.setPixelRatio(this.dpr);
-    this.renderer.setSize(this.w, this.h, false);
-    this.composer.setSize(this.w, this.h, false);
+    this.dpr = Math.min(devicePixelRatio || 1, cap, this.dprCeil);
     this.camera.aspect = this.w / this.h;
     this.camera.updateProjectionMatrix();
     // Names: set behind the moment and a little left in a wide frame (the moment sits right of centre); centred,
@@ -302,6 +306,16 @@ export class World {
       if (this.portrait) { wd.mesh.scale.setScalar(0.74); wd.mesh.position.set(0, two ? 1.08 : 1.2, -1.95); }
       else { wd.mesh.scale.setScalar(1); wd.mesh.position.set(-0.62, two ? 0.44 : 0.64, -1.95); }
     });
+    this.applySize();
+  }
+
+  /** Buffers at the current size and pixel ratio (the governor lowers the ratio; a resize keeps what it chose). */
+  private applySize() {
+    this.dprCeil = Math.min(this.dprCeil, this.dpr);
+    this.renderer.setPixelRatio(this.dpr);
+    this.renderer.setSize(this.w, this.h, false);
+    this.composer.setSize(this.w, this.h, false);
+    this.drawn = false;
     const k = this.env.water.userData.reflScale as number;
     this.env.water.getRenderTarget().setSize(Math.round(this.w * this.dpr * k), Math.round(this.h * this.dpr * k));
     (this.env.stars.material as unknown as { uniforms: { uPx: { value: number } } }).uniforms.uPx.value = this.dpr;
@@ -343,7 +357,7 @@ export class World {
   private shot(p: number): Pose {
     const loc = locate(p);
     if (loc.rest) {
-      this.entryDelta = null; this.exitDelta = null;
+      this.exitDelta = null;
       if (loc.stop === 0) return this.overviewPose();
       if (loc.stop === TITLE_STOP) return this.overviewPose(true);
       return this.toWorld(this.sectorPoseRing(loc.stop - 1));
@@ -358,21 +372,21 @@ export class World {
       const B = pose(s.pos.clone().applyAxisAngle(UP, end), s.tgt.clone().applyAxisAngle(UP, end), s.fov);
       const delta = wrapPi(Math.atan2(B.pos.x, B.pos.z) - Math.atan2(A.pos.x, A.pos.z));
       const e = camEase(t);
-      return orbitLerp(A, B, e, delta, { r: 0, h: 0.6 }, camEase(Math.min(1, t * 1.12)));
+      // the aim settles on the moment well before the camera does, so the approach is toward it
+      return orbitLerp(A, B, e, delta, { r: 0, h: 0.6 }, camEase(Math.min(1, t * 1.45)));
     }
     if (leg.kind === 'exit') {
-      this.entryDelta = null;
       const A = this.toWorld(this.sectorPoseRing(4)), B = this.overviewPose(true);
       const raw = wrapPi(Math.atan2(B.pos.x, B.pos.z) - Math.atan2(A.pos.x, A.pos.z));
       this.exitDelta = this.exitDelta === null ? raw : this.exitDelta + wrapPi(raw - this.exitDelta);
       const e = camEase(t);
       return orbitLerp(A, B, e, this.exitDelta, { r: 0, h: 0.8 }, camEase(Math.min(1, t * 1.2)));
     }
-    this.entryDelta = null; this.exitDelta = null;
+    this.exitDelta = null;
     const from = loc.leg - 1;
     const A = this.toWorld(this.sectorPoseRing(from)), B = this.toWorld(this.sectorPoseRing(from + 1));
     const e = camEase(t);
-    // atan2(x, z) grows with k, so the next moment is +72° around the ring: the camera tracks to its right
+    // atan2(x, z) grows with k, so the next moment is +72° around the ring: the camera tracks to its right.
     // Halfway round, the camera swings in through the lattice wall between the two moments, and turns to look
     // along its path as it does, so it meets the wall face-on and goes through it: that is the wipe.
     const sh = orbitLerp(A, B, e, TAU / 5, { r: this.portrait ? -2.6 : -2.4, h: 0.28 }, e);
@@ -433,7 +447,8 @@ export class World {
           this.spin = { A, D: sgn * (0.45 + ((((front - lead) * sgn) % TAU) + TAU) % TAU) };
         } else this.spin = { A: this.ringAngle - sgn * 0.55, D: sgn * 0.55 };
       }
-      const t = loc.local, m0 = Math.min(3, (OMEGA * this.legs[0].seconds) / this.spin.D);
+      // The turn is done by SPIN_END of the dive, so the first moment is in place (and in frame) for the approach.
+      const t = Math.min(1, loc.local / SPIN_END), m0 = Math.min(3, (OMEGA * this.legs[0].seconds * SPIN_END) / this.spin.D);
       this.ringAngle = this.spin.A + this.spin.D * ((t * t * t - 2 * t * t + t) * m0 + (-2 * t * t * t + 3 * t * t));
     } else {
       this.spin = null;
@@ -449,25 +464,39 @@ export class World {
     const running = f.moving || (loc.rest && (loc.stop === 0 || loc.stop === TITLE_STOP));
     this.timeScale += ((running ? 1 : 0) - this.timeScale) * (1 - Math.exp(-dt / (running ? 0.18 : 0.42)));
     this.clock += dt * this.timeScale;
-    if (this.wasMoving && !f.moving && loc.rest && loc.stop > 0 && loc.stop < TITLE_STOP) this.freezePulse = 1;
+    if (this.wasMoving && !f.moving && loc.rest && loc.stop > 0 && loc.stop < TITLE_STOP) { this.freezePulse = 1; this.ripplePulse = 1; }
     this.wasMoving = f.moving;
     this.freezePulse = Math.max(0, this.freezePulse - dt / 0.9);
+    this.ripplePulse = Math.max(0, this.ripplePulse - dt / 1.9);
+    if (this.ripple) {
+      const k = Math.max(0, loc.stop - 1), fk = phi(k);
+      this.ripple.set(loc.rest && loc.stop > 0 && loc.stop < TITLE_STOP ? this.ripplePulse : 0, Math.cos(fk) * R, Math.sin(fk) * R, WORD_COLOR[worlds[Math.min(4, k)].id]);
+    }
 
-    // the moments
+    // the moments: all of them when the ring is seen whole; otherwise only the one(s) the camera is with (the far
+    // side's sparks and beams are light, which no haze hides; and what is not drawn costs nothing)
+    const whole = loc.rest ? loc.stop === 0 || loc.stop === TITLE_STOP
+      : leg.kind === 'entry' ? loc.local < 0.82 : leg.kind === 'exit' ? loc.local > 0.3 : false;
+    this.tableaux.forEach((t, k) => {
+      const mine = loc.rest ? k === loc.stop - 1 : leg.kind === 'entry' ? k === 0 : leg.kind === 'exit' ? k === 4 : k === loc.leg - 1 || k === loc.leg;
+      t.group.visible = whole || mine;
+    });
     const a = this.actions(f.p);
     this.tableaux.forEach((t, k) => {
       if (Math.abs(a[k] - this.lastA[k]) > 1e-5) { t.pose(a[k]); this.lastA[k] = a[k]; }
       const [rv, dir] = this.wordReveal(f.p, k);
-      this.words[k].set(rv, dir);
+      this.words[k].set(this.noWords ? 0 : rv, dir);
     });
 
     // the camera
     const sh = this.shot(f.p);
     const atMoment = loc.rest && loc.stop > 0 && loc.stop < TITLE_STOP;
-    this.breath += ((atMoment ? 1 : 0) - this.breath) * (1 - Math.exp(-dt / (atMoment ? 6 : 0.4)));
+    // (each settles exactly, so a still frame really is still and need not be drawn again)
+    const settle = (v: number, to: number, tau: number) => { const n = v + (to - v) * (1 - Math.exp(-dt / tau)); return Math.abs(to - n) < 1e-4 ? to : n; };
+    this.breath = settle(this.breath, atMoment ? 1 : 0, atMoment ? 3.5 : 0.4);
     const amp = atMoment ? 1 : 0.35;
-    this.rig.x += ((f.pointer.active ? f.pointer.x : 0) * amp - this.rig.x) * (1 - Math.exp(-dt / 0.45));
-    this.rig.y += ((f.pointer.active ? f.pointer.y : 0) * amp - this.rig.y) * (1 - Math.exp(-dt / 0.45));
+    this.rig.x = settle(this.rig.x, (f.pointer.active ? f.pointer.x : 0) * amp, 0.45);
+    this.rig.y = settle(this.rig.y, (f.pointer.active ? f.pointer.y : 0) * amp, 0.45);
     const off = sh.pos.clone().sub(sh.tgt);
     off.multiplyScalar(1 - 0.035 * this.breath);
     off.applyAxisAngle(UP, -this.rig.x * 0.16);
@@ -503,7 +532,7 @@ export class World {
     this.moon.intensity = 1.6 * (1 - fa);
 
     // time held under the pointer: frozen particles near it drift a little way along their paths
-    const lensTarget = atMoment && !f.moving && f.pointer.active ? 0.3 : 0;
+    const lensTarget = atMoment && !f.moving && f.pointer.active ? 0.55 : 0;
     this.lensAmt += (lensTarget - this.lensAmt) * (1 - Math.exp(-dt / 0.5));
     if (atMoment && this.lensAmt > 0.001) {
       const k = loc.stop - 1;
@@ -541,7 +570,34 @@ export class World {
     this.chroma.offset.set(0.0005 + 0.0022 * this.freezePulse, 0.0004 + 0.0016 * this.freezePulse);
     this.bloom.intensity = 1.15 + 0.25 * this.freezePulse;
 
+    // A frozen moment that nobody is moving around is not drawn again: the canvas keeps its last frame (a laptop
+    // on battery, a phone in a hand).
+    const e = this.camera.matrixWorld.elements;
+    if (this.drawn && !f.moving && this.timeScale < 0.002 && this.lensAmt < 0.002 && this.freezePulse === 0 && this.ripplePulse === 0) {
+      let same = true;
+      for (let i = 0; i < 16; i++) if (Math.abs(e[i] - this.lastCam[i]) > 1e-5) { same = false; break; }
+      if (same) return;
+    }
+    this.lastCam.set(e);
     this.composer.render(dt);
+    this.drawn = true;
+    this.govern(dt);
+  }
+
+  /**
+   * Keeps the frame rate: if frames run long for a couple of seconds, the resolution steps down (never below 0.7 of
+   * a CSS pixel). It only ever steps down, so it cannot oscillate.
+   */
+  private govern(dt: number) {
+    if (dt <= 0) return;
+    this.times.push(dt * 1000);
+    if (this.times.length < 120) return;
+    const sorted = this.times.sort((a, b) => a - b), med = sorted[sorted.length >> 1];
+    this.times = [];
+    if (med > 23 && this.dpr > 0.72) {
+      this.dpr = Math.max(0.7, this.dpr * 0.84);
+      this.applySize();
+    }
   }
 
   /** 0 when the ring is seen whole, 1 when the camera is at a moment. */

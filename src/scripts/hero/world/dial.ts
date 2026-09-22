@@ -5,7 +5,10 @@
  * Its face is drawn once to canvases: the plate (base colour) and the inlay (emissive gold lines, so the engraving
  * catches the lantern even in the dark). A canvas angle equals the ring's own angle (see the note in build()).
  */
-import { CircleGeometry, Color, CylinderGeometry, Group, Mesh, MeshPhysicalMaterial, TorusGeometry, type Texture } from 'three';
+import {
+  AdditiveBlending, CircleGeometry, Color, CylinderGeometry, Group, Mesh, MeshPhysicalMaterial, PlaneGeometry, ShaderMaterial,
+  TorusGeometry, type Texture,
+} from 'three';
 import { canvasTexture, DISPLAY, LABEL, rng } from './kit';
 
 export const DIAL = { r: 6.3, y: 0.34, h: 0.1 };
@@ -112,4 +115,41 @@ export function makeDial(opts: { angles: number[]; colors: string[]; names: stri
   rim.position.y = DIAL.y + DIAL.h / 2;
   group.add(top, body, rim);
   return { group, top };
+}
+
+/**
+ * The instrument registering a moment: when time freezes, a thin ring of the world's colour runs out across the
+ * dial under it. Driven by `set(k)`, k from 1 (the instant of the freeze) down to 0.
+ */
+export function makeRipple() {
+  const mat = new ShaderMaterial({
+    transparent: true, depthWrite: false, blending: AdditiveBlending,
+    uniforms: { uK: { value: 0 }, uColor: { value: new Color(1, 0.7, 0.4) } },
+    vertexShader: /* glsl */`varying vec2 vP; void main() { vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: /* glsl */`
+      uniform float uK; uniform vec3 uColor; varying vec2 vP;
+      void main() {
+        float t = 1.0 - uK;                       // 0 at the freeze → 1 when it has run out
+        float r = mix(0.25, 2.8, 1.0 - pow(1.0 - t, 2.2));
+        float d = abs(length(vP) - r);
+        float w = mix(0.018, 0.09, t);
+        float ring = smoothstep(w, 0.0, d);
+        float a = ring * pow(uK, 1.4) * 1.6;
+        gl_FragColor = vec4(uColor * a, 1.0);
+      }`,
+  });
+  const mesh = new Mesh(new PlaneGeometry(6.2, 6.2), mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = DIAL.y + DIAL.h / 2 + 0.004;
+  mesh.visible = false;
+  mesh.renderOrder = 2;
+  return {
+    mesh,
+    set(k: number, x: number, z: number, color: Color) {
+      mesh.visible = k > 0.001;
+      mesh.position.x = x; mesh.position.z = z;
+      mat.uniforms.uK.value = k;
+      mat.uniforms.uColor.value.copy(color);
+    },
+  };
 }

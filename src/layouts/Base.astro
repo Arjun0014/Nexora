@@ -68,14 +68,12 @@ const webSite = { '@context': 'https://schema.org', '@type': 'WebSite', name: si
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="A circular architectural model divided into five lit sectors, each a different workplace." />
+    <meta property="og:image:alt" content="An engraved bronze dial floating over night water, five moments of service held still around its rim." />
     <meta property="og:locale" content="en_QA" />
     <meta name="twitter:card" content="summary_large_image" />
 
     <link rel="preload" href={serifUrl} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={sansUrl} as="font" type="font/woff2" crossorigin />
-    {home && <link rel="preload" as="image" href="/media/hero/poster-1440.webp" type="image/webp" fetchpriority="high" media="(min-aspect-ratio: 1/1)" />}
-    {home && <link rel="preload" as="image" href="/media/hero/poster-960.webp" type="image/webp" fetchpriority="high" media="(max-aspect-ratio: 999/1000)" />}
 
     <!--
       Decide the rendering mode BEFORE first paint so the hero never changes layout afterwards (CLS 0)

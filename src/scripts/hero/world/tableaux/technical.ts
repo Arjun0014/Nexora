@@ -151,9 +151,10 @@ export function technical(ctx: Ctx): Tableau {
   group.add(sparks);
 
   // the glow at the gap, and the light it throws
+  // (not a child of the group: the world hides moments it is not looking at, and a light that comes and goes changes
+  // the light count, which makes three.js recompile every shader. The world keeps it in the ring instead.)
   const flash = new PointLight(new Color('#ff8a3d'), 0, 3.2, 1.6);
   flash.position.copy(GAP);
-  group.add(flash);
 
   // ── the spanner and bolts, turning slowly ─────────────────────────────────
   const sp = spanner(ctx);
@@ -193,5 +194,5 @@ export function technical(ctx: Ctx): Tableau {
   };
 
   pose(0.5);
-  return { id: 'technical', group, key, pose, lens };
+  return { id: 'technical', group, key, pose, lens, lights: [flash] };
 }

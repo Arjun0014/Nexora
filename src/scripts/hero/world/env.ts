@@ -377,6 +377,5 @@ export function buildEnvironment(opts: { reflW: number; reflH: number; dust: num
   root.add(hemi);
 
   const screenMat = screenMaterial();
-  const screens = new Group();
-  return { root, sky, stars, skyline, water, hub, dust, hemi, screens, screenMat, makeScreen: () => makeScreen(screenMat) };
+  return { root, sky, stars, skyline, water, hub, dust, hemi, screenMat, makeScreen: () => makeScreen(screenMat) };
 }
