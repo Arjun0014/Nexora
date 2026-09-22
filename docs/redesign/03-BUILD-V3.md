@@ -40,8 +40,8 @@ limestone, footer arch). When changing a scene's ground, change both ends.
 | File | Mechanism | Notes |
 |---|---|---|
 | `scenes/portal.ts` | the hero is `position: sticky` inside `.opening` (100svh + 150svh); the dome's diameter/top are CSS vars on the pin; two phases (inOut rise, dive) | clouds are clipped to the same circle (`clip-path: circle(var(--d)/2 at …)`), otherwise they read as ash on black. The rim turns at 9°/s plus Lenis velocity. It also flags `data-bg` for the header. |
-| `scenes/held.ts` | **the parting disc** (third version, after client review): everything is drawn on ONE canvas. At rest: the moon (the loop, feathered into night by an offscreen radial mask). Held: the circle lifts inside an instrument dial (rings, 120 ticks, five spokes), the disc parts along its five sectors with lit amber seams and each slice gives way to its world's HD still (upright while the slices turn), the slices bloom past the screen edges, one world at a time sweeps round like a clock hand to fill the screen with its line, then everything closes back to the disc and the answer. Letting go tweens every parameter back to rest from wherever it is. | parameters: `g` (moon → large → beyond), `ex` (parting), per-slice `M` (footage → scene) and `Wt` (share of the circle). Sources load only when the scene is near. |
-| `scenes/workforces.ts` | the deck (rebuilt): the ground is the active card photo blurred 48px and darkened; the world name is a monument behind the centred stack and turns over (SplitText) on each throw. One pinned stage: canvas knock-out (Path2D from `words.json`), then the photo's box is lerped from the stage to the front card's box | the card crop is made by `build-stock.mjs` with the same maths as CSS `object-position`, so the swap to the real card is invisible. Scrolling back resets the deck (`nx:deck-reset`) so card 1 is again the photograph. The deck layer must keep `z-index: 1` or the cards paint over the morph. |
+| `scenes/held.ts` | everything on ONE canvas. At rest: the moon (the loop, feathered into night). Held: act I (session 3, approved) lifts the circle inside an instrument dial and parts it into five slices, each world's HD still inside. Act II/III (session 4, §8): the slices lock, a girih inks over the disc as a medallion of five rings (one per world, name and people engraved), the rings turn and then lock gold from the centre out; act IV opens the disc again with the answer. Letting go tweens every parameter back to rest. | the pattern is a baked bitmap turned per ring (`scenes/lattice.ts`); ring angles are pure functions of time; `?qa` exposes `__held.at(t)`. Sources load only when the scene is near. |
+| `scenes/workforces.ts` | the deck: the ground is the active card photo blurred 48px and darkened; the world name sits IN FRONT of the card across its lower third (session 4) and turns over (SplitText) on each throw. One pinned stage: canvas knock-out (Path2D from `words.json`, always whole at rest, drifting to the O), the photograph with "Who we supply." over it, then the photo's box is lerped from the stage to the front card's box | the card crop is made by `build-stock.mjs` with the same maths as CSS `object-position`, so the swap to the real card is invisible. Scrolling back resets the deck (`nx:deck-reset`) so card 1 is again the photograph. The name stays hidden until the card lands. |
 | `deck.ts` | session 2's physics, unchanged | the whole stage's `--ground` follows `data-sector` |
 | `scenes/sectors.ts` | cloud bank driven by the section's arrival (it starts BELOW the section edge so the deck stays clear); gate; city; scale-out; ten steps PLAYED on change | names are split words-then-chars (SplitText) so long names never break mid-word; long names get `data-long`. A visually hidden `h3` per sector carries the name for no-JS and screen readers. |
 | `scenes/engagement.ts` | `--a` opens the arch; the track translates by `scrollWidth − innerWidth`; photos drift ±9% against their arches; the doorway overlay is lerped from the door's end-of-walk box to beyond the screen | the header flips to dark ink once the doorway is past 60% open |
@@ -86,3 +86,56 @@ labelled circle, `"hold"`, `"Drag"`, or a numeral. Removed for touch, coarse poi
 
 `npm run check` 0 errors · `npm run build` 9 pages · JS ~79 KB gzipped (GSAP + SplitText + ScrollTrigger + Lenis
 ≈ 60 KB of it) · CSS ~19 KB gzipped.
+
+---
+
+## 8. Session 4 (22 Sep 2026): the client's five points
+
+**1 · Workforces gate.** The café photo (a server's hands with coffee and cake) is replaced by a doorman in a grand
+lobby with gold lattice screens (`A1-hospitality-2`, cottonbro studio, Pexels License; see `media/stock/SOURCES.md`).
+After the fly-through, "Who we *supply.*" rises over the photograph (played like Sectors' line, which it pairs with)
+with the five workforces along its foot, Hospitality lit: lower left on wide screens (the doorman stands just right
+of centre), centred on an upright phone. The hold is longer (`Z_END 0.44`, `M_START 0.6`, section 470svh). The gate
+word is now always whole at rest (`k = min(byW, byH)`; it used to take the larger scale and crop "WORKFORC"), and the
+camera drifts to the O as it closes in. Same for SECTORS.
+
+**2 · Deck names in front.** The world's name moved from behind the stack to in front of it, across the card's lower
+third — the Sectors index's device: one copy on the ground, a second copy clipped to the card (`clipOver`) with a
+shadow. It stays hidden until the card lands, then turns in letter by letter as on every throw.
+
+**3 · The hold, second act.** Act I (lift, dial, five slices) is unchanged. After it (`scenes/held.ts`, geometry in
+`scenes/lattice.ts`):
+- the pattern is a Penrose rhomb tiling from a wheel of ten Robinson triangles (five-fold like the disc; its axis
+  sits on the first seam) dressed with Hankin strapwork at 72°: a girih of ten-point stars and decagons.
+- It is drawn ONCE into a bitmap (generation 7, white lines) when the scene comes near, in idle time; each ring is
+  that bitmap turned, clipped to its annulus and tinted (`source-atop`) on a layer; a quarter-size copy of the layer
+  is the bloom. Stroking the paths per ring per frame ran at 5–8 fps; the bitmap runs at 60.
+- The rings' angles are pure functions of the timeline's time (`SPIN`/`FIELD` integrals, `ringTurn`, `LAND`), so the
+  hold can be seeked for QA (`?qa` → `__held.at(t)`) and released at any moment. Each lock lands on the next
+  alignment in the ring's own direction with a back-out overshoot; `nameAt` puts every name at the top when locked.
+- Timings: set 2.2 · rings wake 2.7 · locks 5.75 + 0.16k (0.66 each) · locked 7.05 · answer 9.2.
+- Found on the way: `--hold` was set on `<html>` every frame of the hold, restyling the whole document (the old hold
+  had the same jank). It now lives on the pointer element. Median frame 16.7 ms during a real hold (GPU, Chromium).
+
+**4 · Cut-off text.** A DOM audit (`.qa/pw/audit-cut.mjs`: text partly on screen but cut by the viewport or by a
+clipping ancestor) across 11 profiles found: hero titles clipped by their line masks (`.lines > .l` clipped both
+axes; now `overflow-y: clip` only, and title lines never wrap); What to expect's ribbon at `width: 100vw` widening
+the grid column past the screen, and its footnote numerals set outside the line box; sector names with a long word
+on phones (now capped by their longest word: `--w`); the engagement intro wider than the rising arch on phones.
+All profiles report zero now, subpages included.
+
+**5 · Mobile.**
+- The real breakage: html was `overflow: visible`, so body's `overflow-x: clip` was handed to the viewport and
+  clipped nothing; the Sectors cloud bank (2400 px) widened the phone's layout viewport to 1395 px — innerHeight
+  read 2376, and every pin measured the wrong screen. `html { overflow-x: clip }` keeps body's own clip in force.
+- The moon (and the hold button) had `touch-action: none` and pressed on touch-down, so any swipe starting on it —
+  most of a phone's screen — became a press and the page stuck at the Held scene. Now `pan-y`; a touch press waits
+  170 ms without travel, and once holding, touchmove is cancelled so the page stays put.
+- Phones on their side got the portrait phone layouts squashed into 390 px of height. Scene phone layouts are now
+  `(max-width: 899px) and (orientation: portrait)`; landscape phones get the desktop layouts, with compact rules
+  under `(max-height: 519px) and (orientation: landscape)` for Held (line left, moon right), the deck, the Sectors
+  index and Employers (whose script now decides "narrow" the same way).
+- The address bar sliding away no longer triggers `ScrollTrigger.refresh()` (`ignoreMobileResize`, and the site's
+  own listener ignores small height-only changes on coarse pointers); the medallion bitmap is not re-baked for it.
+- QA with Playwright device profiles and raw CDP touch events (`.qa/pw/`): the tour swipes from the hero to the
+  footer; `touch-hold.mjs` checks that a swipe on the moon scrolls and a long press holds.

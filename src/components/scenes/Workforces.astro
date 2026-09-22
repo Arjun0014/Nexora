@@ -28,11 +28,6 @@ const first = stock.workforces[worlds[0].id];
       </div>
 
       <h2 id="wfx-h" class="sr-only">The five workforces Nexora supplies</h2>
-      <div class="wfx__monos" aria-hidden="true">
-        {worlds.map((w, i) => (
-          <p class="wfx__mono display" data-deck-panel={w.id} data-mono={w.id} data-on={i === 0 ? 'true' : 'false'}>{w.short}</p>
-        ))}
-      </div>
 
       <header class="wfx__top">
         <p class="label">Five workforces</p>
@@ -59,6 +54,19 @@ const first = stock.workforces[worlds[0].id];
         <p class="sr-only" aria-live="polite" data-deck-live></p>
       </div>
 
+      <!-- The world's name, in front of the card and across its lower third (the Sectors index's device): bone on the
+           ground, and a second copy, clipped to the card, carries a shadow so every letter reads over any photo. -->
+      <div class="wfx__monos" data-wfx-monos aria-hidden="true">
+        {worlds.map((w, i) => (
+          <p class="wfx__mono display" data-deck-panel={w.id} data-mono={w.id} data-on={i === 0 ? 'true' : 'false'}>{w.short}</p>
+        ))}
+      </div>
+      <div class="wfx__monos wfx__monos--over" data-wfx-monos-over aria-hidden="true">
+        {worlds.map((w, i) => (
+          <p class="wfx__mono display" data-deck-panel={w.id} data-mono={w.id} data-on={i === 0 ? 'true' : 'false'}>{w.short}</p>
+        ))}
+      </div>
+
       <div class="wfx__panels">
         {worlds.map((w, i) => (
           <article class="wfx__panel" data-deck-panel={w.id} data-sector={w.id} data-on={i === 0 ? 'true' : 'false'}>
@@ -80,6 +88,16 @@ const first = stock.workforces[worlds[0].id];
     <div class="wfx__photo" data-wfx-photo aria-hidden="true">
       <img src={first.src} srcset={first.srcset} sizes="100vw" alt="" width="2400" height="1600" loading="lazy" decoding="async" style={`object-position:${first.focus}`} />
     </div>
+    <!-- Once we are through the O: the line over the photograph (a pair with Sectors' "Where our people work."),
+         and the five workforces along its foot, the first lit because it is the one in the picture. -->
+    <div class="wfx__over" data-wfx-over aria-hidden="true">
+      <p class="wfx__overh display" data-wfx-overh><span><span>Who we</span></span><span><span><em>supply.</em></span></span></p>
+      <ol class="wfx__overlist" data-wfx-overlist>
+        {worlds.map((w, i) => (
+          <li class="label" style={`--i:${i}`} data-on={i === 0 ? '' : undefined}><span class="wfx__overn">{w.n}</span>{w.short}</li>
+        ))}
+      </ol>
+    </div>
     <canvas class="wfx__mask" data-wfx-mask aria-hidden="true"></canvas>
     <div class="wfx__gateui" data-wfx-gateui aria-hidden="true">
       <p class="label">Chapter two</p>
@@ -89,8 +107,9 @@ const first = stock.workforces[worlds[0].id];
 </section>
 
 <style>
-  .wfx { position: relative; color: var(--bone); }
-  :global(html.motion) .wfx { height: 430vh; height: 430svh; }
+  /* --cardH: the stack's height. The names and the gate share it, so they always find the card. */
+  .wfx { --cardH: min(60vh, 40rem); position: relative; color: var(--bone); }
+  :global(html.motion) .wfx { height: 470vh; height: 470svh; }
   .wfx__stage { position: relative; min-height: 100svh; overflow: clip; background: #16110f; }
   :global(html.motion) .wfx__stage { position: sticky; top: 0; height: 100vh; height: 100svh; }
 
@@ -105,17 +124,23 @@ const first = stock.workforces[worlds[0].id];
     filter: blur(48px) brightness(0.62) saturate(1.25); transform: scale(1.1); opacity: 0; transition: opacity 1100ms var(--ease-out); }
   .wfx__ambimg[data-on='true'] { opacity: 1; }
 
-  /* The world's name, as a monument behind the stack. */
-  .wfx__monos { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
-  .wfx__mono { grid-area: 1 / 1; font-size: clamp(5rem, 19vw, 24rem); line-height: 0.8; color: var(--bone); opacity: 0; translate: 0 -2vh; white-space: nowrap; perspective: 1200px; }
-  .wfx__mono[data-on='true'] { opacity: 0.94; }
+  /* The world's name, in FRONT of the stack, across the card's lower third (as the Sectors index sets its names
+     over the picture). The stack is centred with its controls (1.4rem + 3rem) under it, so its top sits at
+     50% − cardH/2 − 2.2rem; the name's middle is three quarters of the way down the card. */
+  .wfx__monos { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .wfx__mono { position: absolute; left: 50%; top: calc(50% + var(--cardH) * 0.25 - 2.2rem); translate: -50% -50%; margin: 0;
+    font-size: clamp(3.4rem, 11.5vw, 13rem); line-height: 0.82; color: var(--bone); opacity: 0; white-space: nowrap; perspective: 1200px; }
+  .wfx__mono[data-on='true'] { opacity: 1; }
   .wfx__mono :global(.char) { display: inline-block; transform-origin: 50% 85%; }
+  /* the copy over the photograph: clipped to the card by workforces.ts, shadowed so it reads on any picture */
+  .wfx__monos--over { z-index: 3; }
+  .wfx__monos--over .wfx__mono { text-shadow: 0 2px 36px rgba(10, 6, 4, 0.6), 0 1px 3px rgba(10, 6, 4, 0.4); }
 
   .wfx__top { position: absolute; top: calc(var(--header-h) + 1.5vh); inset-inline: var(--margin); display: flex; justify-content: space-between; }
   .wfx__count { font-variant-numeric: tabular-nums; }
 
   .wfx__deckcol { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: grid; justify-items: center; gap: 1.4rem; }
-  .wfx__stack { --cardH: min(60vh, 40rem); position: relative; width: calc(var(--cardH) * 0.8); height: var(--cardH); touch-action: pan-y; }
+  .wfx__stack { position: relative; width: calc(var(--cardH) * 0.8); height: var(--cardH); touch-action: pan-y; }
   .wfx__stack:focus-visible { outline-offset: 12px; }
   .wfx__card {
     position: absolute; inset: 0; border-radius: 6px; overflow: hidden; background: #2a211c;
@@ -151,14 +176,30 @@ const first = stock.workforces[worlds[0].id];
   .wfx__mask { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
   .wfx__gateui { position: absolute; inset: auto var(--margin) 6vh; z-index: 4; display: flex; justify-content: space-between; pointer-events: none; transition: opacity 300ms linear; color: var(--ink); }
 
+  /* the line over the photograph, once we are through the O */
+  /* lower left, clear of the doorman (he stands just right of centre); centred on an upright phone, where he fills the frame */
+  .wfx__over { position: absolute; inset: 0; z-index: 2; pointer-events: none; display: grid; align-content: end; justify-items: start; gap: clamp(1.4rem, 3.4vh, 2.4rem); padding: 0 var(--margin) clamp(2.5rem, 8vh, 5.5rem); color: var(--bone); visibility: hidden; }
+  .wfx__over::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14, 10, 8, 0.18), rgba(14, 10, 8, 0) 34%, rgba(14, 10, 8, 0.12) 55%, rgba(14, 10, 8, 0.62)); opacity: var(--scrim, 0); }
+  .wfx__overh { position: relative; font-size: clamp(3.4rem, 9vw, 12rem); text-shadow: 0 4px 60px rgba(20, 12, 8, 0.4); }
+  .wfx__overh > span { display: block; overflow: clip; overflow-clip-margin: 0.1em; padding-block-end: 0.06em; }
+  .wfx__overh > span > span { display: block; }
+  .wfx__overlist { position: relative; display: flex; flex-wrap: wrap; gap: 0.6rem clamp(1.2rem, 3.2vw, 3.2rem); max-width: min(46rem, 46vw); }
+  .wfx__overlist li { display: inline-flex; gap: 0.7em; opacity: 0; translate: 0 0.8em; transition: opacity 240ms linear, translate 0s 240ms; }
+  .wfx__over[data-on] .wfx__overlist li { opacity: 0.5; translate: none; transition: opacity 700ms var(--ease-out), translate 900ms var(--ease-out); transition-delay: calc(var(--i) * 70ms + 260ms); }
+  .wfx__over[data-on] .wfx__overlist li[data-on] { opacity: 1; }
+  .wfx__overn { opacity: 0.55; }
+
   /* While the gate runs, the deck's own cards and copy wait underneath. */
   :global(html.motion) .wfx:not([data-landed]) .wfx__card[data-depth='0'] { visibility: hidden; }
   :global(html.motion) .wfx:not([data-landed]) .wfx__card:not([data-depth='0']) { translate: 0 calc((1 - var(--under, 0)) * 70px); filter: opacity(var(--under, 0)); }
-  :global(html.motion) .wfx .wfx__panels, :global(html.motion) .wfx .wfx__controls, :global(html.motion) .wfx .wfx__top, :global(html.motion) .wfx .wfx__monos { opacity: var(--copy, 0); }
+  :global(html.motion) .wfx .wfx__panels, :global(html.motion) .wfx .wfx__controls, :global(html.motion) .wfx .wfx__top { opacity: var(--copy, 0); }
+  /* the name waits for the card to land (it belongs in FRONT of the card, and the photo is still moving above the
+     deck until then); workforces.ts turns its letters in as it lands */
+  :global(html.motion) .wfx:not([data-landed]) .wfx__monos { visibility: hidden; }
   :global(html.motion) .wfx[data-landed] .wfx__photo { visibility: hidden; }
 
   /* No motion: the gate is skipped, the deck is a plain list. */
-  :global(html:not(.motion)) .wfx__photo, :global(html:not(.motion)) .wfx__mask, :global(html:not(.motion)) .wfx__gateui, :global(html:not(.motion)) .wfx__monos { display: none; }
+  :global(html:not(.motion)) .wfx__photo, :global(html:not(.motion)) .wfx__mask, :global(html:not(.motion)) .wfx__gateui, :global(html:not(.motion)) .wfx__monos, :global(html:not(.motion)) .wfx__over { display: none; }
   :global(html:not(.motion)) .wfx__deck { position: relative; display: grid; gap: 3rem; padding: calc(var(--header-h) + 2rem) var(--margin) 4rem; overflow: hidden; }
   :global(html:not(.motion)) .wfx__top, :global(html:not(.motion)) .wfx__deckcol, :global(html:not(.motion)) .wfx__panels, :global(html:not(.motion)) .wfx__panel { position: relative; inset: auto; translate: none; opacity: 1; visibility: visible; }
   :global(html:not(.motion)) .wfx__panels { display: grid; gap: 2.5rem; }
@@ -167,9 +208,24 @@ const first = stock.workforces[worlds[0].id];
   [data-deck]:not([data-live]) .wfx__controls { display: none; }
   [data-deck]:not([data-live]) .wfx__deckcol { justify-items: stretch; }
 
-  @media (max-width: 899px) {
-    .wfx__mono { font-size: clamp(3rem, 17vw, 7rem); translate: 0 -31vh; }
-    .wfx__stack { --cardH: min(46vh, 112vw); }
+  /* A phone on its side: the card, its name and the two essentials. */
+  @media (max-height: 519px) and (orientation: landscape) {
+    .wfx { --cardH: 58vh; }
+    .wfx__mono { font-size: min(11.5vw, 22vh); }
+    .wfx__line, .wfx__rolesbox, .wfx__cardfoot { display: none; }
+    .wfx__panels { bottom: 4vh; }
+    .wfx__about { width: calc((100vw - var(--cardH) * 0.8) / 2 - var(--margin) - 1.5rem); gap: 0.5rem; }
+    .wfx__deckcol { gap: 0.6rem; }
+    .wfx__btn { width: 2.4rem; height: 2.4rem; }
+    .wfx__overh { font-size: min(9vw, 20vh); }
+  }
+
+  @media (max-width: 899px) and (orientation: portrait) {
+    .wfx { --cardH: min(46vh, 112vw); }
+    .wfx__mono { top: calc(52% + var(--cardH) * 0.25 - 2.2rem); font-size: clamp(2.6rem, 15vw, 6.5rem); }
+    .wfx__over { justify-items: center; text-align: center; }
+    .wfx__overlist { justify-content: center; max-width: none; }
+    .wfx__overh { font-size: clamp(3rem, 15vw, 5.5rem); }
     .wfx__deckcol { top: 52%; }
     .wfx__panels { bottom: 3vh; }
     .wfx__rolesbox { display: none; }

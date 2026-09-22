@@ -3,19 +3,18 @@
  * Scene 2 — the world, held. (src/scripts/scenes/held.ts)
  *
  * At rest: sky ground, "Five worlds, one partner.", and a small night MOON holding the turning disc — the film's
- * loop, whole. The moon is the portal: `.hx` is a full-stage layer clipped to a circle, and at rest that circle is
- * the moon.
+ * loop, whole. Everything the hold does is drawn on one full-stage canvas (`.hx`).
  *
- * Hold it (pointer, touch, or Space/Enter on the button) and it becomes a dive:
- *   open     the page draws back; the circle grows past every edge; the camera falls into the spinning disc
- *            while amber light streaks rush past from the centre
- *   worlds   one after another, each world bursts open from the centre as a lit circle, full screen, pushing in,
- *            its line set large in the middle, its colour in the light. The rhythm quickens as you hold.
- *   answer   the disc irises back over the last world and pulls all the way out to show all five at full spin;
- *            then "Behind all five, people. We supply them."
- * Let go at any point and the whole world collapses back into the moon.
+ * Hold it (pointer, a long press, or Space/Enter on the button):
+ *   lift + part   the page draws back to night; the moon grows inside an instrument dial and parts along its five
+ *                 sectors, a world in each slice
+ *   set           the slices lock; a girih grows out of the seams past every edge, and the worlds show only
+ *                 through its openings
+ *   dive          the camera falls into the pattern; the people each world runs on are engraved round the rim
+ *   answer        the pattern falls away; the disc opens again at its centre; "Behind all five, people."
+ * Let go at any point and it all closes back into the moon.
  *
- * Without motion it is a still composition: the moon, and the five lines as a list.
+ * Without motion it is a still composition: the moon, and the five worlds with their people as a list.
  */
 import { held } from '../../data/content';
 import { worldById } from '../../data/worlds';
@@ -32,31 +31,25 @@ import { worldById } from '../../data/worlds';
         <h2 class="display held__h" id="held-h">{held.heading.a} <em>{held.heading.em}</em> {held.heading.b}</h2>
       </header>
       <p class="held__body">{held.body}</p>
-      <!-- The lines as text, for a linear read and for the static composition. -->
+      <!-- The five worlds and their people as text, for a linear read and for the static composition. -->
       <ol class="held__lines">
         {held.lines.map((l) => (
           <li class="held__line" data-sector={l.world}>
-            <span class="label held__line-k"><i class="held__dot" aria-hidden="true"></i>{worldById[l.world].short}</span>
-            <span class="held__line-t acc">{l.text}</span>
+            <span class="label held__line-k"><i class="held__dot" aria-hidden="true"></i>{worldById[l.world].title}</span>
+            <span class="held__line-t">{l.people.join(' · ')}</span>
           </li>
         ))}
       </ol>
     </div>
 
-    <!-- THE PORTAL: one canvas. At rest it draws the moon; held, the disc parts into its five sectors
+    <!-- THE PORTAL: one canvas. At rest it draws the moon; held, the disc parts, sets into a pattern and opens again
          (src/scripts/scenes/held.ts). The video is only a source for the canvas. -->
     <div class="hx" data-hx aria-hidden="true">
       <canvas class="hx__canvas" data-hx-canvas></canvas>
       <video class="hx__video" data-held-video muted playsinline loop preload="none" disablepictureinpicture tabindex="-1"
         poster="/media/hero/poster-960.webp" data-src="/media/hero/loop-960.mp4"></video>
       <div class="hx__texts">
-        {held.lines.map((l, i) => (
-          <p class="hx__text" data-hx-text={i} data-sector={l.world}>
-            <span class="label hx__k"><i class="held__dot"></i>{worldById[l.world].title}</span>
-            <span class="display hx__t">{l.text}</span>
-          </p>
-        ))}
-        <p class="hx__text hx__answer" data-hx-text="5">
+        <p class="hx__text hx__answer" data-hx-answer>
           <span class="display hx__t">{held.answer.a}</span>
           <span class="display hx__t hx__t--em"><em>{held.answer.b}</em></span>
         </p>
@@ -99,7 +92,7 @@ import { worldById } from '../../data/worlds';
   .held__line { display: grid; gap: 0.5rem; }
   .held__line-k { display: inline-flex; align-items: center; gap: 0.6em; opacity: 0.8; }
   .held__dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-  .held__line-t { font-size: clamp(1.6rem, 2.5vw, 3rem); line-height: 1.02; }
+  .held__line-t { font-size: var(--t-small); line-height: 1.55; color: var(--ink-soft); }
 
   /* ── the portal: one canvas, full stage; the text sits above it ── */
   .hx { position: absolute; inset: 0; z-index: 3; pointer-events: none; color: var(--bone); }
@@ -119,7 +112,9 @@ import { worldById } from '../../data/worlds';
 
   /* The hold target: always the moon's size, over the moon (--cx/--cy/--Rm from JS). */
   .hx__target { position: absolute; left: var(--cx, 50%); top: var(--cy, 59%); translate: -50% -50%; border-radius: 50%; }
-  .hx__target { z-index: 6; width: calc(var(--Rm, 31vh) * 2); height: calc(var(--Rm, 31vh) * 2); touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  /* pan-y: on a phone the moon fills much of the screen, and a swipe that starts on it must still scroll the page.
+     A press only begins after a still beat (held.ts), and from then on the scene holds the finger. */
+  .hx__target { z-index: 6; width: calc(var(--Rm, 31vh) * 2); height: calc(var(--Rm, 31vh) * 2); touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .held[data-holding] .hx__target { width: 200vmax; height: 200vmax; } /* while holding, the whole stage keeps the hold */
   :global(html:not(.motion)) .hx__target { display: none; }
 
@@ -134,7 +129,7 @@ import { worldById } from '../../data/worlds';
   .held[data-done]:not([data-holding]) .held__answer { opacity: calc(1 - var(--open, 0)); }
 
   .held__hold { position: absolute; z-index: 7; right: var(--margin); bottom: 7vh; display: inline-flex; align-items: center; gap: 1rem; color: var(--fg);
-    -webkit-user-select: none; user-select: none; touch-action: none; -webkit-touch-callout: none; transition: color 300ms linear, opacity 300ms linear; }
+    -webkit-user-select: none; user-select: none; touch-action: pan-y; -webkit-touch-callout: none; transition: color 300ms linear, opacity 300ms linear; }
   .held[data-holding] .held__hold { color: var(--bone); }
   .held__ring { width: 64px; height: 64px; rotate: -90deg; overflow: visible; }
   .held__ring-track { fill: none; stroke: currentColor; stroke-opacity: 0.28; stroke-width: 1; }
@@ -155,6 +150,14 @@ import { worldById } from '../../data/worlds';
     background: #0f0c0b url('/media/hero/poster-960.webp') 49% 45% / 118% auto no-repeat; box-shadow: 0 0 0 1px rgba(240, 189, 134, 0.75); }
   :global(html:not(.motion)) .hx__canvas, :global(html:not(.motion)) .hx__texts, :global(html:not(.motion)) .held__hold,
   :global(html:not(.motion)) .held__answer, :global(html:not(.motion)) .held__cloud { display: none; }
+
+  /* A phone on its side: the line sits left, the moon right of it (held.ts moves the moon to match). */
+  @media (max-height: 519px) and (min-aspect-ratio: 7/5) {
+    .held__head { inset-inline: var(--margin) auto; top: 50%; translate: 0 -50%; width: 40vw; text-align: left; }
+    .held__h { font-size: min(6vw, 13vh); }
+    .held__body { display: none; }
+    .held__hold { bottom: 5vh; }
+  }
 
   @media (max-width: 767px) {
     .held__body { display: none; }

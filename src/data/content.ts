@@ -124,7 +124,10 @@ export const noFee = {
   body: 'Not to register, not to be considered, not to be placed. If anyone asks you for payment in our name, please tell us.',
 };
 
-/** Scene 2: the world, held. Hold the arch and the disc runs faster; one line per world, then the answer. */
+/**
+ * Scene 2: the world, held. Holding it parts the disc into its five worlds, which set into one pattern; the people
+ * each world runs on are engraved round it (short forms of the roles in worlds.ts), then the answer.
+ */
 export const held = {
   label: 'The company',
   heading: { a: 'Five worlds,', em: 'one', b: 'partner.' },
@@ -132,11 +135,11 @@ export const held = {
   hint: 'Press and hold the world',
   hintAgain: 'Hold it again',
   lines: [
-    { world: 'hospitality' as WorldId, text: 'A table is served.' },
-    { world: 'events' as WorldId, text: 'The doors open on time.' },
-    { world: 'facilities' as WorldId, text: 'The lobby is ready by morning.' },
-    { world: 'technical' as WorldId, text: 'The plant keeps running.' },
-    { world: 'recruitment' as WorldId, text: 'The right person says yes.' },
+    { world: 'hospitality' as WorldId, people: ['Waiters', 'Hosts', 'Baristas', 'Stewards', 'Room attendants', 'Banqueting'] },
+    { world: 'events' as WorldId, people: ['Hosts', 'Registration', 'Ushers', 'Ambassadors', 'Stand staff', 'Runners'] },
+    { world: 'facilities' as WorldId, people: ['Cleaners', 'Housekeepers', 'Porters', 'Pantry', 'Front desk', 'Supervisors'] },
+    { world: 'technical' as WorldId, people: ['Technicians', 'Operators', 'Instrumentation', 'Helpers', 'Field support', 'Warehouse'] },
+    { world: 'recruitment' as WorldId, people: ['Sourcing', 'Assessment', 'Interviews', 'Onboarding', 'Coordination', 'Rostering'] },
   ],
   answer: { a: 'Behind all five,', b: 'people. We supply them.' },
 };

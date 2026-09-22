@@ -45,7 +45,7 @@ export function initEmployers() {
 
   const render = (q: number) => {
     const sw = stage.clientWidth, sh = stage.clientHeight;
-    const narrow = sw < 900;
+    const narrow = sw < 900 && sh >= sw; // the phone layout is for upright screens; a phone on its side keeps the column
     const small = { x: sw * 0.5 - sw * 0.13, y: sh * 0.22, w: sw * 0.26, h: sw * 0.26 * 0.66 };
     const full = { x: 0, y: 0, w: sw, h: sh };
     const col = narrow ? { x: 0, y: 0, w: sw, h: sh * 0.34 } : { x: 0, y: 0, w: sw * 0.38, h: sh };

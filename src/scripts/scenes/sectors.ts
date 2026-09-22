@@ -67,14 +67,16 @@ export function initSectors() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, W, H);
     if (t >= 1) return;
-    const byW = (W * 0.84) / spec.width, byH = (H * 0.17) / spec.height, k = Math.max(byW, byH);
-    const bx = byH > byW ? W / 2 - spec.anchor.x * k : (W - spec.width * k) / 2, by = (H - spec.height * k) / 2 - H * 0.02;
+    // the whole word, always (nothing cut at rest); the camera drifts to the O as it closes in
+    const byW = (W * (W < H ? 0.92 : 0.84)) / spec.width, byH = (H * 0.17) / spec.height, k = Math.min(byW, byH);
+    const bx = (W - spec.width * k) / 2, by = (H - spec.height * k) / 2 - H * 0.02;
     const sMax = (1.08 * Math.hypot(W, H) / 2) / (spec.anchor.r * k);
     const s = Math.exp(Math.log(sMax) * Math.pow(t, 3.4));
     ctx.fillStyle = SAND;
     ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'destination-out';
-    const ax = bx + spec.anchor.x * k, ay = by + spec.anchor.y * k, ks = k * s;
+    const d = EASE.inOut(clamp(t / 0.9));
+    const ax = lerp(bx + spec.anchor.x * k, W / 2, d), ay = lerp(by + spec.anchor.y * k, H / 2, d), ks = k * s;
     ctx.setTransform(ks, 0, 0, ks, ax - spec.anchor.x * ks, ay - spec.anchor.y * ks);
     ctx.fill(path);
     ctx.setTransform(1, 0, 0, 1, 0, 0);

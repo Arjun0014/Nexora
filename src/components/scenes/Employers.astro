@@ -112,7 +112,20 @@ const strip = [
   :global(html:not(.motion)) .emp__step { position: static; visibility: visible; margin-block: 2rem; }
   :global(html:not(.motion)) .emp__strip { display: none; }
 
-  @media (max-width: 899px) {
+  /* A phone on its side: the same three columns, compressed to the height there is. */
+  @media (max-height: 519px) and (orientation: landscape) {
+    .emp__centre { padding: calc(var(--header-h) + 0.5rem) 1.6rem 1rem; }
+    /* the numeral already says which of the four this is */
+    .emp__h, .emp__askline, .emp__top { display: none; }
+    .emp__step { gap: 0.4rem; }
+    .emp__num { font-size: 15vh; }
+    .emp__t { font-size: 10vh; }
+    .emp__body { font-size: 0.8125rem; line-height: 1.4; }
+    .emp__ask { padding-block-start: 0.6rem; }
+    .emp__cta { font-size: 7vh; }
+  }
+
+  @media (max-width: 899px) and (orientation: portrait) {
     .emp__play { grid-template-columns: 1fr; grid-template-rows: 34vh 1fr; }
     .emp__centre { grid-column: 1; grid-row: 2; padding: 1.2rem var(--margin) 3vh; }
     .emp__strip, .emp__h, .emp__askline { display: none; }

@@ -116,8 +116,9 @@ const photos = [stock.steps.brief, stock.steps.source, stock.steps.screen, stock
   :global(html:not(.motion)) .egx__arch { height: 22rem; border-radius: 999px 999px 0 0; }
   :global(html:not(.motion)) .egx__step--door, :global(html:not(.motion)) .egx__floor, :global(html:not(.motion)) .egx__open { display: none; }
 
-  @media (max-width: 899px) {
-    .egx__intro { padding-inline: var(--margin); }
+  @media (max-width: 899px) and (orientation: portrait) {
+    /* inside the rising arch (80vw here): text wider than it would sit on the limestone, bone on sand, and vanish */
+    .egx__intro { padding-inline: 13vw; }
     .egx__step { width: 72vw; }
     .egx__arch { height: 44vh; border-radius: 36vw 36vw 0 0; }
     .egx__steps { gap: 8vw; }

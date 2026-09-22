@@ -7,6 +7,10 @@ html {
   text-size-adjust: 100%;
   scroll-padding-top: var(--header-h);
   background: var(--studio);
+  /* With html left `visible`, body's overflow would be handed to the viewport and body itself would clip nothing:
+     anything wider than the screen (a cloud bank, a track) then widens the phone's layout viewport, and every
+     innerHeight/100vh-based pin measures the wrong screen. Clipping here keeps body's own `clip` in force. */
+  overflow-x: clip;
 }
 /* Lenis owns smooth scrolling; native smooth scrolling would fight it. */
 html.lenis, html.lenis body { height: auto; }
@@ -136,9 +140,11 @@ p { text-wrap: pretty; }
 
 .rule { border: 0; border-top: 1px solid var(--line); }
 
-/* Stacked display lines: each line is its own clip box so it can rise behind a mask. */
+/* Stacked display lines: each line is its own clip box so it can rise behind a mask. Only the vertical axis is
+   clipped — the mask is for the rise — so a long word wider than its column is never cut at the side. The
+   padding/margin pairs give ascenders and descenders room inside the clip without changing the layout. */
 .lines { display: block; }
-.lines > .l { display: block; overflow: clip; overflow-clip-margin: 0.12em; padding-block-end: 0.08em; margin-block-end: -0.08em; }
+.lines > .l { display: block; overflow-x: visible; overflow-y: clip; overflow-clip-margin: 0.12em; padding-block: 0.06em 0.08em; margin-block: -0.06em -0.08em; }
 .lines > .l > span { display: block; }
 
 /* ── reveal (once) ────────────────────────────────────────────────────────── */

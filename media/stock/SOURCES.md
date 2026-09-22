@@ -2,9 +2,11 @@
 
 All images are from Unsplash under the free Unsplash License (https://unsplash.com/license). None are Unsplash+ (each was checked via the photo API: premium=false, plus=false). Files were downloaded from the images.unsplash.com raw URL at w=3200 (or native width if smaller), fm=jpg, q=85.
 
+One image is from Pexels under the free Pexels License (https://www.pexels.com/license/: free for commercial use, no attribution required), downloaded as the full original; its photo page shows "License: Free". It is marked in the Licence column.
+
 | File | Photographer | Source | Licence | Dimensions | Description |
 |---|---|---|---|---|---|
-| A1-hospitality-1.jpg | Haberdoedas | https://unsplash.com/photos/a-waitress-serves-cake-and-coffee-tALGo5tBS3M | Unsplash License | 3200x2400 | A waitress serves cake and coffee (Kasteel Groeneveld, Groeneveld, Baarn, Netherlands) |
+| A1-hospitality-2.jpg | cottonbro studio | https://www.pexels.com/photo/man-in-red-uniform-6474521/ | Pexels License | 6211x4141 | A doorman in a red tunic, top hat and white gloves standing ready in a grand hotel lobby with gold lattice screens. Replaced A1-hospitality-1 (a café server's hands with coffee and cake) in session 4 at the client's request. |
 | A2-events-1.jpg | blue sky | https://unsplash.com/photos/man-signs-document-at-a-service-counter-eLnrrITCy6Q | Unsplash License | 3200x2142 | Man signs document at a service counter |
 | A2-events-2.jpg | Martin Baron | https://unsplash.com/photos/a-woman-holding-a-tray-of-food-next-to-a-man-v-QxPxRhTQg | Unsplash License | 3200x2133 | a woman holding a tray of food next to a man |
 | A3-facilities-1.jpg | Abdul Ridwan | https://unsplash.com/photos/people-walking-down-a-long-sunlit-hallway-with-columns-DKnqy7y_olk | Unsplash License | 3008x2000 | People walking down a long, sunlit hallway with columns (Alun-alun Bandung, Jalan Asia Afrika, Kebon Pisang, Kota Bandung, Jawa Barat, Indonesia) |

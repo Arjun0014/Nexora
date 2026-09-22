@@ -107,7 +107,10 @@ const srcset = (id: string, fmt: string) => [800, 1200, 1672].map((w) => `/media
   .ch__h1 { font-family: var(--f-display); font-stretch: 62.5%; font-weight: 300; text-transform: uppercase; font-size: clamp(2.6rem, 4.8vw, 5.4rem); line-height: 0.9; letter-spacing: -0.005em; }
   .ch__h1 em { font-style: italic; font-stretch: 75%; text-transform: none; color: #f1c28f; }
   .ch__support { margin-block-start: 1.25rem; max-width: 24rem; font-size: var(--t-small); line-height: 1.55; color: var(--bone-soft); }
+  /* Each title line is one line by design ('Recruitment' / '& Workforce'): it may run past the copy column, never
+     wrap into a third, and never be cut (the line masks clip only vertically). */
   .ch__title { text-shadow: 0 1px 40px rgba(11, 10, 9, 0.45); }
+  .ch__title .l > span { white-space: nowrap; }
   .ch__line { margin-block: 1.5rem 1.75rem; max-width: 25rem; font-size: var(--t-lead); line-height: 1.4; }
   .ch__link { color: var(--bone); }
 

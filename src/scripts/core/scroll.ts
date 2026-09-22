@@ -34,8 +34,18 @@ export function initScroll() {
   }
   if (!location.hash) lenis.scrollTo(0, { immediate: true });
 
-  let t = 0;
-  addEventListener('resize', () => { clearTimeout(t); t = window.setTimeout(() => ScrollTrigger.refresh(), 120); });
+  // A phone's address bar sliding away changes only the height, a little. The pins are sized in svh, so nothing
+  // needs measuring again — and a refresh mid-scroll is what makes a pinned scene jump. Real resizes and turning the
+  // phone still refresh.
+  ScrollTrigger.config({ ignoreMobileResize: true });
+  let t = 0, lastW = innerWidth, lastH = innerHeight;
+  const coarse = matchMedia('(pointer: coarse)');
+  addEventListener('resize', () => {
+    const w = innerWidth, h = innerHeight;
+    if (coarse.matches && w === lastW && Math.abs(h - lastH) < 160) return;
+    lastW = w; lastH = h;
+    clearTimeout(t); t = window.setTimeout(() => ScrollTrigger.refresh(), 120);
+  });
 }
 
 /** Scroll to an element or offset with the site's easing (anchors, index buttons). */
