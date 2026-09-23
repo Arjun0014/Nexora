@@ -2,14 +2,19 @@
  * The intro sequence. Runs on EVERY load of the homepage (brief #16), except under reduced motion, lite
  * connections, no-JS or a deep link into the film.
  *
- * Progress is REAL: `heroLoad.progress` counts the poster, the loop video's own bytes (streamed with a
- * content-length) and the entry frames. What is SHOWN is bounded on both sides so the sequence always reads the
- * same way:
+ * The intro is where the hero loads: it holds until EVERYTHING the court needs is in (docs/redesign/09-HERO-V9.md):
+ * three.js, the court's stone and sky, the five films whole (their bytes are most of the bar), and the court's shaders
+ * compiled. Progress is REAL (`heroLoad.progress`); what is shown never runs ahead of it, and never faster than
+ * MIN_MS, so the sequence always reads the same way:
  *
- *   shown = max( monotonic, min(real, elapsed / MIN_MS), force )   force = (elapsed - MIN_MS) / (MAX_MS - MIN_MS)
+ *   shown = max( monotonic, min(real, elapsed / MIN_MS) )        ...and it closes only once the hero is `done`
+ *
+ * There is no upper bound: a slow connection waits longer, at the bar, rather than opening onto a court still loading.
+ * Only if the progress stops altogether for STALL_MS (something has hung: a stalled film is restarted, then given up
+ * for its poster, well before that) does it give up and open onto the page's static reading.
  *
  * The ending: the hairline draws in to a point, which travels to the pool at the heart of the court — the one thing
- * the first screen's turn leaves still — and opens there, over the whole court (docs/redesign/07-HERO-V7.md).
+ * the first screen's turn leaves still — and opens there, over the whole court, its films already playing.
  */
 import { gsap } from 'gsap';
 import { $, $$, clamp } from './core/env';
@@ -18,7 +23,7 @@ import { heroLoad } from './hero/index';
 import { EASE } from './core/motion';
 
 const MIN_MS = 5000;
-const MAX_MS = 7500;
+const STALL_MS = 45000;
 const TRACK = { from: 0.06, to: 0.46 }; // em of letter-spacing on NEXORA: closed to open
 
 export function initIntro() {
@@ -87,12 +92,25 @@ export function initIntro() {
   };
   setWord(0);
 
-  const off = onTick((_dt, now) => {
+  // Something has hung (not merely slow: a stalled film restarts, then gives way to its poster, inside the hero): the
+  // film is let go and the page opens onto its static reading.
+  const giveUp = () => {
+    console.warn('[intro] the hero did not finish loading; opening onto the static page');
+    heroLoad.abandoned = true;
+    heroLoad.progress = 1;
+    heroLoad.done = true;
+    html.classList.remove('cinema');
+  };
+
+  // (the stall is counted in the ticker's time, which stops with the tab: a hidden tab pauses the shaders' compile)
+  let lastReal = -1, stalled = 0;
+  const off = onTick((dt, now) => {
     if (closing) return;
     const elapsed = now - t0;
+    if (heroLoad.progress > lastReal) { lastReal = heroLoad.progress; stalled = 0; } else stalled += dt * 1000;
+    if (!heroLoad.done && stalled > STALL_MS) giveUp();
     const paced = Math.min(clamp(heroLoad.progress), elapsed / MIN_MS);
-    const force = clamp((elapsed - MIN_MS) / (MAX_MS - MIN_MS));
-    shown = Math.max(shown, paced, force);
+    shown = Math.max(shown, paced);
 
     fill.style.transform = `scaleX(${shown.toFixed(4)})`;
     word.style.setProperty('--track', `${(TRACK.from + (TRACK.to - TRACK.from) * shown).toFixed(3)}em`);
@@ -100,7 +118,7 @@ export function initIntro() {
     if (pct.textContent !== text) pct.textContent = text;
     setWord(Math.min(4, Math.floor(shown * 5)));
 
-    if (shown < 0.999) return;
+    if (shown < 0.999 || !heroLoad.done) return;
     closing = true;
     off();
     pct.textContent = '100';

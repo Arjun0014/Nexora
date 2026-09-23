@@ -1,0 +1,12 @@
+{
+  "_": "The hero's five worlds, in motion (docs/redesign/09-HERO-V9.md). The client's films in media/hero-new (never modified), built by scripts/build-hero9.mjs into public/media/hero9. Each is cut to 9:16 round focus (x, y as 0..1 of the source frame), graded to the site's look (exposure normalises one film against the others) and made a seamless loop: its last xfade seconds dissolve into its first. poster = the second (in the source) whose frame stands for the film: the static reading, and the film's poster.",
+  "ar": [9, 16],
+  "xfade": 0.8,
+  "worlds": [
+    { "id": "hospitality", "src": "hospitality.mp4", "focus": [0.5, 0.5], "exposure": 1.0, "poster": 8.9 },
+    { "id": "events", "src": "Events & Promotions.mp4", "focus": [0.5, 0.5], "exposure": 1.0, "poster": 12.3 },
+    { "id": "facilities", "src": "Facilities & Support.mp4", "focus": [0.5, 0.5], "exposure": 1.0, "poster": 8.5 },
+    { "id": "technical", "src": "Specialist  Technical.mp4", "focus": [0.5, 0.5], "exposure": 1.0, "poster": 22.5 },
+    { "id": "recruitment", "src": "Recruitment & Workforce Management.mp4", "focus": [0.5, 0.5], "exposure": 1.0, "poster": 5.4 }
+  ]
+}

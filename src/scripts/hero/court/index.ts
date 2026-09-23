@@ -1,24 +1,26 @@
 /**
- * The hero world, version 7: the turning world. See docs/redesign/07-HERO-V7.md (and 06 for the court itself).
+ * The hero world, version 9: the turning world, its doorways onto films. See docs/redesign/09-HERO-V9.md (07 for the
+ * turn, 06 for the court itself).
  *
- * A round limestone court under a latticed brass dome; the sun comes through as a rain of stars. Five doorways lead
- * out of it, one per workforce, and beyond each is a moment of work, held.
+ * A round limestone court under a latticed brass dome; the sun comes through as a rain of stars. Five tall doorways
+ * lead out of it, one per workforce, and beyond each a film of that work plays, always: while the court turns, while
+ * the camera travels, and at the doorway itself (../films.ts: loaded whole during the intro; here, video textures).
  *
  *   stop 0         the court turns (once round in 72 s) about its pool, the one still thing: the walls and their
  *                  doorways go by, the stars glide; the sun keeps low behind us, so the floor before us is in
  *                  shade (the title stands there) and the far wall in the rain of light
  *   leg 0          the turn comes to rest with the doorway before us (or the one named in the ring) as we cross
  *                  to it; the tour goes on round the ring from there (../timeline.ts `ring`)
- *   stops 1…5      at a doorway: time stops; the sun stands behind the doorway, so the wall beside it is in soft
- *                  shade (the words stand there) and the world's light spills over the threshold; the pointer
- *                  leans round the frozen moment
+ *   stops 1…5      at a doorway: the court's time stops (its film plays on); the sun stands behind the doorway, so the
+ *                  wall beside it is in soft shade (the words stand there) and the world's light spills over the
+ *                  threshold; the pointer leans the camera a little
  *   legs 1…4       time runs, a day in three seconds: the sun goes once round the sky as the camera turns along
  *                  the court to the next doorway, on the right; its rain sweeps the wall that wipes the view
  *   leg 5 / stop 6 the camera looks up into the rain of light; NEXORA closes over it (../mask.ts, unchanged);
  *                  behind the letters, the five worlds
  *
  * Rendered with three's WebGPU renderer (WebGL2 where WebGPU is missing). Every frame is a pure function of the
- * playhead `p`, the pointer, and (on the first screen only) the clock.
+ * playhead `p`, the pointer, (on the first screen only) the clock, and the films' own frames.
  */
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, normalView, diffuseColor, velocity, add, vec4, vec3, vec2, float, packNormalToRGB, unpackRGBToNormal, sample, screenUV, texture, uniform, mix, smoothstep, length, color, step, clamp, positionGeometry, luminance, pow } from 'three/tsl';
@@ -27,9 +29,10 @@ import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { godrays } from 'three/addons/tsl/display/GodraysNode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import { buildCourt, COURT, DOORS, STEP, doorAngle, at, type Court, type Tex } from './scene';
+import { buildCourt, fitFilms, COURT, DOORS, STEP, FILM, doorAngle, at, type Court, type Tex } from './scene';
+import { Reel, FILM_FPS, type Film } from '../films';
 import { locate, ring, TITLE_STOP, LEG_SECONDS } from '../timeline';
-import { worlds } from '../../../data/worlds';
+
 import wordmark from '../../../data/wordmark.json';
 
 export type Quality = 'high' | 'medium' | 'low';
@@ -40,7 +43,6 @@ export interface Frame {
   pointer: { x: number; y: number; active: boolean };
 }
 
-const WORLDS = worlds.map((w) => w.id);
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ss = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const easeIO = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -63,7 +65,8 @@ const SPIN = QX.get('spin') === '0' ? 0 : (2 * Math.PI) / qn('turn', 72);
  * wipes the view.
  */
 const SUN = {
-  court: { az: qn('sun0', Math.PI + 0.31), el: qn('el0', 0.38) },
+  // (its height keeps the shade the wall at our back throws over the floor as long as it was before the wall rose)
+  court: { az: qn('sun0', Math.PI + 0.31), el: qn('el0', 0.425) },
   door: { az: qn('dsun', 0.12), el: qn('del', 0.95) },
   swing: qn('swing', 2 * Math.PI), dip: qn('dip', 0.45),
   up: { az: 0.4, el: 1.1 },
@@ -76,18 +79,18 @@ const SUN = {
  * wall's shade then reaches twelve metres, past us, and the picture beyond is made to cast a shadow so no beam comes
  * through the opening to fall across the words. The world beyond is a lit picture, so it loses nothing by it.
  */
-const UP = { back: 10.45, fov: 70, sun: { az: qn('usun', 0.12), el: qn('uel', 0.63) }, courtFov: 70, courtLook: 4.0 };
+const UP = { fov: qn('ufov', 74), sun: { az: qn('usun', 0.12), el: qn('uel', 0.63) }, courtFov: 70, courtLook: 4.0 };
 /** Screens narrower than this (width ÷ height) are framed upright. */
 const UPRIGHT = 0.92;
 
 /** A doorway stop, at the doorway whose (unwrapped) angle is a: the doorway a little right of centre, the wall to its
  *  left free for the words — or, upright, squarely across the top with the floor below it free. */
 function doorPose(a: number, ar = 1.6): Pose {
-  const S = COURT.stop;
-  // upright: level, ten metres back, the doorway from a tenth to about three fifths of the height
-  if (ar < UPRIGHT) return { pos: at(a, COURT.R - UP.back, S.eye), look: at(a, COURT.R - 0.35, S.eye), fov: UP.fov };
-  // about ten metres back, pitched up a little: the doorway stands from the floor to ~90% of the height, its foot a
-  // ground line for the words; the camera looks left of the door (+tan) so the door sits right of centre
+  const S = COURT.stop, U = COURT.upStop;
+  // upright: level, eleven metres back, the doorway from a tenth of the height (under the header) to its foot at ~58%
+  if (ar < UPRIGHT) return { pos: at(a, COURT.R - U.back, U.eye), look: at(a, COURT.R - 0.35, U.eye), fov: UP.fov };
+  // eleven metres back, pitched up 11.5°: the doorway stands from a tenth of the height to its foot at ~86%, a ground
+  // line for the words; the camera looks left of the door (+tan) so the door sits right of centre
   const tan = new THREE.Vector3(Math.cos(a), 0, -Math.sin(a));
   const pos = at(a, COURT.R - S.back, S.eye);
   const look = at(a, COURT.R - 0.35, S.eye + S.back * Math.tan((S.pitch * Math.PI) / 180)).addScaledVector(tan, 2.6);
@@ -111,6 +114,9 @@ const LEG_ENTRY = LEG_SECONDS.entry;
 /** Cubic from 0 to 1 that leaves with slope v0 and arrives at rest (monotonic for v0 ≤ 3). */
 const hermite = (x: number, v0: number) => v0 * x + (3 - 2 * v0) * x * x + (v0 - 2) * x * x * x;
 const mod5 = (j: number) => ((j % DOORS) + DOORS) % DOORS;
+/** How much of the world's own progress is its textures (the rest: compiling the court's shaders before the intro hands
+ *  over; the films' bytes are counted by the caller, which starts them before this code has even loaded). */
+const ASSETS = 0.35;
 /** The sun's shadow map per tier: the lattice drawn into it is the dearest pass in the frame (`?sm=` for QA). */
 const shadowSize = (q: Quality) => qn('sm', q === 'high' ? 4096 : q === 'medium' ? 1536 : 1024);
 
@@ -122,6 +128,8 @@ export class World {
   private camera = new THREE.PerspectiveCamera(50, 1, 0.1, 400);
   private pipeline!: THREE.RenderPipeline;
   private court!: Court;
+  /** the five films, played together */
+  reel!: Reel;
   private sun!: THREE.DirectionalLight;
   private bounce!: THREE.HemisphereLight;
   private w = 1; private h = 1; private dpr = 1;
@@ -146,10 +154,10 @@ export class World {
     this.quality = quality;
   }
 
-  static async create(canvas: HTMLCanvasElement, hint: Quality, onProgress: (f: number) => void = () => {}) {
+  static async create(canvas: HTMLCanvasElement, hint: Quality, films: Promise<Film[]>, onProgress: (f: number) => void = () => {}) {
     const t0 = performance.now();
     const forced = new URLSearchParams(location.search).get('q');
-    const quality: Quality = forced === 'high' || forced === 'medium' || forced === 'low' ? forced : await tierFor(hint);
+    const quality: Quality = forced === 'high' || forced === 'medium' || forced === 'low' ? forced : await tierFor(hint, canvas);
     const w = new World(canvas, quality, canvas.closest<HTMLElement>('[data-hero]'));
     w.timings.gpu = gpuSeen;
     w.timings.start = quality;
@@ -164,30 +172,46 @@ export class World {
     renderer.shadowMap.type = THREE.PCFShadowMap;
     w.timings.init = performance.now() - t0;
 
-    // assets: the court's materials, the sky, the five worlds
+    // assets: the court's materials and sky (progress: by count), and the five films (already on their way); then the
+    // shaders, as they compile
     const res = quality === 'high' ? '2k' : '1k';
     const tl = new THREE.TextureLoader();
-    let done = 0; const total = 3 * 3 + 5 * 2 + 1;
-    const tick = () => onProgress(++done / total);
+    let done = 0; const total = 3 * 3 + 1;
+    const tick = () => onProgress(ASSETS * (++done / total));
     const loadSet = async (n: string): Promise<Tex> => {
       const [col, nrm, arm] = await Promise.all([`col-${res}`, 'nrm-1k', 'arm-1k'].map((k) => tl.loadAsync(`/media/court/${n}-${k}.webp`).then((t) => { tick(); return t; })));
       col.colorSpace = THREE.SRGBColorSpace;
       for (const t of [col, nrm, arm]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; }
       return { col, nrm, arm };
     };
-    const size = quality === 'low' ? 900 : 1400;
-    const [sets, photos, depths, hdr] = await Promise.all([
+    const [sets, list, hdr] = await Promise.all([
       Promise.all(['stone', 'plaster', 'smooth'].map(loadSet)),
-      Promise.all(WORLDS.map((id) => tl.loadAsync(`/media/hero5/${id}-${size}.webp`).then((t) => { t.colorSpace = THREE.SRGBColorSpace; tick(); return t; }))),
-      Promise.all(WORLDS.map((id) => tl.loadAsync(`/media/hero5/${id}-depth.webp`).then((t) => { tick(); return t; }))),
+      films,
       new HDRLoader().setDataType(THREE.FloatType).loadAsync('/media/court/sky-1k.hdr').then((t) => { tick(); return t; }),
     ]);
+    // each film drawn as a video texture, mipmapped so a doorway seen across the court does not shimmer; a film that
+    // could not be had hangs its poster
+    const filmTex = await Promise.all(list.map(async (f) => {
+      if (!f.video) {
+        const p = await tl.loadAsync(`/media/hero9/${f.id}-poster-720.webp`);
+        p.colorSpace = THREE.SRGBColorSpace;
+        return p;
+      }
+      const v = new THREE.VideoTexture(f.video);
+      v.colorSpace = THREE.SRGBColorSpace;
+      if (qn('fm', 1) === 1) { v.generateMipmaps = true; v.minFilter = THREE.LinearMipmapLinearFilter; }
+      v.anisotropy = 8;
+      v.needsUpdate = true; // its first frame, before it plays
+      return v;
+    }));
     w.timings.assets = performance.now() - t0;
+    w.timings.films = `${list[0]?.video?.videoWidth ?? '-'} px · ${list.filter((f) => f.video).length}/5`;
+    w.reel = new Reel(list);
     const tex = { stone: sets[0], plaster: sets[1], smooth: sets[2] };
     const frame = () => new Promise((r) => requestAnimationFrame(r));
     await frame();
     let t = performance.now();
-    w.build(tex, photos, depths, hdr);
+    w.build(tex, filmTex, hdr);
     w.timings.build = performance.now() - t;
     w.resize();
     await frame();
@@ -198,10 +222,11 @@ export class World {
     const objs: THREE.Object3D[] = [];
     w.scene.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m && !seen.has(m)) { seen.add(m); objs.push(o); } });
     let worst = 0;
-    for (const o of objs) {
+    for (const [i, o] of objs.entries()) {
       const t1 = performance.now();
       await renderer.compileAsync(o, w.camera, w.scene);
       worst = Math.max(worst, performance.now() - t1);
+      onProgress(ASSETS + (0.98 - ASSETS) * ((i + 1) / objs.length));
       await frame();
     }
     w.timings.materials = objs.length;
@@ -219,7 +244,7 @@ export class World {
     return w;
   }
 
-  private build(tex: Record<string, Tex>, photos: THREE.Texture[], depths: THREE.Texture[], hdr: THREE.DataTexture) {
+  private build(tex: Record<string, Tex>, films: THREE.Texture[], hdr: THREE.DataTexture) {
     const q = this.quality;
     const scene = this.scene;
     // sky light with the sun taken out (the sun is a real, shadow-casting light)
@@ -253,8 +278,8 @@ export class World {
     scene.add(this.bounce);
     this.sun = sun;
 
-    const aspect = (photos[0].image as HTMLImageElement).width / (photos[0].image as HTMLImageElement).height;
-    this.court = buildCourt(tex, { photos, depths, aspect }, scene, { reflect: q === 'high' ? 0.5 : q === 'medium' ? 0.35 : 0.25, dust: q === 'low' ? 1200 : 3200 });
+    this.court = buildCourt(tex, { films }, scene, { reflect: q === 'high' ? 0.5 : q === 'medium' ? 0.35 : 0.25, dust: q === 'low' ? 1200 : 3200 });
+    fitFilms(this.court, COURT.stop); // (wide screens; resize() refits them upright)
     scene.add(this.court.root);
 
     // the title card's ground: the five worlds in the letters' columns (N, E, X, O, RA), full screen behind the mask
@@ -267,7 +292,7 @@ export class World {
     const x0 = box.x, x1 = box.y, y0 = box.z, y1 = box.w;
     const seamsU = LETTER_SEAMS.map((g) => x0.add(x1.sub(x0).mul(g)));
     const edges = [x0, ...seamsU, x1];
-    const photoAspect = (photos[0].image as HTMLImageElement).width / (photos[0].image as HTMLImageElement).height;
+    const photoAspect = FILM;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let col: any = vec3(0, 0, 0);
     for (let k = 0; k < 5; k++) {
@@ -281,7 +306,7 @@ export class World {
       const sx = panelAspect.div(photoAspect).min(1), sy = float(photoAspect).div(panelAspect).min(1);
       const puv = vec2(u.mul(sx).add(0.5), v.mul(sy).negate().add(0.5));
       const inside = step(a, su.x).mul(step(su.x, b2));
-      col = col.add(texture(photos[k], puv).rgb.mul(inside));
+      col = col.add(texture(films[k], puv).rgb.mul(inside));
     }
     m.colorNode = col;
     m.opacityNode = stripMix;
@@ -308,6 +333,8 @@ export class World {
     const beauty = scenePass.getTextureNode('output');
     const depth = scenePass.getTextureNode('depth');
     const vel = scenePass.getTextureNode('velocity');
+    // 1 where a film is seen (its material writes a clear alpha; scene.ts), 0 elsewhere
+    const film = float(1).sub(scenePass.getTextureNode('diffuseColor').a);
     scenePass.getTexture('diffuseColor').type = THREE.UnsignedByteType;
     scenePass.getTexture('normal').type = THREE.UnsignedByteType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -317,14 +344,18 @@ export class World {
       const normal = scenePass.getTextureNode('normal');
       const gi = ssgi(beauty, depth, sample((u) => unpackRGBToNormal(normal.sample(u))), this.camera);
       gi.sliceCount.value = 2; gi.stepCount.value = 8; gi.radius.value = 6; gi.giIntensity.value = 2.2; gi.aoIntensity.value = 1;
-      chain = vec4(add(beauty.rgb.mul(gi.a), diffuse.rgb.mul(gi.rgb)), 1);
+      // (a film takes no bounce light, having no diffuse colour, and no occlusion either: it is light, not stone)
+      chain = vec4(add(beauty.rgb.mul(mix(gi.a, float(1), film)), diffuse.rgb.mul(gi.rgb).mul(float(1).sub(film))), 1);
     }
     if (q !== 'low' && new URLSearchParams(location.search).get('rays') !== '0') {
       const gr = godrays(depth, this.camera, sun);
       gr.raymarchSteps.value = q === 'high' ? 48 : 28;
       gr.density.value = 0.85; gr.maxDensity.value = 0.6; gr.distanceAttenuation.value = 1.6;
       const rayGain = Number(new URLSearchParams(location.search).get('rg') ?? 2.2);
-      chain = vec4(chain.rgb.add(gr.getTextureNode().r.mul(color(new THREE.Color(0xffe4bf))).mul(rayGain)), 1);
+      // the sun stands behind a doorway at its stop, so its shafts would pour over the film: over a film only a trace of
+      // them is kept (it still stands in the court's air), so it reads clear, its blacks black
+      const overFilm = mix(float(1), float(qn('fr', 0.2)), film);
+      chain = vec4(chain.rgb.add(gr.getTextureNode().r.mul(color(new THREE.Color(0xffe4bf))).mul(rayGain).mul(overFilm)), 1);
     }
     const aa = traa(chain, depth, vel, this.camera);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -355,6 +386,8 @@ export class World {
       for (const r of this.court.rooms) r.pic.castShadow = port;
       this.sun.shadow.needsUpdate = true;
       this.sunSeen.set(0, 0, 0);
+      // and its camera stands elsewhere, so the films are hung again to fill exactly what it sees
+      fitFilms(this.court, port ? COURT.upStop : COURT.stop);
     }
     this.ar = W / H;
     this.renderer.setPixelRatio(this.dpr);
@@ -470,7 +503,8 @@ export class World {
     // between doorways: back from the doorway, along the court (its wall wipes across the view), into the next one,
     // which stands to the right
     const a0 = this.doorAt(L.leg), a1 = a0 - STEP, A = doorPose(a0, ar), B = doorPose(a1, ar);
-    const pts = [A.pos, at(a0 - 0.12, COURT.R - 9.6, 1.9), at((a0 + a1) / 2, COURT.R - 10.4, 2.05), at(a1 + 0.2, COURT.R - 9.6, 1.9), B.pos];
+    const bk = this.port ? COURT.upStop.back : COURT.stop.back;
+    const pts = [A.pos, at(a0 - 0.12, COURT.R - bk + 0.2, 1.9), at((a0 + a1) / 2, COURT.R - bk - 0.3, 2.05), at(a1 + 0.2, COURT.R - bk + 0.2, 1.9), B.pos];
     const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
     const looks = [A.look, at(a0 - 0.55, COURT.R, 3.9), at((a0 + a1) / 2 - 0.25, COURT.R, 4.1), at(a1 + 0.1, COURT.R, 3.8), B.look];
     const lookCurve = new THREE.CatmullRomCurve3(looks, false, 'centripetal');
@@ -509,10 +543,23 @@ export class World {
   private slow: number[] = [];
   private stepping = false;
 
+  // ── the films ───────────────────────────────────────────────────────────────────────────
+  /** Play the five films (together; they loop on their own). */
+  play() {
+    this.reel.play();
+    // (their pace is measured afresh: the time they were held, and their first frames, are not a stall)
+    this.filmWatch.t = 0; this.filmWatch.short = 0;
+  }
+
+
+  /** Hold them (the court is out of sight, or the tab is hidden). */
+  pause() { this.reel.pause(); }
+
   render(f: Frame) {
     const L = locate(f.p);
-    // a frozen frame is not redrawn: once the pointer is still and the temporal AA has settled, nothing changes
-    const running0 = f.moving || (L.rest && L.stop === 0);
+    // a still frame is not redrawn: once the pointer is still and the temporal AA has settled, nothing changes — unless
+    // a film is playing, which is almost always
+    const running0 = f.moving || (L.rest && L.stop === 0) || this.reel.live;
     const sig = running0 ? '' : `${f.p}|${f.pointer.active ? f.pointer.x.toFixed(3) + ',' + f.pointer.y.toFixed(3) : '-'}|${this.w}x${this.h}`;
     if (sig && sig === this.sig && this.settle > 24) return;
     if (sig !== this.sig) { this.sig = sig; this.settle = 0; }
@@ -558,7 +605,6 @@ export class World {
     this.camera.lookAt(pose.look);
     if (Math.abs(this.camera.fov - pose.fov) > 1e-3) { this.camera.fov = pose.fov; this.camera.updateProjectionMatrix(); }
     for (const r of this.court.rooms) {
-      (r.lean.value as THREE.Vector2).set(-this.lean.x * 0.02, -this.lean.y * 0.015);
       // a name hovered in the ring lights its doorway's world a little
       const g = r.glow as unknown as { value: number };
       const want = start && this.hovered === r.k ? 1.32 : 1;
@@ -577,25 +623,54 @@ export class World {
 
   /** Frames that run long for two seconds step the quality down (rebuilt between frames; a short stall once). */
   private govern(dt: number, animating: boolean) {
-    if (!animating || this.stepping || this.quality === 'low' || QX.get('gov') === '0') return;
+    this.watchFilms();
+    // (not while the intro is up: its own full-screen compositing loads the GPU until it has gone)
+    if (!animating || this.stepping || this.quality === 'low' || QX.get('gov') === '0' || document.documentElement.dataset.intro === 'on') return;
     this.slow.push(dt);
     if (this.slow.length < 90) return;
     const sorted = this.slow.slice().sort((a, b) => a - b);
     const median = sorted[sorted.length >> 1];
     this.slow.length = 0;
-    if (median > 0.024) {
-      this.stepping = true;
-      (this as { quality: Quality }).quality = this.quality === 'high' ? 'medium' : 'low';
-      this.buildPipeline();
-      this.sun.shadow.mapSize.setScalar(shadowSize(this.quality));
-      this.sun.shadow.needsUpdate = true;
-      this.resize();
-      this.timings.stepped = performance.now();
-      this.stepping = false;
-    }
+    if (median > 0.024) this.stepDown('frames');
   }
 
-  dispose() { this.renderer.dispose(); }
+  /**
+   * The films must keep their pace. A GPU the court keeps too busy starves the video decoder that shares it: a film
+   * then drops frames, stutters, and at worst its clock stalls. Every second and a half, the frames the films actually
+   * showed are counted against what they should have; short twice running, the court steps down a tier. (Not while the
+   * intro is up: its own full-screen compositing loads the GPU until it has gone, and would read as the court's doing.)
+   */
+  private filmWatch = { t: 0, shown: 0, short: 0 };
+  private watchFilms() {
+    const w = this.filmWatch, now = performance.now();
+    const introUp = document.documentElement.dataset.intro === 'on';
+    if (!this.reel.live || this.stepping || introUp || this.quality === 'low' || QX.get('gov') === '0') { w.t = 0; return; }
+    const shown = this.reel.shown();
+    if (!w.t) { w.t = now; w.shown = shown; return; }
+    const secs = (now - w.t) / 1000;
+    if (secs < 1.5) return;
+    const pace = (shown - w.shown) / (secs * FILM_FPS * this.reel.playing);
+    w.t = now; w.shown = shown;
+    this.timings.filmPace = +pace.toFixed(2);
+    w.short = pace < 0.85 ? w.short + 1 : 0;
+    if (w.short >= 2) { w.short = 0; w.t = 0; this.stepDown('films'); }
+  }
+
+  /** One tier down (rebuilt between frames; a short stall, once). */
+  private stepDown(why: string) {
+    this.stepping = true;
+    (this as { quality: Quality }).quality = this.quality === 'high' ? 'medium' : 'low';
+    this.buildPipeline();
+    this.sun.shadow.mapSize.setScalar(shadowSize(this.quality));
+    this.sun.shadow.needsUpdate = true;
+    this.resize();
+    this.timings.stepped = `${Math.round(performance.now())} ms, ${why}`;
+    this.stepping = false;
+    // (the rebuild's stall is not the films' fault: their pace is measured afresh)
+    this.filmWatch.t = 0; this.filmWatch.short = 0; this.slow.length = 0;
+  }
+
+  dispose() { this.reel?.pause(); this.renderer.dispose(); }
 }
 
 /** The gaps between NEXORA's letters as fractions of the wordmark's width (R and A share a panel), from its sub-paths. */
@@ -617,16 +692,22 @@ const LETTER_SEAMS = (() => {
 
 let gpuSeen = '';
 /** A first guess at what this GPU can carry: discrete GPUs get the full court, integrated ones the medium one. */
-async function tierFor(hint: Quality): Promise<Quality> {
+async function tierFor(hint: Quality, canvas: HTMLCanvasElement): Promise<Quality> {
   if (hint === 'low') return 'low';
+  // The top tier's traced light costs by the pixel, and the films' decoder shares the GPU: past about 1.6 million
+  // pixels even a discrete laptop GPU (an RX 5600M at 1920 × 1080) gives the court all it has, and the films starve.
+  // So the top tier is kept for screens that leave it room (measured: 1440 × 900 plays every frame; 1920 × 1080, under
+  // half). The films' watch (watchFilms) still steps down later if they fall short.
+  const px = (canvas.clientWidth || innerWidth) * (canvas.clientHeight || innerHeight) * Math.min(devicePixelRatio, 1.5) ** 2;
+  const roomy = px <= qn('px', 1.6e6);
   try {
     const gpu = (navigator as unknown as { gpu?: { requestAdapter(o: object): Promise<{ info?: { vendor?: string; architecture?: string } } | null> } }).gpu;
     const a = gpu ? await gpu.requestAdapter({ powerPreference: 'high-performance' }) : null;
     const v = (a?.info?.vendor ?? '').toLowerCase(), arch = (a?.info?.architecture ?? '').toLowerCase();
-    gpuSeen = `${v} ${arch}`;
-    if (v.includes('nvidia')) return 'high';
-    if (v.includes('amd') && /rdna/.test(arch)) return 'high';
-    if (v.includes('apple')) return hint === 'high' ? 'high' : 'medium';
+    gpuSeen = `${v} ${arch} · ${(px / 1e6).toFixed(2)} MP`;
+    if (v.includes('nvidia')) return roomy ? 'high' : 'medium';
+    if (v.includes('amd') && /rdna/.test(arch)) return roomy ? 'high' : 'medium';
+    if (v.includes('apple')) return hint === 'high' && roomy ? 'high' : 'medium';
   } catch { /* fall through */ }
   return 'medium';
 }

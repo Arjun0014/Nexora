@@ -1,10 +1,11 @@
 ---
 /**
- * The film, version 7: the turning world — a limestone court under a latticed dome that turns about its pool, five
- * doorways onto five moments of work. See docs/redesign/07-HERO-V7.md.
+ * The film, version 9: the turning world — a limestone court under a latticed dome that turns about its pool, five
+ * tall doorways onto five films of work, always playing. See docs/redesign/09-HERO-V9.md (07 for the turn).
  *
  * DEFAULT (no JS, reduced motion, Save-Data): six ordinary sections on limestone — the overview, the five worlds each
- * in an arch, the title card — complete and readable.
+ * in an arch (its film's poster, in the doorway's own 9:16 shape; nothing plays), the title card — complete and
+ * readable.
  *
  * html.cinema (set pre-paint): the same markup becomes ONE screen-high stage; the chapters stack over a WebGPU canvas
  * that draws the court (src/scripts/hero/court), stepped by gesture. Words only ever stand on plain stone in shade:
@@ -16,8 +17,8 @@ import Arrow from '../ui/Arrow.astro';
 import { worlds, overview } from '../../data/worlds';
 import { statement } from '../../data/content';
 import { site } from '../../data/site';
-const img = (id: string) => `/media/hero5/${id}-900.webp`;
-const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/${id}-1400.webp 1400w`;
+const img = (id: string) => `/media/hero9/${id}-poster-720.webp`;
+const srcset = (id: string) => `/media/hero9/${id}-poster-720.webp 720w, /media/hero9/${id}-poster-1080.webp 1080w`;
 ---
 <section class="hero" id="film" data-hero data-header-clear data-theme="paper" data-bg="light" aria-label="Introduction">
   <div class="hero__stage" data-stage>
@@ -43,8 +44,8 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
 
       {worlds.map((w) => (
         <section class="ch ch--world" data-chapter={w.id} data-sector={w.id} aria-labelledby={`world-${w.id}`}>
-          <figure class="ch__frame">
-            <img src={img(w.id)} srcset={srcset(w.id)} sizes="(max-aspect-ratio: 1/1) 90vw, 46vw" width="1400" height="1628" alt={w.moment} loading="lazy" decoding="async" />
+          <figure class="ch__frame ch__frame--film">
+            <img src={img(w.id)} srcset={srcset(w.id)} sizes="(max-aspect-ratio: 1/1) 60vw, 26vw" width="1080" height="1920" alt={w.moment} loading="lazy" decoding="async" />
           </figure>
           <div class="ch__copy">
             <p class="label ch__label"><span class="num">{w.n}</span><span class="ch__rule" aria-hidden="true"></span><span class="ch__of">05</span></p>
@@ -101,6 +102,8 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
   .ch__frame--court { border-radius: 999px 999px 0 0 / 60% 60% 0 0; aspect-ratio: 16 / 11; align-self: center; max-height: none; }
   .ch__frame--court img { object-position: 50% 60%; }
   .ch__frame img { width: 100%; height: 100%; object-fit: cover; }
+  /* the worlds: each film's poster in its doorway's own shape (9:16, the arch rising 0.55 of its width) */
+  .ch__frame--film { justify-self: center; align-self: end; height: min(78vh, 52rem); max-height: none; aspect-ratio: 9 / 16; border-radius: 50% 50% 0 0 / 31% 31% 0 0; }
   .ch__copy { grid-column: 1; grid-row: 1; max-width: 34rem; }
 
   .ch__label { display: flex; align-items: center; gap: 0.9em; margin-block-end: 1.4rem; color: var(--ink-soft); }
@@ -115,7 +118,7 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
   .ch__link { color: var(--ink); }
 
   .ch--title { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(2rem, 5vw, 4rem); min-height: 80svh; background: var(--studio); color: var(--bone); }
-  .ch__word { width: 100%; aspect-ratio: 4290 / 740; background: url('/media/hero5/facilities-1400.webp') 50% 45% / cover no-repeat var(--bone);
+  .ch__word { width: 100%; aspect-ratio: 4290 / 740; background: url('/media/hero9/facilities-poster-1080.webp') 50% 60% / cover no-repeat var(--bone);
     -webkit-mask: url('/wordmark.svg') center / contain no-repeat; mask: url('/wordmark.svg') center / contain no-repeat; }
   .ch__statement em { color: var(--amber); }
   .ch__meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem; color: var(--bone-soft); padding-block-start: 1.25rem; border-block-start: 1px solid rgba(243, 237, 227, 0.16); }
@@ -210,6 +213,7 @@ const srcset = (id: string) => `/media/hero5/${id}-900.webp 900w, /media/hero5/$
     .ch__frame, .ch__copy { grid-column: 1; }
     .ch__frame { grid-row: 1; max-height: 52vh; aspect-ratio: 4 / 5; }
     .ch__frame--court { aspect-ratio: 4 / 3; width: 100%; justify-self: center; }
+    .ch__frame--film { height: min(58vh, 40rem); max-height: none; aspect-ratio: 9 / 16; justify-self: center; }
     .ch__copy { grid-row: 2; }
     .ch__h1 { font-size: clamp(2.6rem, 12.4vw, 4.6rem); }
     .ch__title { font-size: clamp(2.5rem, 11.8vw, 4.4rem); }

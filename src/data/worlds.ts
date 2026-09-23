@@ -19,9 +19,10 @@ export interface World {
   linkLabel: string;
   /** Describes the frozen scene for assistive tech. */
   alt: string;
-  /** What is caught mid-air — used in captions. */
+  /** What the world's film shows, as a short caption. */
   frozen: string;
-  /** Describes the hero's frozen moment, seen through the screen (the `alt` above describes the older rendered stills). */
+  /** Describes the world's film in the hero's doorway, for assistive tech and its static poster (the `alt` above
+   *  describes the older rendered stills). */
   moment: string;
   /** object-position for wide crops of the reference still. */
   focus: string;
@@ -39,8 +40,8 @@ export const worlds: World[] = [
     roles: ['Waiting and service staff', 'Hosts and reception', 'Baristas and beverage service', 'Kitchen stewards and commis', 'Room attendants', 'Banqueting teams'],
     linkLabel: 'Hospitality staffing',
     alt: 'A waiter frozen mid-pour at a candle-lit table, the stream of liquid suspended in the air.',
-    frozen: 'a doorman, at his post',
-    moment: 'A doorman in a red tunic and top hat stands at his post in a hotel lobby, under a chandelier.',
+    frozen: 'a guest, checking in',
+    moment: 'A receptionist in a red blazer answers the phone at a hotel reception desk as a guest signs in.',
     focus: '70% 50%',
   },
   {
@@ -54,8 +55,8 @@ export const worlds: World[] = [
     roles: ['Event hosts', 'Registration and accreditation desks', 'Ushers and guest guidance', 'Brand ambassadors', 'Exhibition stand staff', 'Event runners'],
     linkLabel: 'Event workforce',
     alt: 'An event host frozen while handing a lanyard to a guest, the ribbon curved in mid-air between their hands.',
-    frozen: 'the badges, being laid out',
-    moment: 'Two hosts lay out name badges along a conference registration desk before the doors open.',
+    frozen: 'guests, being signed in',
+    moment: 'Event hosts sign guests in at a conference: one checks names on a clipboard while another hands out lanyards.',
     focus: '73% 50%',
   },
   {
@@ -69,8 +70,8 @@ export const worlds: World[] = [
     roles: ['Cleaning teams', 'Housekeeping attendants', 'Office and pantry assistants', 'Porters and helpers', 'Front desk', 'Supervisors'],
     linkLabel: 'Facilities staffing',
     alt: 'A housekeeping attendant frozen while unfolding fresh linen, the white fabric hanging in the air beside a service trolley.',
-    frozen: 'a floor, halfway clean',
-    moment: 'A cleaner works a vacuum along the floor of a glass-walled office, his machine beside him.',
+    frozen: 'an office, being cleaned',
+    moment: 'A cleaning crew in orange overalls vacuums the floor and wipes down an office kitchen and dining area.',
     focus: '76% 50%',
   },
   {
@@ -84,8 +85,8 @@ export const worlds: World[] = [
     roles: ['Mechanical, electrical and HVAC technicians', 'Plant and utilities operators', 'Instrumentation support', 'Technical helpers', 'IT and telecom field support', 'Warehouse operatives'],
     linkLabel: 'Technical workforce',
     alt: 'A technician kneeling at an open equipment panel, frozen mid-adjustment with a cable hanging in the air.',
-    frozen: 'a connection, mid-adjustment',
-    moment: 'A technician in overalls and a hard hat kneels at an open electrical panel, checking it against his notes.',
+    frozen: 'a weld, under way',
+    moment: 'A welder bends over his workbench in a dim workshop, sparks and blue light around him.',
     focus: '78% 50%',
   },
   {
@@ -99,8 +100,8 @@ export const worlds: World[] = [
     roles: ['Permanent recruitment', 'Sourcing and assessment', 'Interview coordination', 'Onboarding support', 'On-site coordination', 'Rostering support'],
     linkLabel: 'Recruitment',
     alt: 'A recruiter frozen while passing a document across a desk to a candidate, the page floating between their hands.',
-    frozen: 'a page, mid-handover',
-    moment: 'A woman at a desk takes a page held out to her across it, an interview under way.',
+    frozen: 'an interview, going well',
+    moment: 'Two candidates smile across the table from their interviewer, an interview going well.',
     focus: '72% 50%',
   },
 ];
@@ -112,5 +113,5 @@ export const overview = {
   /** Set as one line in the film (the lines only break in the static reading); `many` is the italic accent. */
   headline: ['One world,', 'many workforces.'],
   support: 'Hospitality, events, facilities, technical and recruitment teams from one Qatar-based partner.',
-  alt: 'A carved limestone screen in the sun; a circle of it stands open onto a man pouring Arabic coffee, the first of five moments of work held in time behind it.',
+  alt: 'A limestone court under a latticed brass dome, turning slowly about its pool; five tall doorways open onto five films of people at work.',
 };

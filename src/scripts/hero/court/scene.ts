@@ -1,8 +1,9 @@
 /**
  * The court: one world under a latticed dome. A round limestone court with a pool at its heart; five doorways in the
- * ring wall, each opening onto a world of work; above, two brass shells of eight-point stars that the sun comes
- * through as a rain of light. Metres, y up, the court's centre at the origin; world k's doorway on the axis at angle
- * −k·72° measured from +z toward +x, so that, facing a doorway from inside, the next world's stands to its right.
+ * ring wall, each opening onto a world of work (a film, playing); above, two brass shells of eight-point stars that the
+ * sun comes through as a rain of light. Metres, y up, the court's centre at the origin; world k's doorway on the axis
+ * at angle −k·72° measured from +z toward +x, so that, facing a doorway from inside, the next world's stands to its
+ * right.
  */
 import * as THREE from 'three/webgpu';
 import {
@@ -14,15 +15,45 @@ import {
 const Q = new URLSearchParams(typeof location === 'undefined' ? '' : location.search);
 const qn = (k: string, d: number) => { const v = Q.get(k); return v === null ? d : Number(v); };
 
+/** The films' shape (width over height, 9:16): the doorways are cut to it. */
+export const FILM = 9 / 16;
+/** A camera at a doorway stop: how far back from the court's wall it stands, and its eye height. */
+export interface StopCam { back: number; eye: number }
+
+/**
+ * What a camera at a doorway stop sees of the world beyond, on the plane its film hangs in (`room` metres behind the
+ * reveal): the opening's FAR edge (the back of the reveal, which subtends less than its face) frames the view, and the
+ * floor cuts it at the bottom, where the film's foot stands. Returns that window's width and its top.
+ */
+export function coneAt(cam: StopCam, span: number, apex: number, reveal: number, room: number) {
+  const dB = cam.back - 0.35 + reveal, k = (dB + room) / dB;
+  return { w: span * k, top: cam.eye + (apex - cam.eye) * k };
+}
+/** The apex at which a doorway of this span shows the stop camera exactly the film's shape. */
+const apexFor = (span: number, cam: StopCam, reveal: number, room: number) => {
+  const dB = cam.back - 0.35 + reveal, k = (dB + room) / dB;
+  return cam.eye + ((span * k) / FILM - cam.eye) / k;
+};
+
+/** The doorway stop, wide screens: the camera's distance back, its eye height, how far it is pitched up (degrees). */
+const STOP = { back: qn('back', 11.4), eye: 1.7, pitch: qn('pitch', 11.5) };
+const SPAN = qn('span', 4.8), REVEAL = 1.5, ROOM = qn('room', 1.0);
+const APEX = qn('apex', apexFor(SPAN, STOP, REVEAL, ROOM));
+/** the wall rises to take the doorway, its stepped frame and the cornice over it */
+const WALL = Math.max(9, Math.round((APEX + 1.55) * 10) / 10);
+
 export const COURT = {
-  R: 18, wallH: 9, // the ring wall
-  domeBase: 9, rise: 4.8, // the dome springs from the wall head
+  R: 18, wallH: WALL, // the ring wall
+  domeBase: WALL, rise: 4.8, // the dome springs from the wall head
   pool: 6.2,
-  // the doorways: wide enough that the world beyond reads as a place, not a glimpse (`?span=`, `?apex=` for QA)
-  door: { span: qn('span', 6.2), spring: qn('spring', 5.0), apex: qn('apex', 7.5), reveal: 1.5, frame: 1.15 },
-  room: qn('room', 1.0), // how far behind the doorway's face the world's image hangs
-  /** The doorway stop: the camera's radius, its eye height, how far it is pitched up (degrees). */
-  stop: { back: 9.8, eye: 1.7, pitch: 10.5 },
+  // the doorways: tall pointed arches in the films' own shape (4.8 by 8.66 m), so that from its stop each shows its
+  // film whole, neither cropped nor shrunk inside a larger opening (?span= and ?apex= for QA)
+  door: { span: SPAN, spring: qn('spring', APEX - 0.55 * SPAN), apex: APEX, reveal: REVEAL, frame: 1.15 },
+  room: ROOM, // how far behind the reveal the world's film hangs
+  stop: STOP,
+  /** ...and upright (phones, tablets held tall): level, a little lower, and back far enough for the tall doorway to
+   *  stand between the header and the words */
+  upStop: { back: qn('uback', 10.7), eye: qn('ueye', 1.52) },
 };
 export const DOORS = 5;
 export const STEP = (2 * Math.PI) / DOORS;
@@ -146,11 +177,12 @@ function mesh(g: THREE.BufferGeometry, m: THREE.Material, cast = true, receive =
 export interface Room {
   k: number;
   group: THREE.Group;
-  /** the world's picture, hung in the room beyond (it casts a shadow when the sun must not come through the
-   *  doorway — upright screens, where the words stand on the floor in front of it) */
+  /** the world's film, hung in the room beyond (it casts a shadow when the sun must not come through the doorway:
+   *  upright screens, where the words stand on the floor in front of it); sized by fitFilms */
   pic: THREE.Mesh;
-  /** uniforms of the world's picture */
-  lean: ReturnType<typeof uniform>;
+  /** the room round it: its sides and ceiling, seen only from an angle */
+  box: THREE.Mesh;
+  /** the film's brightness (a name hovered in the ring lifts it) */
   glow: ReturnType<typeof uniform>;
 }
 
@@ -163,7 +195,27 @@ export interface Court {
   water: THREE.Mesh;
 }
 
-export interface Pictures { photos: THREE.Texture[]; depths: THREE.Texture[]; aspect: number }
+/**
+ * Hang every world's film to fill exactly what the camera at its doorway stop sees through the opening (cam: that
+ * camera, which stands differently upright): its foot on the floor line, its width the view through the reveal's far
+ * edge and a hair over, so a lean of the pointer never finds an edge. The film keeps its own shape, so nothing is lost
+ * but the two top corners the arch itself hides. Seen from anywhere else (across the court, or between two doorways)
+ * the opening looks into its room past the film's edge, as a doorway does.
+ */
+export function fitFilms(court: Court, cam: StopCam) {
+  const D = COURT.door;
+  const c = coneAt(cam, D.span, D.apex, D.reveal, COURT.room);
+  const h = Math.max((c.w * 1.02) / FILM, c.top * 1.015), w = h * FILM;
+  for (const r of court.rooms) {
+    r.pic.scale.set(w, h, 1);
+    r.pic.position.y = h / 2;
+    // the room: from half a metre under the floor (hidden by it) to a little over the film's head
+    r.box.scale.set(w * 1.02, h + 0.8, 1);
+    r.box.position.y = (h + 0.8) / 2 - 0.5;
+  }
+}
+
+export interface Pictures { films: THREE.Texture[] }
 
 export function buildCourt(tex: Record<string, Tex>, pics: Pictures, scene: THREE.Scene, q: { reflect: number; dust: number }): Court {
   const C = COURT, D = C.door;
@@ -243,14 +295,6 @@ export function buildCourt(tex: Record<string, Tex>, pics: Pictures, scene: THRE
 
   const rooms: Room[] = [];
   const roomM = new THREE.MeshStandardNodeMaterial({ color: 0x8a7560, roughness: 0.9, side: THREE.BackSide });
-  // How big the picture hangs. A doorway is a window: all you ever see of the world beyond is the cone from the eye,
-  // at its stop, through the opening. The picture is cut to that cone — with a margin, so that a lean of the head, or
-  // a glance from across the court, never finds its edge — and the photograph is fitted into it as CSS `cover` would,
-  // so nothing is stretched and no wall is left showing inside the opening.
-  const dFace = C.stop.back - 0.35, dPic = dFace + D.reveal + C.room, kCone = dPic / dFace;
-  const coneW = D.span * kCone, coneTop = C.stop.eye + (D.apex - C.stop.eye) * kCone, coneBot = C.stop.eye * (1 - kCone);
-  const picW = coneW * 1.2, picH = (coneTop - coneBot) * 1.12, picY = (coneTop + coneBot) / 2;
-  const cover = vec2(Math.min(1, picW / picH / pics.aspect), Math.min(1, (pics.aspect * picH) / picW));
   for (let k = 0; k < DOORS; k++) {
     const g = place(new THREE.Group(), doorAngle(k), C.R - 0.35);
     root.add(g);
@@ -265,28 +309,28 @@ export function buildCourt(tex: Record<string, Tex>, pics: Pictures, scene: THRE
     g.add(mesh(rv, plaster));
     const step = new THREE.BoxGeometry(D.span + 0.5, 0.14, 0.7); step.translate(0, 0.07, -D.reveal / 2); worldUV(step);
     g.add(mesh(step, stone));
-    // the world: its picture hung in the room beyond, with depth, lit from within
-    const lean = uniform(new THREE.Vector2(0, 0));
+    // the world: its film, hung in the room beyond, lit from within (a unit plane, sized to the stop's view by fitFilms)
     const glow = uniform(1);
     const m = new THREE.MeshBasicNodeMaterial();
-    const photo = pics.photos[k], dep = pics.depths[k];
     const u0 = uv();
-    const pu = u0.sub(0.5).mul(cover).add(0.5);
-    const d = texture(dep, pu).r;
-    const puv = pu.add(lean.mul(d.sub(0.45)));
-    const img = texture(photo, puv).rgb;
+    const img = texture(pics.films[k], u0).rgb;
     // the room's own light: a touch brighter at the heart, falling off to its edges
     const vign = smoothstep(0.95, 0.35, length(u0.sub(vec2(0.5, 0.55)).mul(vec2(1.2, 1.0))));
     m.colorNode = img.mul(mix(float(0.78), float(1.06), vign)).mul(glow);
-    const pic = new THREE.Mesh(new THREE.PlaneGeometry(picW, picH), m);
-    pic.position.set(0, picY, -D.reveal - C.room);
+    // marked for the post chain: a film writes a clear alpha (everything else in the court is opaque, alpha 1; without
+    // blending, three leaves the alpha as given), so the court's traced bounce light and the haze of its sunbeams can
+    // be kept off it. It is light, not stone.
+    m.blending = THREE.NoBlending;
+    m.opacityNode = float(0);
+    const pic = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), m);
+    pic.position.set(0, 0.5, -D.reveal - C.room);
     g.add(pic);
-    // the room's sides and floor, dim and warm, so the picture sits in a space
-    const box = new THREE.BoxGeometry(picW * 1.02, picH, C.room + 0.1);
-    box.translate(0, picY, -D.reveal - C.room / 2);
-    const roomMesh = mesh(box, roomM, false, true);
-    g.add(roomMesh);
-    rooms.push({ k, group: g, pic, lean, glow });
+    // the room's sides, ceiling and floor, dim and warm, so the film sits in a space (a unit box, sized with the film)
+    const boxG = new THREE.BoxGeometry(1, 1, C.room + 0.1);
+    boxG.translate(0, 0, -D.reveal - C.room / 2);
+    const box = mesh(boxG, roomM, false, true);
+    g.add(box);
+    rooms.push({ k, group: g, pic, box, glow });
   }
 
   // ── the dome: two brass lattice shells on a ring beam ───────────────────────────────────

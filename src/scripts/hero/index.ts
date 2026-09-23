@@ -1,9 +1,10 @@
 /**
- * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/07-HERO-V7.md.
+ * Hero state machine — gesture-stepped, time-played, drawn live. See docs/redesign/09-HERO-V9.md (07 for the turn).
  *
  * The film is drawn live (./court): a limestone court under a latticed dome that turns about its pool, five doorways
- * onto five moments of work held in time. Its assets load and its shaders compile while the intro is up, and every
- * frame is a pure function of the playhead `p` (plus the pointer, and the clock on the first screen).
+ * onto five films of work, always playing. Its assets (the five films whole) load and its shaders compile while the
+ * intro is up (the intro waits for all of it), and every frame is a pure function of the playhead `p` (plus the
+ * pointer, the clock on the first screen, and the films' own frames).
  *
  * The court is a ring: the film goes into whichever doorway faces you when you step in — or the one you name in the
  * ring of names — and on round the ring from there (./timeline.ts `ring`).
@@ -14,20 +15,24 @@
  *
  * Invariant: the film only ever rests on a stop (integer p), so it cannot be left between two states.
  */
-import { overview } from '../../data/worlds';
+import { overview, worlds } from '../../data/worlds';
 import { $, $$, clamp, env } from '../core/env';
 import { onTick, damp } from '../core/ticker';
 import { buildLegs, ring, TITLE_STOP, LEG_COUNT, WORLD_COUNT } from './timeline';
 import { TitleMask } from './mask';
 import { HeroUI } from './ui';
 import { bindInput, type Dir } from './input';
+import { loadFilms, filmSize, filmHost } from './films';
 import type { World, Quality } from './court';
 
 const MAX_PENDING = 2; // stops that may be queued beyond the leg being played
 const BOOST = 0.85; // extra playback speed per queued stop
 
-/** Read by the intro so its progress is the hero's real loading progress. */
-export const heroLoad = { active: false, progress: 0, done: false };
+/**
+ * Read by the intro so its progress is the hero's real loading progress; it does not end before `done` (everything
+ * loaded, built and compiled). `abandoned`: the intro gave up waiting (something hung), so a late world is let go.
+ */
+export const heroLoad = { active: false, progress: 0, done: false, abandoned: false };
 
 function pickQuality(): Quality {
   const forced = new URLSearchParams(location.search).get('q');
@@ -151,7 +156,12 @@ export function initHero() {
 
   // ── frame loop ──────────────────────────────────────────────────────────────────────────
   let lastNow = 0;
+  // The court is drawn at most about 60 times a second (every other frame of a 120 Hz screen, so still evenly; 72 on a
+  // 144 Hz one): its films change 25 times a second, and a GPU kept busier, frame after frame, starves the decoder they
+  // share it with, measured here even while travelling. (?fps=N for QA.)
+  const maxFps = Number(params.get('fps') || 60);
   const tick = (_dt: number, now: number) => {
+    if (lastNow && now - lastNow < 800 / maxFps) return;
     // The film keeps WALL-CLOCK time: a slow device drops frames rather than playing in slow motion.
     const dt = Math.min(0.1, lastNow ? (now - lastNow) / 1000 : 0.016);
     lastNow = now;
@@ -174,10 +184,13 @@ export function initHero() {
   };
 
   // ── lifecycle ───────────────────────────────────────────────────────────────────────────
+  // The films play whenever the court can be seen (and behind the intro, from the moment the court is ready), and hold
+  // when it cannot.
   let off: (() => void) | null = null;
   let inView = true;
-  const wake = () => { if (!off) off = onTick(tick); };
-  const sleep = () => { off?.(); off = null; lastNow = 0; };
+  let rolling = false;
+  const wake = () => { if (!off) off = onTick(tick); if (rolling) world?.play(); };
+  const sleep = () => { off?.(); off = null; lastNow = 0; world?.pause(); };
   new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; if (inView && !document.hidden) wake(); else sleep(); }, { rootMargin: '10% 0px' }).observe(root);
   document.addEventListener('visibilitychange', () => { if (document.hidden) sleep(); else if (inView) wake(); });
 
@@ -204,16 +217,26 @@ export function initHero() {
   heroLoad.active = bootStop === 0;
   canvas.setAttribute('aria-label', overview.alt);
 
-  const report = (f: number) => { heroLoad.progress = f; };
-  report(0.05);
+  // The five films start downloading at once, alongside the court's code: they are most of what the hero loads.
+  const quality = pickQuality();
+  const host = filmHost();
+  // progress (for the intro): the films by their bytes, the court's code (three.js), then its world (textures, shaders)
+  let filmsF = 0, codeF = 0, worldF = 0;
+  const report = () => { heroLoad.progress = Math.max(heroLoad.progress, Math.min(0.995, 0.64 * filmsF + 0.06 * codeF + 0.3 * worldF)); };
+  const films = loadFilms(worlds.map((x) => x.id), Number(params.get('fs')) || filmSize(quality), host, (f) => { filmsF = f; report(); });
   import('./court').then(async ({ World }) => {
-    report(0.45);
-    world = await World.create(canvas, pickQuality(), (f) => report(0.45 + 0.55 * f));
-    heroLoad.done = true;
+    codeF = 1; report();
+    const w = await World.create(canvas, quality, films, (f) => { worldF = f; report(); });
+    if (heroLoad.abandoned) { w.dispose(); return; }
+    world = w;
     root.dataset.ready = 'true';
     ui.fit(); // again, now that the world has published where the pool stands
     if (params.has('qa')) (window as unknown as { __hero: unknown }).__hero = { go: (s: number) => { target = clamp(s, 0, TITLE_STOP); }, set: (v: number) => settleAt(v), get p() { return p; }, world };
+    // the films roll from now on: behind the intro, if it is up, so they are running when it opens
+    rolling = true;
     wake();
+    heroLoad.progress = 1;
+    heroLoad.done = true;
   }).catch((err) => {
     console.error('[hero] the 3D world failed to start', err);
     document.documentElement.classList.remove('cinema');
